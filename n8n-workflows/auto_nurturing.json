@@ -1,0 +1,115 @@
+{
+  "name": "NEXUS Auto-Nurturing Sequence",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "hours", "hoursInterval": 24}]
+        }
+      },
+      "name": "Daily Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8001/api/v1/leads",
+        "options": {}
+      },
+      "name": "Fetch Leads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter leads that need nurturing\nconst leads = $input.all();\nconst now = new Date();\nconst results = [];\n\nfor (const item of leads) {\n  const lead = item.json;\n  if (!lead.email || !lead.timestamp) continue;\n  \n  const leadDate = new Date(lead.timestamp);\n  const daysSince = Math.floor((now - leadDate) / (1000 * 60 * 60 * 24));\n  \n  // Determine nurturing stage\n  let stage = '';\n  let template = '';\n  \n  if (daysSince === 0) {\n    stage = 'welcome';\n    template = 'welcome_email';\n  } else if (daysSince === 1) {\n    stage = 'day1_features';\n    template = 'features_highlight';\n  } else if (daysSince === 3) {\n    stage = 'day3_social_proof';\n    template = 'testimonials';\n  } else if (daysSince === 7) {\n    stage = 'day7_trial_ending';\n    template = 'trial_urgency';\n  } else if (daysSince === 14) {\n    stage = 'day14_final_offer';\n    template = 'final_discount';\n  } else {\n    continue; // Skip non-trigger days\n  }\n  \n  results.push({\n    json: {\n      ...lead,\n      daysSince,\n      stage,\n      template,\n      product: lead.product || 'general'\n    }\n  });\n}\n\nreturn results.length > 0 ? results : [{json: {skip: true}}];"
+      },
+      "name": "Nurture Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {"value1": "={{ $json.skip }}", "value2": true}
+          ]
+        }
+      },
+      "name": "Has Leads?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate email content based on stage and product\nconst lead = $input.item.json;\n\nconst templates = {\n  welcome_email: {\n    subject: `🎉 مرحباً في NEXUS PRIME - ${lead.product}`,\n    body: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n      <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #333'>\n        <h1 style='color:#6366f1'>🚀 مرحباً في NEXUS PRIME</h1>\n        <p>شكراً لاهتمامك بـ <strong style='color:#8b5cf6'>${lead.product}</strong></p>\n        <p>فترتك التجريبية (14 يوم) بدأت الآن!</p>\n        <h3>🎯 خطواتك التالية:</h3>\n        <ol>\n          <li>🔐 فعّل حسابك</li>\n          <li>📖 استكشف الأدلة التعليمية</li>\n          <li>💡 جرب أول مشروع</li>\n        </ol>\n        <a href='https://mrf103.com' style='display:inline-block;background:#6366f1;color:white;padding:15px 40px;border-radius:12px;text-decoration:none;margin-top:20px'>ابدأ الآن →</a>\n      </div></body></html>`\n  },\n  features_highlight: {\n    subject: `💡 اكتشف قوة ${lead.product} - NEXUS`,\n    body: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n      <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #333'>\n        <h1 style='color:#6366f1'>💡 هل جربت هذه الميزات؟</h1>\n        <p>مستخدمو <strong>${lead.product}</strong> يحققون نتائج مذهلة:</p>\n        <ul style='line-height:2'>\n          <li>⚡ أتمتة 80% من المهام اليدوية</li>\n          <li>📊 تحليلات ذكية بالذكاء الاصطناعي</li>\n          <li>🔄 تكامل سلس مع أدواتك الحالية</li>\n        </ul>\n        <a href='https://mrf103.com' style='display:inline-block;background:#6366f1;color:white;padding:15px 40px;border-radius:12px;text-decoration:none;margin-top:20px'>استكشف الميزات →</a>\n      </div></body></html>`\n  },\n  testimonials: {\n    subject: `⭐ ماذا يقول مستخدمو NEXUS PRIME`,\n    body: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n      <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #333'>\n        <h1 style='color:#6366f1'>⭐ قصص نجاح حقيقية</h1>\n        <div style='background:#1a1a2e;padding:20px;border-radius:12px;margin:15px 0;border-right:4px solid #6366f1'>\n          <p>\"غيّر NEXUS طريقة عملي بالكامل. وفّرت 20 ساعة أسبوعياً\"</p>\n          <small style='color:#888'>- مؤسس شركة تقنية</small>\n        </div>\n        <p>لديك <strong>11 يوم</strong> متبقية في فترتك التجريبية</p>\n        <a href='https://mrf103.com' style='display:inline-block;background:#6366f1;color:white;padding:15px 40px;border-radius:12px;text-decoration:none;margin-top:20px'>واصل الرحلة →</a>\n      </div></body></html>`\n  },\n  trial_urgency: {\n    subject: `⏰ 7 أيام متبقية - لا تفوت العرض`,\n    body: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n      <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #333'>\n        <h1 style='color:#f59e0b'>⏰ فترتك التجريبية تنتهي قريباً!</h1>\n        <p>تبقى لك <strong style='color:#ef4444'>7 أيام</strong> فقط</p>\n        <div style='background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:25px;border-radius:12px;margin:20px 0;text-align:center'>\n          <h2 style='margin:0'>خصم 20% للاشتراك المبكر</h2>\n          <p style='margin:5px 0'>استخدم الكود: <strong>EARLY20</strong></p>\n        </div>\n        <a href='https://mrf103.com/#pricing' style='display:inline-block;background:#f59e0b;color:black;padding:15px 40px;border-radius:12px;text-decoration:none;margin-top:20px;font-weight:bold'>اشترك الآن بخصم 20% →</a>\n      </div></body></html>`\n  },\n  final_discount: {\n    subject: `🔥 العرض الأخير - خصم 30% ينتهي اليوم`,\n    body: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n      <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #ef4444'>\n        <h1 style='color:#ef4444'>🔥 فرصتك الأخيرة!</h1>\n        <p>فترتك التجريبية لـ <strong>${lead.product}</strong> تنتهي <strong>اليوم</strong></p>\n        <div style='background:linear-gradient(135deg,#ef4444,#dc2626);padding:30px;border-radius:12px;margin:20px 0;text-align:center'>\n          <h2 style='margin:0;font-size:28px'>خصم 30%</h2>\n          <p style='margin:5px 0'>الكود: <strong>FINAL30</strong></p>\n          <small>صالح لـ 24 ساعة فقط</small>\n        </div>\n        <a href='https://mrf103.com/#pricing' style='display:inline-block;background:#ef4444;color:white;padding:15px 40px;border-radius:12px;text-decoration:none;margin-top:20px;font-weight:bold'>اشترك الآن قبل فوات الأوان →</a>\n      </div></body></html>`\n  }\n};\n\nconst emailData = templates[lead.template] || templates.welcome_email;\n\nreturn [{\n  json: {\n    to: lead.email,\n    subject: emailData.subject,\n    html: emailData.body,\n    stage: lead.stage,\n    product: lead.product\n  }\n}];"
+      },
+      "name": "Generate Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8001/api/v1/nurture-log",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "email", "value": "={{ $json.to }}"},
+            {"name": "stage", "value": "={{ $json.stage }}"},
+            {"name": "product", "value": "={{ $json.product }}"},
+            {"name": "sent_at", "value": "={{ new Date().toISOString() }}"}
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log Nurture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {},
+      "name": "No Leads Today",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1050, 400]
+    }
+  ],
+  "connections": {
+    "Daily Trigger": {
+      "main": [
+        [{"node": "Fetch Leads", "type": "main", "index": 0}]
+      ]
+    },
+    "Fetch Leads": {
+      "main": [
+        [{"node": "Nurture Logic", "type": "main", "index": 0}]
+      ]
+    },
+    "Nurture Logic": {
+      "main": [
+        [{"node": "Has Leads?", "type": "main", "index": 0}]
+      ]
+    },
+    "Has Leads?": {
+      "main": [
+        [{"node": "No Leads Today", "type": "main", "index": 0}],
+        [{"node": "Generate Email", "type": "main", "index": 0}]
+      ]
+    },
+    "Generate Email": {
+      "main": [
+        [{"node": "Log Nurture", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{"name": "marketing"}, {"name": "nurturing"}, {"name": "email"}]
+}

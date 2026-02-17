@@ -1,0 +1,167 @@
+{
+  "name": "NEXUS Payment Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-onboard",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Stripe Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Stripe event\nconst event = $input.item.json;\nconst type = event.body?.type || event.type;\nconst data = event.body?.data?.object || event.data?.object || {};\n\nlet action = 'unknown';\nlet customerEmail = '';\nlet product = '';\nlet amount = 0;\n\nif (type === 'checkout.session.completed') {\n  action = 'new_subscription';\n  customerEmail = data.customer_email || data.customer_details?.email || '';\n  product = data.metadata?.product_id || 'unknown';\n  amount = (data.amount_total || 0) / 100;\n} else if (type === 'customer.subscription.deleted') {\n  action = 'cancellation';\n  customerEmail = data.metadata?.email || '';\n  product = data.metadata?.product_id || '';\n} else if (type === 'invoice.payment_failed') {\n  action = 'payment_failed';\n  customerEmail = data.customer_email || '';\n  amount = (data.amount_due || 0) / 100;\n}\n\nreturn [{\n  json: {\n    action,\n    customerEmail,\n    product,\n    amount,\n    eventType: type,\n    timestamp: new Date().toISOString(),\n    stripeCustomerId: data.customer || '',\n    subscriptionId: data.subscription || data.id || ''\n  }\n}];"
+      },
+      "name": "Parse Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {"value": "new_subscription"},
+            {"value": "cancellation"},
+            {"value": "payment_failed"}
+          ]
+        },
+        "dataType": "string",
+        "value1": "={{ $json.action }}"
+      },
+      "name": "Route Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Auto-activate user account\nconst data = $input.item.json;\n\nconst activationPayload = {\n  email: data.customerEmail,\n  product: data.product,\n  subscription_id: data.subscriptionId,\n  stripe_customer_id: data.stripeCustomerId,\n  status: 'active',\n  activated_at: new Date().toISOString(),\n  plan_amount: data.amount\n};\n\nreturn [{\n  json: {\n    ...data,\n    activation: activationPayload,\n    welcomeEmail: {\n      to: data.customerEmail,\n      subject: `✅ تم تفعيل حسابك - ${data.product}`,\n      html: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n        <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #22c55e'>\n          <h1 style='color:#22c55e'>✅ مبروك! تم تفعيل حسابك</h1>\n          <p>شكراً لاشتراكك في <strong style='color:#6366f1'>${data.product}</strong></p>\n          <div style='background:#0a2e1a;padding:20px;border-radius:12px;margin:20px 0'>\n            <p>📦 المنتج: <strong>${data.product}</strong></p>\n            <p>💰 المبلغ: <strong>$${data.amount}/شهر</strong></p>\n            <p>🔑 الحالة: <strong style='color:#22c55e'>مفعّل</strong></p>\n          </div>\n          <h3>🚀 ابدأ الآن:</h3>\n          <ol style='line-height:2.5'>\n            <li><a href='https://mrf103.com/dashboard' style='color:#6366f1'>ادخل لوحة التحكم</a></li>\n            <li><a href='https://mrf103.com/docs' style='color:#6366f1'>اقرأ دليل البدء السريع</a></li>\n            <li><a href='https://mrf103.com/support' style='color:#6366f1'>تواصل مع فريق الدعم</a></li>\n          </ol>\n        </div></body></html>`\n    }\n  }\n}];"
+      },
+      "name": "Activate Account",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 150]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8001/api/v1/accounts/activate",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "email", "value": "={{ $json.activation.email }}"},
+            {"name": "product", "value": "={{ $json.activation.product }}"},
+            {"name": "subscription_id", "value": "={{ $json.activation.subscription_id }}"},
+            {"name": "stripe_customer_id", "value": "={{ $json.activation.stripe_customer_id }}"},
+            {"name": "status", "value": "active"}
+          ]
+        },
+        "options": {}
+      },
+      "name": "Save Activation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1150, 150]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle cancellation\nconst data = $input.item.json;\n\nreturn [{\n  json: {\n    ...data,\n    deactivation: {\n      email: data.customerEmail,\n      product: data.product,\n      subscription_id: data.subscriptionId,\n      status: 'cancelled',\n      cancelled_at: new Date().toISOString()\n    },\n    cancellationEmail: {\n      to: data.customerEmail,\n      subject: '😢 نأسف لرحيلك - NEXUS PRIME',\n      html: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n        <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #f59e0b'>\n          <h1 style='color:#f59e0b'>😢 نأسف لإلغاء اشتراكك</h1>\n          <p>تم إلغاء اشتراكك في <strong>${data.product}</strong></p>\n          <div style='background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:25px;border-radius:12px;margin:20px 0;text-align:center'>\n            <h2 style='margin:0'>عرض خاص للعودة!</h2>\n            <p>خصم 40% لمدة 3 أشهر</p>\n            <p>الكود: <strong>COMEBACK40</strong></p>\n          </div>\n          <a href='https://mrf103.com/#pricing' style='display:inline-block;background:#f59e0b;color:black;padding:15px 40px;border-radius:12px;text-decoration:none;font-weight:bold'>أعد الاشتراك بخصم 40% →</a>\n        </div></body></html>`\n    }\n  }\n}];"
+      },
+      "name": "Handle Cancel",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle failed payment\nconst data = $input.item.json;\n\nreturn [{\n  json: {\n    ...data,\n    retryEmail: {\n      to: data.customerEmail,\n      subject: '⚠️ فشل الدفع - يرجى تحديث بيانات البطاقة',\n      html: `<html dir='rtl'><body style='font-family:Cairo,sans-serif;background:#0a0a0a;color:#fff;padding:40px'>\n        <div style='max-width:600px;margin:0 auto;background:#111;border-radius:16px;padding:40px;border:1px solid #ef4444'>\n          <h1 style='color:#ef4444'>⚠️ فشل الدفع</h1>\n          <p>لم نتمكن من تحصيل مبلغ <strong>$${data.amount}</strong></p>\n          <p>يرجى تحديث بيانات بطاقتك لتجنب انقطاع الخدمة</p>\n          <div style='background:#1a0a0a;padding:15px;border-radius:8px;margin:15px 0'>\n            <p>⏰ لديك 72 ساعة قبل تعليق الحساب</p>\n          </div>\n          <a href='https://mrf103.com/billing' style='display:inline-block;background:#ef4444;color:white;padding:15px 40px;border-radius:12px;text-decoration:none;font-weight:bold'>تحديث بيانات الدفع →</a>\n        </div></body></html>`\n    }\n  }\n}];"
+      },
+      "name": "Handle Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 450]
+    },
+    {
+      "parameters": {
+        "url": "https://hooks.slack.com/services/YOUR_SLACK_WEBHOOK",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.action === 'new_subscription' ? '💰 NEW SALE!' : $json.action === 'cancellation' ? '😢 Cancellation' : '⚠️ Payment Failed' }}\n📧 {{ $json.customerEmail }}\n📦 {{ $json.product }}\n💵 ${{ $json.amount }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Notify Revenue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"received\": true}"
+      },
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1550, 300]
+    }
+  ],
+  "connections": {
+    "Stripe Webhook": {
+      "main": [
+        [{"node": "Parse Event", "type": "main", "index": 0}]
+      ]
+    },
+    "Parse Event": {
+      "main": [
+        [{"node": "Route Action", "type": "main", "index": 0}]
+      ]
+    },
+    "Route Action": {
+      "main": [
+        [{"node": "Activate Account", "type": "main", "index": 0}],
+        [{"node": "Handle Cancel", "type": "main", "index": 0}],
+        [{"node": "Handle Failed", "type": "main", "index": 0}]
+      ]
+    },
+    "Activate Account": {
+      "main": [
+        [{"node": "Save Activation", "type": "main", "index": 0}]
+      ]
+    },
+    "Save Activation": {
+      "main": [
+        [{"node": "Notify Revenue", "type": "main", "index": 0}]
+      ]
+    },
+    "Handle Cancel": {
+      "main": [
+        [{"node": "Notify Revenue", "type": "main", "index": 0}]
+      ]
+    },
+    "Handle Failed": {
+      "main": [
+        [{"node": "Notify Revenue", "type": "main", "index": 0}]
+      ]
+    },
+    "Notify Revenue": {
+      "main": [
+        [{"node": "Respond OK", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{"name": "payments"}, {"name": "onboarding"}, {"name": "stripe"}]
+}
