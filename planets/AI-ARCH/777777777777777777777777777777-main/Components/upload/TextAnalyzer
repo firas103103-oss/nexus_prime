@@ -1,0 +1,304 @@
+import { base44 } from "@/api/base44Client";
+
+/**
+ * تحليل النص وتجريده من الهيكلية السابقة
+ * @param {string} rawContent - النص الخام المستخرج
+ * @param {string} language - لغة النص
+ * @param {Object} logger - مسجل العمليات (اختياري)
+ * @returns {Promise<Object>} - النتائج المحللة
+ */
+export async function analyzeAndCleanText(rawContent, language = 'ar', logger = null) {
+  if (!rawContent || rawContent.trim().length === 0) {
+    throw new Error('النص المدخل فارغ');
+  }
+
+  const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
+  
+  if (wordCount > 200000) {
+    throw new Error('عدد الكلمات يتجاوز الحد الأقصى المسموح (200,000 كلمة)');
+  }
+  
+  logger?.start('text_analysis', { wordCount, language });
+
+  // المرحلة 1: تحليل البنية والكشف عن العناصر الهيكلية
+  logger?.progress('structure_analysis', { stage: 'analyzing_structure' });
+  
+  const structureAnalysisPrompt = `أنت محلل نصوص متخصص في دور النشر. حلل النص التالي وحدد:
+
+1. **عناصر الهيكلة السابقة** (يجب إزالتها):
+   - أرقام الصفحات (مثل: ص 15، صفحة 20، Page 5)
+   - علامات الفصول (مثل: الفصل الأول، Chapter 1، الجزء الثاني)
+   - علامات الفهرسة (مثل: الفهرس، المحتويات، Table of Contents)
+   - أرقام الأقسام (مثل: 1.2.3، القسم الرابع)
+
+2. **تحديد نوع كل قسم**:
+   - مقدمة
+   - متن رئيسي
+   - محتوى غير ذي صلة (محادثات، أكواد، نصوص من كتب أخرى)
+   - فهرس أو قوائم
+   - خاتمة
+
+3. **تقييم جودة النص**:
+   - نسبة التكرار
+   - التناسق اللغوي
+   - وحدة الموضوع
+
+النص:
+---
+${rawContent.substring(0, 50000)}
+${rawContent.length > 50000 ? '\n... (تم اقتطاع النص الطويل)' : ''}
+---
+
+أعد النتيجة بصيغة JSON مع المفاتيح التالية:
+{
+  "structural_elements_found": ["عنصر1", "عنصر2"],
+  "sections": [
+    {
+      "type": "نوع القسم",
+      "start_position": رقم,
+      "end_position": رقم,
+      "should_remove": true/false,
+      "reason": "السبب"
+    }
+  ],
+  "quality_assessment": {
+    "repetition_rate": نسبة مئوية,
+    "language_consistency": نسبة مئوية,
+    "thematic_unity": نسبة مئوية
+  },
+  "detected_language": "ar/en/mixed",
+  "estimated_chapters": عدد
+}`;
+
+  logger?.progress('structure_analysis', { stage: 'invoking_llm' });
+  
+  const structureAnalysis = await base44.integrations.Core.InvokeLLM({
+    prompt: structureAnalysisPrompt,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        structural_elements_found: { type: "array", items: { type: "string" } },
+        sections: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              type: { type: "string" },
+              start_position: { type: "number" },
+              end_position: { type: "number" },
+              should_remove: { type: "boolean" },
+              reason: { type: "string" }
+            }
+          }
+        },
+        quality_assessment: {
+          type: "object",
+          properties: {
+            repetition_rate: { type: "number" },
+            language_consistency: { type: "number" },
+            thematic_unity: { type: "number" }
+          }
+        },
+        detected_language: { type: "string" },
+        estimated_chapters: { type: "number" }
+      }
+    }
+  });
+  
+  logger?.complete('structure_analysis', { 
+    elementsFound: structureAnalysis.structural_elements_found?.length || 0,
+    sectionsIdentified: structureAnalysis.sections?.length || 0
+  });
+
+  // المرحلة 2: تنظيف النص وإزالة العناصر غير المرغوبة
+  logger?.start('text_cleaning', {});
+  
+  const cleaningPrompt = `بناءً على التحليل السابق، قم بتنظيف النص التالي:
+
+**إرشادات التنظيف الإلزامية**:
+1. أزل جميع أرقام الصفحات وعلامات الفصول والفهارس
+2. احذف المحتوى غير ذي الصلة (محادثات، أكواد، نصوص من مصادر أخرى)
+3. حافظ على اللغة ${language === 'ar' ? 'العربية' : language === 'en' ? 'الإنجليزية' : 'الأصلية'} بشكل موحد وخالٍ من التشويه
+4. لا تضف أي محتوى جديد، فقط نظف النص الموجود
+5. حافظ على الفقرات والتنسيق الطبيعي للنص
+
+النص المراد تنظيفه:
+---
+${rawContent}
+---
+
+أعد النص المنظف فقط بدون أي إضافات.`;
+
+  const cleanedText = await base44.integrations.Core.InvokeLLM({
+    prompt: cleaningPrompt
+  });
+  
+  const cleanedWordCount = cleanedText.split(/\s+/).filter(Boolean).length;
+  logger?.complete('text_cleaning', { cleanedWordCount });
+
+  // المرحلة 3: تقسيم ذكي للفصول
+  logger?.start('chapter_division', {});
+  const chapterDivisionPrompt = `قسّم النص التالي إلى فصول منطقية (من 2 إلى 13 فصل بناءً على الطول والموضوع).
+
+**معايير التقسيم**:
+- الوحدة الموضوعية لكل فصل
+- التوازن في طول الفصول (بقدر الإمكان)
+- الانتقالات الطبيعية بين الأقسام
+
+النص:
+---
+${cleanedText.substring(0, 100000)}
+---
+
+أعد النتيجة بصيغة JSON:
+{
+  "chapters": [
+    {
+      "id": "ch1",
+      "title": "عنوان الفصل",
+      "content": "محتوى الفصل",
+      "word_count": عدد الكلمات,
+      "order": 1,
+      "theme": "الموضوع الرئيسي"
+    }
+  ],
+  "total_word_count": عدد,
+  "division_rationale": "تفسير طريقة التقسيم"
+}`;
+
+  const chapterDivision = await base44.integrations.Core.InvokeLLM({
+    prompt: chapterDivisionPrompt,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        chapters: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              title: { type: "string" },
+              content: { type: "string" },
+              word_count: { type: "number" },
+              order: { type: "number" },
+              theme: { type: "string" }
+            }
+          }
+        },
+        total_word_count: { type: "number" },
+        division_rationale: { type: "string" }
+      }
+    }
+  });
+  
+  logger?.complete('chapter_division', { 
+    chaptersCreated: chapterDivision.chapters?.length || 0 
+  });
+
+  // التحقق من عدد الكلمات النهائي
+  const finalWordCount = chapterDivision.total_word_count || 
+    chapterDivision.chapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
+  
+  const wordCountDifference = Math.abs(wordCount - finalWordCount);
+  const differencePercentage = (wordCountDifference / wordCount) * 100;
+
+  // المرحلة 4: تعويض النقص أو التعامل مع الزيادة (إذا تجاوزت 40%)
+  let finalContent = cleanedText;
+  let compensationApplied = false;
+
+  if (differencePercentage > 40) {
+    if (finalWordCount < wordCount) {
+      logger?.start('compensation', { deficit: wordCountDifference });
+      
+      // نقص كبير - توليد تكملات
+      const compensationPrompt = `النص الحالي به نقص ${differencePercentage.toFixed(1)}% عن الأصل.
+قم بتوليد تكملات موضوعية متناسقة مع السياق العام للنص لتعويض النقص.
+
+**إرشادات التعويض**:
+- احتفظ بنفس أسلوب الكتابة واللغة
+- تأكد من التناسق الموضوعي
+- لا تكرر المحتوى الموجود
+- الهدف: إضافة حوالي ${(wordCount - finalWordCount).toLocaleString()} كلمة
+
+السياق العام: ${chapterDivision.division_rationale}
+
+أعد المحتوى الإضافي المقترح فقط.`;
+
+      const additionalContent = await base44.integrations.Core.InvokeLLM({
+        prompt: compensationPrompt
+      });
+
+      finalContent = cleanedText + '\n\n' + additionalContent;
+      compensationApplied = true;
+      
+      logger?.complete('compensation', { 
+        additionalWords: additionalContent.split(/\s+/).filter(Boolean).length 
+      });
+    }
+  }
+  
+  logger?.complete('text_analysis', { 
+    success: true, 
+    finalWordCount 
+  });
+
+  return {
+    original_word_count: wordCount,
+    cleaned_text: finalContent,
+    structure_analysis: structureAnalysis,
+    chapters: chapterDivision.chapters || [],
+    final_word_count: finalWordCount,
+    word_count_difference: wordCountDifference,
+    difference_percentage: differencePercentage,
+    compensation_applied: compensationApplied,
+    quality_metrics: structureAnalysis.quality_assessment || {},
+    detected_language: structureAnalysis.detected_language || language,
+    processing_notes: {
+      structural_elements_removed: structureAnalysis.structural_elements_found || [],
+      division_method: chapterDivision.division_rationale || 'تقسيم تلقائي'
+    }
+  };
+}
+
+/**
+ * تحليل سريع للملف قبل المعالجة الكاملة
+ */
+export async function quickFileAnalysis(content) {
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  
+  const quickPrompt = `حلل النص التالي بسرعة وحدد:
+1. اللغة الرئيسية
+2. نوع المحتوى (رواية، بحث، شعر، إلخ)
+3. هل يحتوي على عناصر هيكلية سابقة؟
+
+النص (عينة):
+---
+${content.substring(0, 5000)}
+---
+
+JSON:
+{
+  "language": "ar/en/mixed",
+  "content_type": "نوع",
+  "has_structure": true/false,
+  "estimated_quality": "high/medium/low"
+}`;
+
+  const analysis = await base44.integrations.Core.InvokeLLM({
+    prompt: quickPrompt,
+    response_json_schema: {
+      type: "object",
+      properties: {
+        language: { type: "string" },
+        content_type: { type: "string" },
+        has_structure: { type: "boolean" },
+        estimated_quality: { type: "string" }
+      }
+    }
+  });
+
+  return {
+    word_count: wordCount,
+    ...analysis
+  };
+}

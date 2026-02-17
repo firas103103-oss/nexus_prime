@@ -1,0 +1,76 @@
+# Node
+node_modules/
+dist/
+build/
+out/
+.cache/
+
+# Environment variables
+.env
+.env.*
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.code-profile
+docs/*.code-profile
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives
+*.tar.gz
+*.tgz
+*.zip
+
+# Secrets / keys
+*.pem
+*.key
+*.crt
+*.p12
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Capacitor / Mobile
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+ios/
+
+# Railway / Deploy artifacts
+.railway/
+deployment_log_*.txt
+RAILWAY_VARIABLES_COMPLETE.txt
+RAILWAY_ENV_SETUP.md
+repos.json*
+push-with-token.sh
+
+# Extracted repositories (stored separately)
+_FINAL_REPOS-1/
+EXTRACTED_REPOS/
+
+# Test artifacts
+*-cookies.txt
+arc-cookies.txt

@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ['nodejs_24', 'npm-8_x']
+
+[phases.install]
+cmds = ['echo "Skipping npm ci - will install in build phase"']
+
+[phases.build]
+cmds = ['npm install --legacy-peer-deps', 'npm run build']
+
+[start]
+cmd = 'npm run start'

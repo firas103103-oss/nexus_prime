@@ -1,0 +1,16 @@
+[project]
+name = "python-template"
+version = "0.1.0"
+description = ""
+authors = [{name = "Your Name", email = "you@example.com"}]
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit",
+    "pandas",
+    "openai",
+    "langchain",
+    "langchain-community",
+    "langchain-openai",
+    "python-dotenv",
+    "langchain-core>=1.1.0",
+]

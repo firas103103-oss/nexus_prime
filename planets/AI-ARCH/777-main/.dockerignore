@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+.angular/
+
+# Environment files (سيتم توليدها من المتغيرات)
+.env
+src/environments/environment.ts
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+
+# Tests
+*.test.ts
+*.spec.ts
+
+# Logs
+logs/
+*.log

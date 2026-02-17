@@ -1,0 +1,84 @@
+{
+  "name": "NEXUS_PRIME_Channel_Broadcaster",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "cron-node",
+      "name": "Hourly_Pulse",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, sender_codename, subject, body FROM system.outbox WHERE is_sent = false ORDER BY priority DESC;"
+      },
+      "id": "db-read",
+      "name": "Fetch_Unsent_Reports",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.1,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_DB_CRED_ID"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "-100YOUR_CHANNEL_ID",
+        "text": "=🚀 **تقرير سيادي من: {{$json[\"sender_codename\"]}}**\n\n**الموضوع:** {{$json[\"subject\"]}}\n\n{{$json[\"body\"]}}\n\n---\n🌍 *مرسل من مجرة NEXUS PRIME*",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "tg-node",
+      "name": "Post_to_Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TG_BOT_ID"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "system.outbox",
+        "whereColumn": "id",
+        "whereValue": "={{$json[\"id\"]}}",
+        "updateColumns": "is_sent, sent_at",
+        "values": {
+          "is_sent": true,
+          "sent_at": "={{$now.toISOString()}}"
+        }
+      },
+      "id": "db-update",
+      "name": "Mark_Finalized",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.1,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_DB_CRED_ID"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Hourly_Pulse": { "main": [ [ { "node": "Fetch_Unsent_Reports", "type": "main", "index": 0 } ] ] },
+    "Fetch_Unsent_Reports": { "main": [ [ { "node": "Post_to_Channel", "type": "main", "index": 0 } ] ] },
+    "Post_to_Channel": { "main": [ [ { "node": "Mark_Finalized", "type": "main", "index": 0 } ] ] }
+  }
+}

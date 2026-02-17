@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BME688 Sensor Monitor</string>
+    <string name="app_description">Real-time environmental sensor monitoring via Bluetooth</string>
+    <string name="app_brand">X-Bio by Mr.F</string>
+    <string name="scan_devices">Scan Devices</string>
+    <string name="start_streaming">Start Streaming</string>
+    <string name="stop_streaming">Stop Streaming</string>
+    <string name="current_readings">Current Readings</string>
+    <string name="temperature">Temperature</string>
+    <string name="humidity">Humidity</string>
+    <string name="pressure">Pressure</string>
+    <string name="air_quality">Air Quality</string>
+    <string name="gas_resistance">Gas Resistance</string>
+    <string name="data_visualization">Data Visualization</string>
+    <string name="statistics">Statistics</string>
+    <string name="no_data">No data yet</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="streaming">Streaming...</string>
+    <string name="stopped">Stopped</string>
+</resources>

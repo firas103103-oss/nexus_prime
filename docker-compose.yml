@@ -1,0 +1,89 @@
+services:
+  # --- قاعدة البيانات ---
+  nexus_db:
+    image: supabase/postgres:15.1.0.147
+    container_name: nexus_db
+    environment:
+      POSTGRES_PASSWORD: nexus_mrf_password_2026
+      POSTGRES_DB: nexus_db
+      TZ: Asia/Riyadh
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    restart: always
+
+  # --- الدماغ ---
+  nexus_ollama:
+    image: ollama/ollama:latest
+    container_name: nexus_ollama
+    shm_size: "16gb"
+    environment:
+      TZ: Asia/Riyadh
+    volumes:
+      - ./ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: always
+
+  # --- الحنجرة ---
+  nexus_voice:
+    build:
+      context: .
+      dockerfile: Dockerfile.voice
+    container_name: nexus_voice
+    environment:
+      TZ: Asia/Riyadh
+    ports:
+      - "5050:8000"
+    restart: always
+
+  # --- الواجهة (مع ربط الداتا القديمة) ---
+  nexus_ai:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: nexus_ai
+    environment:
+      - OLLAMA_BASE_URL=http://nexus_ollama:11434
+      - WEBUI_SECRET_KEY=nexus_wiring_103
+      - TZ=Asia/Riyadh
+    ports:
+      - "3000:8080"
+    volumes:
+      - ./open-webui:/app/backend/data
+    depends_on:
+      - nexus_ollama
+    restart: always
+
+  # --- n8n (مع ربط مجلد الورك-فلوز القديم) ---
+  nexus_flow:
+    image: n8nio/n8n:latest
+    container_name: nexus_flow
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=nexus_mrf_flow_2026
+      - N8N_HOST=n8n.mrf103.com
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.mrf103.com/
+      - GENERIC_TIMEZONE=Asia/Riyadh
+      - TZ=Asia/Riyadh
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+    restart: always
+
+  # --- Nginx (إعدادات جديدة لأن القديمة انمسحت، بس لازم يشتغل ليربط الباقي) ---
+  nexus_gatekeeper:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nexus_gatekeeper
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - ./npm_data:/data
+      - ./npm_letsencrypt:/etc/letsencrypt
+    environment:
+      TZ: Asia/Riyadh
+    restart: always

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- This XML file specifies which files get backed up for this App -->
+    <include domain="database" path="sensor_data.db"/>
+    <include domain="sharedpref" path="sensor_prefs.xml"/>
+</resources>

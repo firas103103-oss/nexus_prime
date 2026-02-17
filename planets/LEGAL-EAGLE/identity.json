@@ -1,0 +1,9 @@
+{
+    "id": "NP-LEGAL-EAGLE",
+    "name": "LEGAL-EAGLE",
+    "role": "التشريع والملكية الفكرية. إدارة براءات الاختراع لدى SAIP والعقود.",
+    "status": "Operational",
+    "assets_count": 2,
+    "primary_directive": "Maximize sovereign efficiency in the LEGAL-EAGLE sector.",
+    "knowledge_base_path": "/root/nexus/planets/LEGAL-EAGLE"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Nexus Prime",
+  "description": "A futuristic UI that uses the Gemini API to analyze text input and display a detailed report within a dynamic 3D environment. The interface responds to the analysis, changing color and animation based on the content.",
+  "requestFramePermissions": []
+}
