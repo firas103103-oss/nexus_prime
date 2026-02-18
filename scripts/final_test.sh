@@ -86,12 +86,15 @@ for page in /var/www/nexus-landing/index.html /var/www/nexus-landing/publisher/i
   fi
 done
 
-# Test with curl (local)
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost 2>/dev/null)
-if [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "200" ]; then
+# Test with curl (HTTPS)
+HTTPS_CODE=$(curl -sk -o /dev/null -w "%{http_code}" https://mrf103.com 2>/dev/null)
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: mrf103.com" http://localhost 2>/dev/null)
+if [ "$HTTPS_CODE" = "200" ]; then
+  pass "HTTPS landing page ($HTTPS_CODE)"
+elif [ "$HTTP_CODE" = "301" ]; then
   pass "HTTP → HTTPS redirect ($HTTP_CODE)"
 else
-  warn "Landing page HTTP code: $HTTP_CODE"
+  fail "Landing page: HTTPS=$HTTPS_CODE HTTP=$HTTP_CODE"
 fi
 
 # ═══ Test 6: Stripe Module ═══
