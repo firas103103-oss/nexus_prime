@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  nexus_dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: nexus_dashboard
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES_DB}
+      - OPENAI_API_KEY=${JWT_SECRET} # مفتاح وهمي لأننا سنستخدم المحلي
+      - OPENAI_BASE_URL=http://nexus_ollama:11434/v1 # توجيه الدماغ للمحلي
+      - ELEVENLABS_API_KEY=${JWT_SECRET} # مفتاح وهمي
+      - ELEVENLABS_API_URL=http://nexus_voice:8000/v1 # توجيه الصوت للمحلي
+      - TZ=${TZ}
+    networks:
+      - nexus_network
+    depends_on:
+      - nexus_db
+      - nexus_ollama
+    restart: always

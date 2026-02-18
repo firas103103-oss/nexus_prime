@@ -43,3 +43,8 @@ logs/
 *.tar.gz
 *.zip
 *.rar
+# Data directories (runtime data, not code)
+data/
+*.pid
+*.log
+.env
