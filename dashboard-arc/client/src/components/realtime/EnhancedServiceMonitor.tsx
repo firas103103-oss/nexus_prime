@@ -164,56 +164,47 @@ export default function EnhancedServiceMonitor() {
         </div>
 
         <div className="grid gap-3">
-          {serviceConfigs.map((config) => {
-            const service = services.find(s => s.name === config.name);
-            const Icon = config.icon;
+          {services.map((service) => {
+            const Icon = serviceIcons[service.name] || Activity;
             
             return (
               <div 
-                key={config.name}
-                className={`p-4 rounded-lg border transition-all duration-200 ${
-                  service ? getStatusColor(service.status) : 'bg-gray-50 border-gray-200'
-                }`}
+                key={service.name}
+                className={`p-4 rounded-lg border transition-all duration-200 ${getStatusColor(service.status)}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center gap-2">
                       <Icon className="h-5 w-5 text-current" />
                       <div>
-                        <h4 className="font-medium">{config.displayName}</h4>
-                        <p className="text-xs opacity-75">Port {config.port}</p>
+                        <h4 className="font-medium">{service.displayName}</h4>
+                        <p className="text-xs opacity-75">Port {service.port}</p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-4 text-sm">
-                    {service && (
-                      <>
-                        <div className="text-center hidden sm:block">
-                          <div className="font-medium">{service.responseTime}ms</div>
-                          <div className="text-xs opacity-75">Response</div>
-                        </div>
-                        
-                        <div className="text-center hidden md:block">
-                          <div className="font-medium">{formatUptime(service.uptime)}</div>
-                          <div className="text-xs opacity-75">Uptime</div>
-                        </div>
-                        
-                        {service.metadata && (
-                          <div className="text-center hidden lg:block">
-                            <div className="font-medium">{service.metadata.memory}%</div>
-                            <div className="text-xs opacity-75">Memory</div>
-                          </div>
-                        )}
-                      </>
+                    <div className="text-center hidden sm:block">
+                      <div className="font-medium">{service.responseTime}ms</div>
+                      <div className="text-xs opacity-75">Response</div>
+                    </div>
+                    
+                    <div className="text-center hidden md:block">
+                      <div className="font-medium">{formatUptime(service.uptime)}</div>
+                      <div className="text-xs opacity-75">Uptime</div>
+                    </div>
+                    
+                    {service.metadata && (
+                      <div className="text-center hidden lg:block">
+                        <div className="font-medium">{service.metadata.memory}%</div>
+                        <div className="text-xs opacity-75">Memory</div>
+                      </div>
                     )}
                     
                     <div className="flex items-center gap-2">
-                      {service ? getStatusIcon(service.status) : (
-                        <div className="w-4 h-4 bg-gray-300 rounded-full animate-pulse" />
-                      )}
+                      {getStatusIcon(service.status)}
                       <Badge variant="secondary" className="text-xs">
-                        {service?.status || 'loading'}
+                        {service.status}
                       </Badge>
                     </div>
                   </div>
