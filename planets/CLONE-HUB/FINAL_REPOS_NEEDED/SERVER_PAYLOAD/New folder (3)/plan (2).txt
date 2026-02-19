@@ -1,255 +1,0 @@
-تمام.
-هنا **خطة عمل تنفيذية من 6 مراحل**، **مبنية على الواقع الحالي**، وتتحرك **مرحلة–مرحلة فقط بعد التحقق**.
-كل مرحلة فيها:
-
-* 🎯 هدف واضح
-* ✅ معايير تحقق (Gate)
-* 🧩 **Codebox**: أوامر + برومبتات **نسخ/لصق** للمنفذين
-  (GitHub / VS Code / Supabase / Railway)
-
-**بدون تنظير. بدون تغيير مسار.**
-
----
-
-# 🧠 المبدأ الحاكم (اقرأه مرة)
-
-* النظام **SaaS كامل هندسيًا**
-* **Single-Tenant / Owner-only** (أنت)
-* كل شيء يُبنى ليخدمك الآن ويُفتح لاحقًا
-* لا ننتقل مرحلة إلا بعد نجاح السابقة
-
----
-
-# المرحلة 0 — كشف عام + إصلاح فوري + تشغيل مؤكد
-
-**المدة:** 3–5 أيام
-**الهدف:** تثبيت الواقع، لا افتراضات
-
-## Gate (لا نكمل بدونها)
-
-* الواجهة تعمل
-* الدخول يعمل
-* الريل-تايم يعمل
-* لا أخطاء قاتلة
-
-### 🧩 Codebox — كشف وتشغيل
-
-```bash
-# محليًا
-git clone https://github.com/firas103103-oss/mrf103ARC-Namer.git
-cd mrf103ARC-Namer
-npm install
-cp .env.example .env
-npm run dev
-```
-
-### 🧩 Prompt (GitHub Issue)
-
-```
-TASK: Global Health Check (Phase 0)
-
-- Run app locally and on Railway
-- Verify auth login works
-- Verify realtime events fire
-- List ALL runtime errors (console + server)
-- Categorize: blocker / warning / cosmetic
-- Fix blockers immediately
-- Report with screenshots + logs
-```
-
-### 🧩 Supabase Check
-
-```
-- Verify tables exist
-- Verify writes from server only
-- Verify RLS enabled (owner-only)
-```
-
----
-
-# المرحلة 1 — Core Ledger (السجل المركزي)
-
-**المدة:** أسبوعان
-**الهدف:** كل شيء يُسجَّل
-
-## Gate
-
-* أي فعل يظهر في Logs خلال ثوانٍ
-
-### 🧩 Codebox — أوامر
-
-```bash
-# إنشاء schema موحد
-touch server/ledger.ts
-touch shared/events.ts
-```
-
-### 🧩 Prompt (VS Code / Dev)
-
-```
-Implement Core Ledger:
-
-- Define unified Event schema (id, type, actor, payload, traceId, timestamp)
-- Log EVERY action:
-  login, command, agent run, error
-- Broadcast same events via WebSocket
-- Persist via Supabase
-```
-
----
-
-# المرحلة 2 — SaaS Core (Tenant=1)
-
-**المدة:** 3 أسابيع
-**الهدف:** SaaS شغّال… لكن لك وحدك
-
-## Gate
-
-* Tenant واحد
-* RBAC موجود
-* لا public access
-
-### 🧩 Codebox
-
-```bash
-# DB
-supabase migration new add_tenants_users_roles
-```
-
-### 🧩 Prompt
-
-```
-Implement SaaS Core (Single Tenant):
-
-- Create Tenant model (default = OWNER)
-- Users belong to Tenant
-- Roles: OWNER, ADMIN, AGENT
-- Enforce tenant_id on ALL queries
-- Disable signup/onboarding via feature flags
-```
-
----
-
-# المرحلة 3 — Agents Registry & Orchestration
-
-**المدة:** شهر
-**الهدف:** الوكلاء كيانات حقيقية
-
-## Gate
-
-* تشغيل وكيل من UI
-* رؤية النتيجة + السجل
-
-### 🧩 Codebox
-
-```bash
-touch server/agents/registry.ts
-touch server/agents/router.ts
-```
-
-### 🧩 Prompt
-
-```
-Agents System:
-
-- Create Agent Registry (id, name, capabilities, scopes)
-- Route commands -> agents
-- Log agent lifecycle events
-- Display agent status in UI
-```
-
----
-
-# المرحلة 4 — Personal JARVIS Workflows
-
-**المدة:** شهر
-**الهدف:** النظام يخدم حياتك يوميًا
-
-## Gate
-
-* Daily Brief يعمل
-* 3 workflows فقط
-
-### 🧩 Codebox
-
-```bash
-touch server/workflows/dailyBrief.ts
-```
-
-### 🧩 Prompt
-
-```
-Implement Personal Workflows:
-
-1) Daily Brief (summary, alerts, priorities)
-2) Projects & Companies tracking
-3) Home/IoT events ingestion
-
-Rules:
-- Use same SaaS flows (no hacks)
-- Everything logged
-```
-
----
-
-# المرحلة 5 — Production Hardening + SaaS Readiness
-
-**المدة:** شهر
-**الهدف:** جاهزية فتح SaaS بدون كسر الخاص
-
-## Gate
-
-* Health checks
-* Metrics
-* Tenant=2 ممكن تقنيًا
-
-### 🧩 Codebox
-
-```bash
-# Railway
-railway up
-```
-
-### 🧩 Prompt
-
-```
-Hardening & Readiness:
-
-- Add health endpoint
-- Add metrics (requests, errors)
-- Add feature flags for:
-  billing, onboarding, multi-tenant UI
-- Write migration plan: Tenant=2
-```
-
----
-
-# 📊 التحقق المرحلي (Non-Negotiable)
-
-بعد كل مرحلة:
-
-* تقرير تنفيذ
-* Screenshot / logs
-* قرار: **نكمل / نوقف / نصلح**
-
----
-
-# 🎯 النتيجة بعد 6 مراحل
-
-* SaaS Engine كامل
-* مستخدم واحد = أنت
-* JARVIS خاص
-* جاهز للفتح متى قررت
-* بدون إعادة بناء
-
----
-
-## الخطوة التالية الآن (واحدة فقط)
-
-نبدأ **المرحلة 0 فورًا**.
-
-قلّي:
-
-> **“ابدأ Phase 0”**
-
-وبأعطيك **Checklist تنفيذ يوم–بيوم** لنقفلها بسرعة.

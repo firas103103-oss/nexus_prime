@@ -1,3 +1,0 @@
-SKIP_LINT=${SKIP_LINT:-1}
-[ "$SKIP_LINT" = "1" ] && exit 0
-npm run lint:fix

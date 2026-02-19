@@ -1,1 +1,0 @@
-// This file contains tests for the arc ecosystem CLI.

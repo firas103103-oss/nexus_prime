@@ -1,1 +1,0 @@
-// This file contains configuration settings for the xbook engine.
