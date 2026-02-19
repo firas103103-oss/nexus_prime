@@ -10,6 +10,7 @@ import { eq, desc } from "drizzle-orm";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import voiceRouter from "./routes/voice";
 import healthRouter from "./routes/health";
+import { enhancedDashboardRoutes } from "./routes/enhanced-dashboard";
 import { AGENT_PROFILES, getAgentProfile, getAgentSystemPrompt } from "./agents/profiles";
 import { apiLimiter, aiLimiter, authLimiter } from "./middleware/rate-limiter";
 import { cache, aiCache, staticCache, createCacheKey } from "./services/cache";
@@ -61,6 +62,9 @@ function pick<T extends Record<string, any>, K extends keyof T>(obj: T, keys: K[
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register health check routes (no rate limiting)
   app.use("/api", healthRouter);
+
+  // Enhanced dashboard routes (real Docker/system stats)
+  app.use("/api/enhanced", enhancedDashboardRoutes);
 
   // --- KAYAN NEURAL BRIDGE (Webhook for n8n) ---
   app.post("/api/execute", apiLimiter.middleware(), async (req, res) => {

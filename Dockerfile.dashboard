@@ -2,6 +2,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install Docker CLI for container stats
+RUN apk add --no-cache docker-cli
+
 # نسخ ملفات التبعيات
 COPY dashboard-arc/package*.json ./
 COPY dashboard-arc/shared ./shared

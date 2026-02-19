@@ -95,7 +95,14 @@ function validateDatabaseUrl(): void {
 
 function validateSupabaseConfig(): void {
   const supabaseUrl = process.env.SUPABASE_URL;
-  if (!supabaseUrl?.startsWith('https://')) {
+  
+  // Only validate if SUPABASE_URL is set (it's optional)
+  if (!supabaseUrl || supabaseUrl.trim() === '') {
+    console.log('ℹ️  SUPABASE_URL not set - using local PostgREST instead');
+    return;
+  }
+  
+  if (!supabaseUrl.startsWith('https://')) {
     throw new EnvValidationError(
       'SUPABASE_URL must be a valid HTTPS URL'
     );

@@ -36,8 +36,12 @@ if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
 
 // Validate environment variables before starting
 try {
+  console.log('⏳ Validating environment variables...');
   validateEnv();
+  console.log('✅ Environment validated');
 } catch (error) {
+  console.error('❌ Environment validation failed:');
+  console.error(error instanceof Error ? error.message : error);
   logger.error('❌ Environment validation failed:');
   logger.error(error instanceof Error ? error.message : error);
   process.exit(1);
@@ -195,9 +199,15 @@ app.use("/api", metricsRoutes);
 import arcRouter from "./routes/arc.routes";
 app.use("/api/arc", arcRouter);
 
+console.log('✅ All imports complete, starting async initialization...');
+
 (async () => {
-  // Activate the router from routes.ts, providing the express app
-  const httpServer = await registerRoutes(app);
+  try {
+    console.log('🔧 Starting server initialization...');
+    
+    // Activate the router from routes.ts, providing the express app
+    const httpServer = await registerRoutes(app);
+    console.log('✅ Routes registered');
 
   // Authenticated WebSocket upgrade (text chat only)
   httpServer.on("upgrade", (request, socket, head) => {
@@ -222,14 +232,23 @@ app.use("/api/arc", arcRouter);
 
   // Initialize the real-time subscription service
   initializeRealtimeSubscriptions();
+  console.log('✅ Realtime subscriptions initialized');
 
   // Bootstrap tenant and log system startup
+  console.log('⏳ Bootstrapping tenant...');
   await TenantService.bootstrapTenant();
+  console.log('✅ Tenant bootstrapped');
+  
+  console.log('⏳ Initializing agent registry...');
   await initializeAgentRegistry();
+  console.log('✅ Agent registry initialized');
   
   // Start Super AI System
+  console.log('⏳ Starting Super AI System...');
   await superSystem.start();
+  console.log('✅ Super AI System started');
   
+  console.log('⏳ Logging system startup event...');
   await EventLedger.log({
     type: "system.startup",
     actor: "system",
@@ -277,4 +296,20 @@ app.use("/api/arc", arcRouter);
     console.log(`✅ Server is live and listening on ${host}:${port}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   });
+  } catch (error: any) {
+    console.error('❌ FATAL: Server startup failed:', error);
+    console.error(error.stack);
+    process.exit(1);
+  }
 })();
+
+// Catch unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Catch uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
