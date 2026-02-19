@@ -35,6 +35,14 @@ services:
     ports:
       - "8501:8501"
     env_file: .env
+    environment:
+      - OPENAI_BASE_URL=http://nexus_ollama:11434/v1
+      - OPENAI_API_KEY=sk-ollama-local
+      - MODEL_NAME=llama3.2:3b
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES_DB}
+    depends_on:
+      - nexus_db
+      - nexus_ollama
     networks:
       - nexus_network
     restart: always

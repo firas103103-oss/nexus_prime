@@ -1,4 +1,5 @@
 import React from 'react';
+// @ts-ignore - react-helmet-async types
 import { Helmet } from 'react-helmet-async';
 import LiveSystemStats from '../components/realtime/LiveSystemStats';
 import RealtimeActivityFeed from '../components/realtime/RealtimeActivityFeed';
@@ -6,6 +7,7 @@ import EnhancedServiceMonitor from '../components/realtime/EnhancedServiceMonito
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+// @ts-ignore - lucide-react types
 import { 
   Crown, 
   Zap, 

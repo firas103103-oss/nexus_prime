@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Activity, User, Server, AlertCircle, CheckCircle, Zap } from 'lucide-react';
+// @ts-ignore
+import { Activity, User, Server, AlertCircle, CheckCircle, Zap, RefreshCw } from 'lucide-react';
 
 interface ActivityEvent {
   id: string;
@@ -21,72 +22,51 @@ interface ActivityEvent {
 export default function RealtimeActivityFeed() {
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchActivities = useCallback(async () => {
+    try {
+      const response = await fetch('/api/enhanced/activity-feed');
+      if (!response.ok) throw new Error('Failed to fetch activities');
+      const data = await response.json();
+      
+      // Transform API data to component format
+      const newActivities: ActivityEvent[] = data.map((item: any) => ({
+        id: item.id || Math.random().toString(36).substr(2, 9),
+        timestamp: item.timestamp,
+        type: item.type || 'system',
+        title: item.title,
+        description: item.description,
+        metadata: item.metadata
+      }));
+      
+      setActivities(prev => {
+        // Merge new activities, avoiding duplicates
+        const existingIds = new Set(prev.map(a => a.id));
+        const uniqueNew = newActivities.filter((a: ActivityEvent) => !existingIds.has(a.id));
+        return [...uniqueNew, ...prev].slice(0, 50); // Keep last 50
+      });
+      
+      setIsConnected(true);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Connection error');
+      setIsConnected(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Simulate real-time activity feed
-    const generateActivity = (): ActivityEvent => {
-      const types: ActivityEvent['type'][] = ['user', 'system', 'error', 'success', 'warning'];
-      const type = types[Math.floor(Math.random() * types.length)];
-      
-      const activities: Record<ActivityEvent['type'], { title: string; description: string }[]> = {
-        user: [
-          { title: 'User Login', description: 'New user session started' },
-          { title: 'Dashboard Access', description: 'User accessed admin dashboard' },
-          { title: 'API Request', description: 'User made API call to /agents' },
-        ],
-        system: [
-          { title: 'Service Health Check', description: 'All services responding normally' },
-          { title: 'Database Backup', description: 'Automated backup completed' },
-          { title: 'Cache Refresh', description: 'Redis cache updated successfully' },
-        ],
-        error: [
-          { title: 'Connection Timeout', description: 'Database connection timeout occurred' },
-          { title: 'Rate Limit Exceeded', description: 'API rate limit hit for IP 192.168.1.100' },
-          { title: 'Authentication Failed', description: 'Invalid credentials provided' },
-        ],
-        success: [
-          { title: 'Deployment Complete', description: 'New version deployed successfully' },
-          { title: 'Backup Created', description: 'System backup completed in 2.3s' },
-          { title: 'AI Model Updated', description: 'Ollama model refreshed' },
-        ],
-        warning: [
-          { title: 'High Memory Usage', description: 'Memory usage reached 85%' },
-          { title: 'SSL Certificate', description: 'Certificate expires in 30 days' },
-          { title: 'Disk Space Low', description: 'Available disk space below 15%' },
-        ],
-      };
-
-      const typeActivities = activities[type];
-      const activity = typeActivities[Math.floor(Math.random() * typeActivities.length)];
-
-      return {
-        id: Math.random().toString(36).substr(2, 9),
-        timestamp: new Date().toISOString(),
-        type,
-        title: activity.title,
-        description: activity.description,
-        metadata: {
-          user: `user${Math.floor(Math.random() * 100)}`,
-          service: `nexus_${['ai', 'dashboard', 'db', 'flow', 'voice'][Math.floor(Math.random() * 5)]}`,
-          duration: Math.floor(Math.random() * 5000),
-          ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
-        }
-      };
-    };
-
-    // Initial activities
-    const initialActivities = Array.from({ length: 10 }, generateActivity);
-    setActivities(initialActivities);
-    setIsConnected(true);
-
-    // Simulate real-time updates
-    const interval = setInterval(() => {
-      const newActivity = generateActivity();
-      setActivities(prev => [newActivity, ...prev.slice(0, 49)]); // Keep last 50
-    }, 3000 + Math.random() * 4000); // Random interval 3-7 seconds
-
+    // Initial fetch
+    fetchActivities();
+    
+    // Poll for updates every 5 seconds
+    const interval = setInterval(fetchActivities, 5000);
+    
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchActivities]);
 
   const getIcon = (type: ActivityEvent['type']) => {
     switch (type) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+// @ts-ignore - lucide-react types
 import { Activity, Cpu, Database, Zap, Users, Globe } from 'lucide-react';
 
 interface SystemStats {
@@ -84,9 +85,9 @@ export default function LiveSystemStats() {
             <Badge variant="secondary" className="text-green-600">
               ✅ {stats?.services.healthy} Healthy
             </Badge>
-            {stats?.services.degraded > 0 && (
+            {(stats?.services?.degraded ?? 0) > 0 && (
               <Badge variant="outline" className="text-yellow-600">
-                ⚠️ {stats?.services.degraded} Degraded
+                ⚠️ {stats?.services?.degraded} Degraded
               </Badge>
             )}
           </div>

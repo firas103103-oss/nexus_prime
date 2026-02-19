@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+// @ts-ignore
 import { 
   Activity, 
   Database, 
@@ -34,78 +35,63 @@ interface ServiceHealth {
   };
 }
 
-const serviceConfigs = [
-  { name: 'nexus_ai', displayName: 'AI Chat Engine', port: 3000, icon: Brain },
-  { name: 'nexus_dashboard', displayName: 'Dashboard', port: 5001, icon: BarChart3 },
-  { name: 'nexus_voice', displayName: 'Voice Engine', port: 5050, icon: Mic },
-  { name: 'nexus_flow', displayName: 'Workflow Engine', port: 5678, icon: MessageSquare },
-  { name: 'nexus_boardroom', displayName: 'Boardroom', port: 8501, icon: Activity },
-  { name: 'nexus_ollama', displayName: 'AI Models', port: 11434, icon: Brain },
-  { name: 'nexus_db', displayName: 'Database', port: 5432, icon: Database },
-];
+const serviceIcons: Record<string, any> = {
+  'nexus_ai': Brain,
+  'nexus_dashboard': BarChart3,
+  'nexus_voice': Mic,
+  'nexus_flow': MessageSquare,
+  'nexus_boardroom': Activity,
+  'nexus_ollama': Brain,
+  'nexus_db': Database,
+  'nexus_cortex': Brain,
+  'shadow7_api': Activity,
+  'shadow_postgrest': Database,
+  'nexus_xbio': Activity,
+};
 
 export default function EnhancedServiceMonitor() {
   const [services, setServices] = useState<ServiceHealth[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchServiceHealth = async () => {
+  const fetchServiceHealth = useCallback(async () => {
     try {
-      // Test each service
-      const healthChecks = serviceConfigs.map(async (config) => {
-        const startTime = Date.now();
-        try {
-          const response = await fetch(`http://localhost:${config.port}/`, { 
-            method: 'GET',
-            signal: AbortSignal.timeout(5000)
-          });
-          const responseTime = Date.now() - startTime;
-          
-          return {
-            name: config.name,
-            displayName: config.displayName,
-            status: response.ok ? 'healthy' : 'degraded' as ServiceHealth['status'],
-            uptime: Math.floor(Math.random() * 86400), // Mock uptime
-            responseTime,
-            port: config.port,
-            url: `http://localhost:${config.port}`,
-            lastCheck: new Date().toISOString(),
-            metadata: {
-              version: '2.1.0',
-              memory: Math.floor(Math.random() * 100),
-              cpu: Math.floor(Math.random() * 50),
-              connections: Math.floor(Math.random() * 20),
-            }
-          };
-        } catch (error) {
-          return {
-            name: config.name,
-            displayName: config.displayName,
-            status: 'down' as ServiceHealth['status'],
-            uptime: 0,
-            responseTime: 5000,
-            port: config.port,
-            url: `http://localhost:${config.port}`,
-            lastCheck: new Date().toISOString(),
-          };
-        }
-      });
-
-      const results = await Promise.all(healthChecks);
-      setServices(results);
+      // Fetch real data from enhanced API
+      const response = await fetch('/api/enhanced/service-health');
+      if (!response.ok) throw new Error('Failed to fetch service health');
+      
+      const data = await response.json();
+      
+      // Transform API response to component format
+      const healthData: ServiceHealth[] = data.map((service: any) => ({
+        name: service.name,
+        displayName: service.displayName,
+        status: service.status as ServiceHealth['status'],
+        uptime: service.uptime || 0,
+        responseTime: service.responseTime || 0,
+        port: service.port,
+        url: `http://localhost:${service.port}`,
+        lastCheck: new Date().toISOString(),
+        metadata: service.metadata
+      }));
+      
+      setServices(healthData);
       setLastUpdate(new Date());
-    } catch (error) {
-      console.error('Failed to fetch service health:', error);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch service health:', err);
+      setError(err instanceof Error ? err.message : 'Connection error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchServiceHealth();
     const interval = setInterval(fetchServiceHealth, 10000); // Update every 10 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchServiceHealth]);
 
   const getStatusIcon = (status: ServiceHealth['status']) => {
     switch (status) {
