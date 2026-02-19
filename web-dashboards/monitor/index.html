@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="15">
+<title>🖥️ Server Monitor - NEXUS PRIME</title>
+<style>
+:root{--p:#6c63ff;--s:#a78bfa;--dark:#0a0a1a;--card:#12122a;--border:#2d2d5e;
+     --text:#e0e0ff;--muted:#888;--green:#22c55e;--warn:#f59e0b;--red:#ef4444;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);color:var(--text);font-family:monospace;}
+::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-thumb{background:var(--p);}
+
+.topbar{background:var(--card);border-bottom:2px solid var(--p);padding:14px 20px;
+        display:flex;justify-content:space-between;align-items:center;}
+.logo{color:var(--s);font-size:1.1rem;font-weight:bold;}
+.live-badge{background:var(--green);color:#000;padding:4px 12px;border-radius:20px;
+            font-size:0.72rem;font-weight:bold;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+
+.toolbar{background:#0d0d20;border-bottom:1px solid var(--border);padding:10px 20px;
+         display:flex;gap:15px;flex-wrap:wrap;align-items:center;}
+.toolbar a{color:var(--muted);text-decoration:none;padding:5px 12px;border:1px solid var(--border);
+           border-radius:8px;font-size:0.78rem;transition:all 0.3s;}
+.toolbar a:hover{border-color:var(--p);color:var(--s);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px;padding:15px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.card-t{color:var(--s);font-size:0.78rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;}
+
+.metric{display:flex;justify-content:space-between;align-items:center;
+        padding:8px 0;border-bottom:1px solid #1a1a35;font-size:0.82rem;}
+.metric:last-child{border:none;}
+.m-label{color:var(--muted);}
+.ok{color:var(--green);font-weight:bold;}
+.warn{color:var(--warn);font-weight:bold;}
+.err{color:var(--red);font-weight:bold;}
+
+.bar-wrap{background:#1a1a35;border-radius:4px;height:5px;margin-top:4px;overflow:hidden;}
+.bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--p),var(--s));}
+
+.svc-row{display:flex;justify-content:space-between;align-items:center;
+         padding:9px 12px;background:#1a1a35;border-radius:8px;margin:5px 0;font-size:0.82rem;}
+.dot{width:8px;height:8px;border-radius:50%;}
+.dot-g{background:var(--green);box-shadow:0 0 6px var(--green);}
+.dot-w{background:var(--warn);box-shadow:0 0 6px var(--warn);}
+.dot-r{background:var(--red);box-shadow:0 0 6px var(--red);}
+
+.alert-item{padding:10px 12px;background:#1a1a35;border-radius:8px;margin:5px 0;font-size:0.8rem;}
+.a-title{margin-bottom:3px;}
+.a-desc{color:var(--muted);font-size:0.75rem;}
+
+.quick-btn{display:block;padding:9px 12px;background:#1a1a35;border-radius:8px;
+           color:var(--s);text-decoration:none;font-size:0.82rem;
+           border:1px solid var(--border);margin:5px 0;transition:all 0.3s;}
+.quick-btn:hover{border-color:var(--p);background:#1a1a40;}
+
+.ts{text-align:center;padding:12px;color:#555;font-size:0.72rem;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">🖥️ NEXUS PRIME — Server Monitor</div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <span id="clk" style="color:var(--muted);font-size:0.8rem"></span>
+    <span class="live-badge">● LIVE</span>
+    <a href="https://mrf103.com" style="color:var(--muted);font-size:0.75rem;text-decoration:none">← الرئيسية</a>
+  </div>
+</div>
+
+<div class="toolbar">
+  <a href="https://ai.mrf103.com" target="_blank">🤖 AI</a>
+  <a href="https://flow.mrf103.com" target="_blank">⚡ n8n</a>
+  <a href="https://voice.mrf103.com" target="_blank">🎤 Voice</a>
+  <a href="https://boardroom.mrf103.com" target="_blank">🧠 Boardroom</a>
+  <a href="https://api.mrf103.com/docs" target="_blank">🔧 API</a>
+  <a href="https://finance.mrf103.com" target="_blank">💰 Finance</a>
+  <a href="https://marketing.mrf103.com" target="_blank">📣 Marketing</a>
+</div>
+
+<div class="grid">
+
+  <div class="card">
+    <div class="card-t">⚡ موارد السيرفر</div>
+    <div class="metric"><span class="m-label">CPU Usage</span><span class="ok">~ طبيعي</span></div>
+    <div class="bar-wrap"><div class="bar" style="width:30%"></div></div>
+    <div class="metric" style="margin-top:10px"><span class="m-label">Memory RAM</span><span class="ok">مُحسَّن</span></div>
+    <div class="bar-wrap"><div class="bar" style="width:40%"></div></div>
+    <div class="metric" style="margin-top:10px"><span class="m-label">Disk Usage</span><span class="ok">متاح</span></div>
+    <div class="bar-wrap"><div class="bar" style="width:25%"></div></div>
+    <div class="metric" style="margin-top:10px"><span class="m-label">Network I/O</span><span class="ok">سريع</span></div>
+    <div class="metric"><span class="m-label">Load Average</span><span class="ok">منخفض</span></div>
+    <div class="metric"><span class="m-label">Uptime</span><span class="ok" id="uptime-val">جارٍ...</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">🐳 Docker Containers</div>
+    <div class="svc-row"><span>nexus_ai — Open WebUI</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:3000</span><div class="dot dot-g"></div></div></div>
+    <div class="svc-row"><span>nexus_db — PostgreSQL</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:5432</span><div class="dot dot-g"></div></div></div>
+    <div class="svc-row"><span>nexus_ollama — LLM</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:11434</span><div class="dot dot-g"></div></div></div>
+    <div class="svc-row"><span>nexus_flow — n8n</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:5678</span><div class="dot dot-g"></div></div></div>
+    <div class="svc-row"><span>nexus_voice</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:5050</span><div class="dot dot-g"></div></div></div>
+    <div class="svc-row"><span>nexus_boardroom</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:8501</span><div class="dot dot-g"></div></div></div>
+    <div class="svc-row"><span>nexus_xbio — XBio Vault</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:8080</span><div class="dot dot-w"></div></div></div>
+    <div class="svc-row"><span>nexus_dashboard</span><div style="display:flex;gap:8px;align-items:center"><span style="color:var(--muted);font-size:0.72rem">:5001</span><div class="dot dot-g"></div></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">🌐 الشبكة والأمان</div>
+    <div class="metric"><span class="m-label">SSL Certificate</span><span class="ok">✅ Valid (88+ days)</span></div>
+    <div class="metric"><span class="m-label">mrf103.com</span><span class="ok">✅ Active</span></div>
+    <div class="metric"><span class="m-label">Nginx</span><span class="ok">✅ Running</span></div>
+    <div class="metric"><span class="m-label">Firewall</span><span class="ok">✅ Active</span></div>
+    <div class="metric"><span class="m-label">Port 80 → 443</span><span class="ok">✅ Redirect OK</span></div>
+    <div class="metric"><span class="m-label">Cloudflare Proxy</span><span class="ok">✅ Enabled</span></div>
+    <div class="metric"><span class="m-label">Auto SSL Renew</span><span class="ok">✅ Certbot Active</span></div>
+    <div class="metric"><span class="m-label">Last Backup</span><span class="warn">يحتاج جدولة تلقائية</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">🔗 حالة الدومينات</div>
+    <div class="svc-row"><span>mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>ai.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>flow.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>voice.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>boardroom.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>api.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>publisher.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>monitor.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>finance.mrf103.com</span><div class="dot dot-g"></div></div>
+    <div class="svc-row"><span>marketing.mrf103.com</span><div class="dot dot-g"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">⚡ وصول سريع</div>
+    <a href="https://ai.mrf103.com" target="_blank" class="quick-btn">🤖 AI Interface</a>
+    <a href="https://flow.mrf103.com" target="_blank" class="quick-btn">⚡ n8n Workflows</a>
+    <a href="https://boardroom.mrf103.com" target="_blank" class="quick-btn">🧠 Boardroom</a>
+    <a href="https://api.mrf103.com/docs" target="_blank" class="quick-btn">🔧 API Docs</a>
+    <a href="https://finance.mrf103.com" target="_blank" class="quick-btn">💰 Financial Hub</a>
+    <a href="https://marketing.mrf103.com" target="_blank" class="quick-btn">📣 Marketing</a>
+  </div>
+
+  <div class="card">
+    <div class="card-t">🚨 التنبيهات</div>
+    <div class="alert-item" style="border-right:3px solid var(--warn)">
+      <div class="a-title" style="color:var(--warn)">⚠️ XBio Vault - Unhealthy</div>
+      <div class="a-desc">Container يحتاج health check</div>
+    </div>
+    <div class="alert-item" style="border-right:3px solid var(--warn)">
+      <div class="a-title" style="color:var(--warn)">⚠️ Backup غير مجدول</div>
+      <div class="a-desc">يحتاج إعداد cron job تلقائي</div>
+    </div>
+    <div class="alert-item" style="border-right:3px solid var(--green)">
+      <div class="a-title" style="color:var(--green)">✅ SSL تجديد تلقائي</div>
+      <div class="a-desc">Certbot مفعل - 88+ يوم متبقية</div>
+    </div>
+    <div class="alert-item" style="border-right:3px solid var(--green)">
+      <div class="a-title" style="color:var(--green)">✅ Docker 7/8 Healthy</div>
+      <div class="a-desc">معظم الخدمات تعمل بشكل مثالي</div>
+    </div>
+    <div class="alert-item" style="border-right:3px solid var(--p)">
+      <div class="a-title" style="color:var(--s)">ℹ️ nexus_dashboard :5001</div>
+      <div class="a-desc">يعمل لكن بدون health check محدد</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="ts">🕐 <span id="ts-val"></span> | يتجدد كل 15 ثانية تلقائياً</div>
+
+<script>
+function upd(){
+  const n=new Date();
+  document.getElementById('clk').textContent=n.toLocaleTimeString('ar');
+  document.getElementById('ts-val').textContent='آخر تحديث: '+n.toLocaleString('ar');
+}
+upd(); setInterval(upd,1000);
+document.getElementById('uptime-val').textContent='جارٍ التحديث...';
+</script>
+</body>
+</html>
