@@ -12,9 +12,13 @@ from typing import Optional, List, Dict, Any
 import httpx, asyncio, os, json, yaml, time, random
 from datetime import datetime, timezone
 from pathlib import Path
+from boardroom_bridge import BoardroomBridge
 
 app = FastAPI(title="Nexus Nerve Center API", version="2.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+# Boardroom Bridge instance
+bridge = BoardroomBridge()
 
 # ═══════════════════════════════════════════════════════════════
 # CONFIGURATION
@@ -243,7 +247,7 @@ Your specialization: {agent.get('specialization', 'General operations')}
 Your tools: {', '.join(agent.get('tools', []))}
 Respond concisely and in character. You serve MrF, the sovereign commander."""
         
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(f"{OLLAMA_URL}/api/chat", json={
                 "model": "llama3.2:3b",
                 "messages": [
@@ -256,8 +260,14 @@ Respond concisely and in character. You serve MrF, the sovereign commander."""
                 data = resp.json()
                 response_text = data.get("message", {}).get("content", response_text)
                 evolve_agent(target, "task_complete")
+            else:
+                response_text += f" (LLM HTTP {resp.status_code})"
+    except httpx.ConnectError as e:
+        response_text += f" (LLM connect failed: {str(e)[:80]})"
+    except httpx.TimeoutException:
+        response_text += " (LLM timeout — model may be loading)"
     except Exception as e:
-        response_text += f" (LLM offline: {str(e)[:60]})"
+        response_text += f" (LLM error: {type(e).__name__}: {str(e)[:80]})"
     
     return {
         "command": req.command,
@@ -359,6 +369,79 @@ async def system_overview():
         "agents": {"total": len(agents), "with_genome": len(genome), "departments": dept_counts},
         "capabilities": {"unique_tools": len(all_tools), "tools_list": sorted(all_tools)},
         "infrastructure": {"services": len(SERVICES), "products": 14, "subdomains": 25, "lines_of_code": "447K+"}
+    }
+
+# ═══════════════════════════════════════════════════════════════
+# BOARDROOM BRIDGE — Agent Summoning & Chat
+# ═══════════════════════════════════════════════════════════════
+
+class BoardroomChat(BaseModel):
+    agent_id: str
+    message: str
+
+@app.get("/api/boardroom/roster")
+def boardroom_roster():
+    """List all agents available for summoning"""
+    return {"agents": bridge.list_agents(), "total": bridge.get_agent_count()}
+
+@app.get("/api/boardroom/summon/{agent_id}")
+def boardroom_summon(agent_id: str):
+    """Summon an agent into the boardroom — returns full identity + injected prompt"""
+    result = bridge.summon_agent(agent_id)
+    if "error" in result:
+        raise HTTPException(404, result["error"])
+    return result
+
+@app.get("/api/boardroom/department/{dept_name}")
+def boardroom_department(dept_name: str):
+    """Summon all agents from a department"""
+    results = bridge.summon_department(dept_name)
+    if not results:
+        raise HTTPException(404, f"No agents found in department '{dept_name}'")
+    return {"department": dept_name, "agents": results, "count": len(results)}
+
+@app.post("/api/boardroom/chat")
+async def boardroom_chat(req: BoardroomChat):
+    """Chat with a summoned agent — uses their injected prompt via Ollama"""
+    summoned = bridge.summon_agent(req.agent_id)
+    if "error" in summoned:
+        raise HTTPException(404, summoned["error"])
+
+    system_prompt = summoned["injected_prompt"]
+    evolve_agent(req.agent_id, "command_received")
+
+    response_text = f"[{summoned['agent_name']}] Acknowledged. Processing directive..."
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(f"{OLLAMA_URL}/api/chat", json={
+                "model": "llama3.2:3b",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": req.message}
+                ],
+                "stream": False
+            })
+            if resp.status_code == 200:
+                data = resp.json()
+                response_text = data.get("message", {}).get("content", response_text)
+                evolve_agent(req.agent_id, "task_complete")
+            else:
+                response_text += f" (LLM HTTP {resp.status_code})"
+    except httpx.ConnectError as e:
+        response_text += f" (LLM connect failed: {str(e)[:80]})"
+    except httpx.TimeoutException:
+        response_text += " (LLM timeout — model may be loading)"
+    except Exception as e:
+        response_text += f" (LLM error: {type(e).__name__}: {str(e)[:80]})"
+
+    return {
+        "agent_id": req.agent_id,
+        "agent_name": summoned["agent_name"],
+        "department": summoned["department"],
+        "message": req.message,
+        "response": response_text,
+        "genome": get_agent_genome(req.agent_id),
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 if __name__ == "__main__":

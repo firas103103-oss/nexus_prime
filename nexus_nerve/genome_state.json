@@ -250,12 +250,12 @@
   },
   "mrf": {
     "performance": 98,
-    "learning": 95.2,
+    "learning": 95.4,
     "reliability": 81,
-    "evolution": 69.1,
+    "evolution": 69.2,
     "tasks_completed": 0,
-    "commands_received": 1,
-    "last_active": "2026-02-20T15:39:40.999629+00:00",
+    "commands_received": 2,
+    "last_active": "2026-02-20T15:49:25.167125+00:00",
     "evolution_history": [
       {
         "timestamp": "2026-02-20T15:39:40.999646+00:00",
@@ -265,6 +265,68 @@
           "learning": 95.2,
           "reliability": 81,
           "evolution": 69.1
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:49:25.167143+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 98,
+          "learning": 95.4,
+          "reliability": 81,
+          "evolution": 69.2
+        }
+      }
+    ]
+  },
+  "SEC-GUARD": {
+    "performance": 80,
+    "learning": 95.2,
+    "reliability": 80,
+    "evolution": 79.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:48:33.008546+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:48:33.008563+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 80,
+          "learning": 95.2,
+          "reliability": 80,
+          "evolution": 79.1
+        }
+      }
+    ]
+  },
+  "RAG-CORE": {
+    "performance": 84.5,
+    "learning": 73.5,
+    "reliability": 90,
+    "evolution": 74.5,
+    "tasks_completed": 1,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:50:47.134179+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:50:40.033291+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 84,
+          "learning": 73.2,
+          "reliability": 90,
+          "evolution": 74.1
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:50:47.134192+00:00",
+        "event": "task_complete",
+        "snapshot": {
+          "performance": 84.5,
+          "learning": 73.5,
+          "reliability": 90,
+          "evolution": 74.5
         }
       }
     ]
