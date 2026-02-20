@@ -1,0 +1,25 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# NEXUS PRIME CORE — gRPC Meta-Orchestrator Dependencies
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# gRPC Core
+grpcio==1.68.1
+grpcio-tools==1.68.1
+grpcio-reflection==1.68.1
+grpcio-health-checking==1.68.1
+protobuf==5.29.2
+
+# Async HTTP Client (Cortex bridge)
+httpx==0.28.1
+
+# Database (direct agent state queries)
+asyncpg==0.30.0
+
+# Redis (bridge existing Pub/Sub)
+redis[hiredis]==5.2.1
+
+# Data validation
+pydantic==2.10.4
+
+# Async performance (Linux)
+uvloop==0.21.0

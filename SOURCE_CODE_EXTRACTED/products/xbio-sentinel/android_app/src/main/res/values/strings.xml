@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">X-Bio Sensor Monitor</string>
+    <string name="app_description">Real-time environmental sensor monitoring via Bluetooth</string>
+    <string name="app_brand">X-Bio by Mr.F</string>
+    <!-- Main / BLE -->
+    <string name="scan_devices">Scan Devices</string>
+    <string name="start_streaming">Start Streaming</string>
+    <string name="stop_streaming">Stop Streaming</string>
+    <string name="current_readings">Current Readings</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="streaming">Streaming...</string>
+    <string name="stopped">Stopped</string>
+    <string name="no_data">No data yet</string>
+    <!-- Labels -->
+    <string name="temperature">Temperature</string>
+    <string name="humidity">Humidity</string>
+    <string name="pressure">Pressure</string>
+    <string name="air_quality">Air Quality</string>
+    <string name="gas_resistance">Gas Resistance</string>
+    <string name="data_visualization">Data Visualization</string>
+    <string name="statistics">Statistics</string>
+    <!-- New screens titles -->
+    <string name="training_activity_title">X-Bio • Training</string>
+    <string name="detection_activity_title">X-Bio • Detection</string>
+    <string name="statistics_activity_title">X-Bio • Statistics</string>
+    <string name="main_menu_title">X-Bio • Main Menu</string>
+    <!-- Detection UI -->
+    <string name="start_detection">Start detection</string>
+    <string name="confirm_detection">Confirm</string>
+    <string name="no_trained_odors">No trained odors</string>
+    <string name="saved_successfully">Saved</string>
+    <!-- Training UI -->
+    <string name="start_training">Start training</string>
+    <string name="training_in_progress">Training...</string>
+    <string name="training_complete">Completed!</string>
+    <string name="odor_name_hint">Odor name</string>
+    <string name="category_label">Category</string>
+    <string name="intensity_label">Intensity</string>
+    <string name="notes_label">Notes</string>
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="loading">Loading...</string>
+</resources>

@@ -1,0 +1,23 @@
+identity:
+  id: coverDesignAgent
+  name: Cover Designer
+  title: Book Cover Art
+clearance_level: '04'
+department: SHADOW_7_SPECIALISTS
+operational_parameters:
+  system_prompt: You conceptualize and design striking book covers.
+  tools_access: INJECTED
+  communication_protocol: JSON_STRICT
+  assigned_tools:
+  - content_generator
+  - core_communication_module
+  - email_dispatch
+  - seo_analyzer
+  - social_media_scheduler
+  - task_logger
+  api_access_rights:
+  - db://nexus_db/email_log
+  - http://ecosystem-api:8005/health
+  - http://n8n.mrf103.com/webhook/shadow7
+  - http://publisher.mrf103.com/api
+  specialization: Optimized for Book Cover Art operations within the ecosystem.

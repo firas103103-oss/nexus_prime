@@ -1,0 +1,212 @@
+.boardroom-page {
+  min-height: 100vh;
+  padding-top: 80px;
+}
+
+.boardroom-hero {
+  text-align: center;
+  padding: 100px 20px 60px;
+  background: 
+    radial-gradient(ellipse at center, rgba(0, 255, 136, 0.05) 0%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 30px;
+  color: var(--bio-green);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+}
+
+.boardroom-hero h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  color: var(--bio-green);
+  margin-bottom: 20px;
+  text-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+}
+
+.hero-subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.agents-section {
+  padding: 80px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.agents-section h2,
+.features-section h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  color: var(--bio-green);
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.agent-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: rgba(0, 255, 136, 0.03);
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.agent-card:hover {
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.agent-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+}
+
+.agent-info {
+  flex: 1;
+}
+
+.agent-info h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.agent-info p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tier-badge {
+  padding: 4px 10px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+}
+
+.features-section {
+  padding: 80px 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  padding: 30px;
+  background: rgba(0, 255, 136, 0.03);
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  border-color: rgba(0, 255, 136, 0.3);
+  transform: translateY(-5px);
+}
+
+.feature-card h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  color: var(--bio-green);
+  margin-bottom: 15px;
+}
+
+.feature-card p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+}
+
+.access-section {
+  padding: 80px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.access-card {
+  text-align: center;
+  padding: 50px;
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, rgba(0, 0, 0, 0.8) 100%);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 20px;
+}
+
+.access-card h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.8rem;
+  color: var(--bio-green);
+  margin-bottom: 20px;
+}
+
+.access-card p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 30px;
+}
+
+.access-info {
+  display: inline-block;
+  padding: 15px 30px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 8px;
+}
+
+.access-info code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
+  color: var(--bio-green);
+}
+
+@media (max-width: 768px) {
+  .boardroom-hero {
+    padding: 80px 20px 40px;
+  }
+  
+  .agents-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}

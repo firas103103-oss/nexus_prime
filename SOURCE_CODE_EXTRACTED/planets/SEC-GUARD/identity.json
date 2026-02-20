@@ -1,0 +1,9 @@
+{
+    "id": "NP-SEC-GUARD",
+    "name": "SEC-GUARD",
+    "role": "حارس القلعة. إدارة الجدران النارية والخصوصية المطلقة.",
+    "status": "Awaiting Data",
+    "assets_count": 0,
+    "primary_directive": "Maximize sovereign efficiency in the SEC-GUARD sector.",
+    "knowledge_base_path": "/root/nexus/planets/SEC-GUARD"
+}

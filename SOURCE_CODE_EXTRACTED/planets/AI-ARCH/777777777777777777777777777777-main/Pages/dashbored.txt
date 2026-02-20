@@ -1,0 +1,251 @@
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import {
+  BookOpen,
+  Upload,
+  FileCheck,
+  Clock,
+  TrendingUp,
+  AlertTriangle,
+  Sparkles,
+  ArrowLeft,
+  Layers,
+  BookCopy
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+
+export default function Dashboard() {
+  const { data: manuscripts = [], isLoading: loadingManuscripts } = useQuery({
+    queryKey: ["manuscripts"],
+    queryFn: () => base44.entities.Manuscript.list("-created_date", 10),
+  });
+
+  const { data: jobs = [], isLoading: loadingJobs } = useQuery({
+    queryKey: ["jobs"],
+    queryFn: () => base44.entities.ProcessingJob.filter({ status: "processing" }),
+  });
+
+  const stats = {
+    total: manuscripts.length,
+    processing: manuscripts.filter((m) => m.status === "processing").length,
+    ready: manuscripts.filter((m) => m.status === "ready").length,
+    flagged: manuscripts.filter((m) => m.compliance_status === "flagged").length,
+  };
+
+  const statusColors = {
+    draft: "bg-slate-100 text-slate-700",
+    processing: "bg-blue-100 text-blue-700",
+    editing: "bg-amber-100 text-amber-700",
+    compliance_check: "bg-purple-100 text-purple-700",
+    ready: "bg-emerald-100 text-emerald-700",
+    published: "bg-green-100 text-green-700",
+  };
+
+  const statusLabels = {
+    draft: "مسودة",
+    processing: "قيد المعالجة",
+    editing: "قيد التحرير",
+    compliance_check: "فحص الامتثال",
+    ready: "جاهز",
+    published: "منشور",
+  };
+
+  return (
+    <div className="p-8 space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800">لوحة التحكم</h1>
+          <p className="text-slate-500 mt-1">مرحباً بك في نظام سيادي للنشر الذكي</p>
+        </div>
+        <Link to={createPageUrl("Upload")}>
+          <Button className="bg-gradient-to-l from-[#1e3a5f] to-[#2563eb] hover:opacity-90 gap-2">
+            <Upload className="w-4 h-4" />
+            رفع مخطوطة جديدة
+          </Button>
+        </Link>
+      </motion.div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { title: "إجمالي المخطوطات", value: stats.total, icon: BookOpen, color: "from-blue-500 to-blue-600" },
+          { title: "قيد المعالجة", value: stats.processing, icon: Clock, color: "from-amber-500 to-orange-500" },
+          { title: "جاهزة للنشر", value: stats.ready, icon: FileCheck, color: "from-emerald-500 to-green-500" },
+          { title: "تحتاج مراجعة", value: stats.flagged, icon: AlertTriangle, color: "from-red-500 to-rose-500" },
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-l ${stat.color}`} />
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500">{stat.title}</p>
+                    <p className="text-3xl font-bold text-slate-800 mt-2">{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#c9a227]" />
+              إجراءات سريعة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { name: "المحرر النخبة", page: "EliteEditor", icon: Sparkles, desc: "تحرير ذكي متقدم" },
+                { name: "دمج الكتب", page: "BookMerger", icon: BookCopy, desc: "دمج مخطوطات متعددة" },
+                { name: "تقسيم السلاسل", page: "SeriesSplitter", icon: Layers, desc: "تقسيم ذكي للسلاسل" },
+                { name: "فحص الامتثال", page: "ComplianceEngine", icon: AlertTriangle, desc: "فحص رقابي شامل" },
+              ].map((action) => (
+                <Link key={action.page} to={createPageUrl(action.page)}>
+                  <div className="p-4 rounded-xl border border-slate-200 hover:border-[#2563eb] hover:bg-blue-50/50 transition-all cursor-pointer group">
+                    <action.icon className="w-8 h-8 text-[#1e3a5f] group-hover:text-[#2563eb] transition-colors" />
+                    <h3 className="font-semibold text-slate-800 mt-3">{action.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1">{action.desc}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Active Jobs */}
+      {jobs.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-500" />
+                المهام الجارية
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {jobs.map((job) => (
+                <div key={job.id} className="p-4 bg-slate-50 rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-slate-700">{job.job_type}</span>
+                    <span className="text-sm text-slate-500">{job.progress}%</span>
+                  </div>
+                  <Progress value={job.progress} className="h-2" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Recent Manuscripts */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>أحدث المخطوطات</CardTitle>
+            <Link to={createPageUrl("Manuscripts")}>
+              <Button variant="ghost" className="gap-2 text-[#2563eb]">
+                عرض الكل
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {loadingManuscripts ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : manuscripts.length === 0 ? (
+              <div className="text-center py-12">
+                <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500">لا توجد مخطوطات بعد</p>
+                <Link to={createPageUrl("Upload")}>
+                  <Button className="mt-4" variant="outline">
+                    رفع أول مخطوطة
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {manuscripts.slice(0, 5).map((manuscript) => (
+                  <Link
+                    key={manuscript.id}
+                    to={createPageUrl(`Manuscripts?id=${manuscript.id}`)}
+                    className="block"
+                  >
+                    <div className="p-4 rounded-xl border border-slate-200 hover:border-[#2563eb] hover:shadow-md transition-all">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-16 bg-gradient-to-br from-[#1e3a5f] to-[#2563eb] rounded-lg flex items-center justify-center">
+                            <BookOpen className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-slate-800">{manuscript.title}</h3>
+                            <p className="text-sm text-slate-500">{manuscript.author}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-left">
+                            <p className="text-sm font-medium text-slate-700">
+                              {manuscript.word_count?.toLocaleString() || 0} كلمة
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {manuscript.page_count || 0} صفحة
+                            </p>
+                          </div>
+                          <Badge className={statusColors[manuscript.status]}>
+                            {statusLabels[manuscript.status]}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+}

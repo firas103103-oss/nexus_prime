@@ -1,0 +1,434 @@
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  BookCopy,
+  BookOpen,
+  ArrowLeft,
+  Plus,
+  GripVertical,
+  X,
+  Loader2,
+  Sparkles,
+  Save,
+  Check,
+  ChevronDown,
+  ChevronUp
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+export default function BookMerger() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
+  const [selectedBooks, setSelectedBooks] = useState([]);
+  const [mergedTitle, setMergedTitle] = useState("");
+  const [mergedAuthor, setMergedAuthor] = useState("");
+  const [merging, setMerging] = useState(false);
+  const [mergingProgress, setMergingProgress] = useState(0);
+  const [expandedBook, setExpandedBook] = useState(null);
+
+  const { data: manuscripts = [], isLoading } = useQuery({
+    queryKey: ["manuscripts"],
+    queryFn: () => base44.entities.Manuscript.list("-created_date"),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Manuscript.create(data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["manuscripts"] });
+      navigate(createPageUrl(`EliteEditor?id=${data.id}`));
+    },
+  });
+
+  const availableBooks = manuscripts.filter(
+    (m) => !selectedBooks.find((b) => b.id === m.id)
+  );
+
+  const addBook = (bookId) => {
+    const book = manuscripts.find((m) => m.id === bookId);
+    if (book) {
+      setSelectedBooks([...selectedBooks, book]);
+    }
+  };
+
+  const removeBook = (bookId) => {
+    setSelectedBooks(selectedBooks.filter((b) => b.id !== bookId));
+  };
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+    
+    const items = Array.from(selectedBooks);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
+    setSelectedBooks(items);
+  };
+
+  const mergeBooks = async () => {
+    if (selectedBooks.length < 2) return;
+    
+    setMerging(true);
+    setMergingProgress(0);
+    
+    // Simulate merging progress
+    const progressInterval = setInterval(() => {
+      setMergingProgress((prev) => Math.min(prev + 5, 90));
+    }, 200);
+    
+    // Merge all chapters from selected books
+    let allChapters = [];
+    let totalWordCount = 0;
+    let allContent = "";
+    
+    selectedBooks.forEach((book, bookIndex) => {
+      if (book.chapters?.length > 0) {
+        book.chapters.forEach((chapter, chapterIndex) => {
+          allChapters.push({
+            id: `merged-${bookIndex}-${chapterIndex}`,
+            title: chapter.title || `${book.title} - فصل ${chapterIndex + 1}`,
+            content: chapter.content,
+            word_count: chapter.word_count || 0,
+            order: allChapters.length,
+            original_book: book.title
+          });
+        });
+      } else if (book.content) {
+        allChapters.push({
+          id: `merged-${bookIndex}`,
+          title: book.title,
+          content: book.content,
+          word_count: book.word_count || 0,
+          order: allChapters.length,
+          original_book: book.title
+        });
+      }
+      totalWordCount += book.word_count || 0;
+      allContent += (book.content || "") + "\n\n";
+    });
+    
+    // Use AI to create smooth transitions
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `قم بإنشاء نص انتقالي قصير (جملة أو جملتين) للربط بين كتابين تم دمجهما في سلسلة واحدة. 
+      الكتاب الأول: "${selectedBooks[0].title}"
+      الكتاب الثاني: "${selectedBooks[1]?.title || ''}"
+      اجعل الانتقال سلساً ومناسباً للسياق.`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          transition_text: { type: "string" }
+        }
+      }
+    });
+    
+    clearInterval(progressInterval);
+    setMergingProgress(100);
+    
+    const mergedData = {
+      title: mergedTitle || `${selectedBooks[0].title} - مجموعة مدمجة`,
+      author: mergedAuthor || selectedBooks[0].author,
+      genre: selectedBooks[0].genre,
+      language: selectedBooks[0].language,
+      direction: selectedBooks[0].direction,
+      content: allContent,
+      chapters: allChapters,
+      word_count: totalWordCount,
+      page_count: Math.ceil(totalWordCount / 250),
+      status: "draft",
+      compliance_status: "pending"
+    };
+    
+    createMutation.mutate(mergedData);
+    setMerging(false);
+  };
+
+  const totalWords = selectedBooks.reduce((sum, b) => sum + (b.word_count || 0), 0);
+  const totalPages = Math.ceil(totalWords / 250);
+
+  return (
+    <div className="p-8">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <Button
+          variant="ghost"
+          onClick={() => navigate(createPageUrl("Dashboard"))}
+          className="mb-4 gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          العودة للوحة التحكم
+        </Button>
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+          <BookCopy className="w-8 h-8 text-[#2563eb]" />
+          دمج الكتب
+        </h1>
+        <p className="text-slate-500 mt-1">قم بدمج عدة مخطوطات في كتاب واحد متكامل</p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Book Selection */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Selected Books */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>الكتب المختارة للدمج</span>
+                <Badge variant="outline">{selectedBooks.length} كتب</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedBooks.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                  <BookCopy className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500">اختر الكتب من القائمة أدناه</p>
+                </div>
+              ) : (
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <Droppable droppableId="books">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-3"
+                      >
+                        {selectedBooks.map((book, index) => (
+                          <Draggable key={book.id} draggableId={book.id} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`bg-white rounded-xl border-2 transition-all ${
+                                  snapshot.isDragging
+                                    ? "border-[#2563eb] shadow-lg"
+                                    : "border-slate-200"
+                                }`}
+                              >
+                                <Collapsible
+                                  open={expandedBook === book.id}
+                                  onOpenChange={() =>
+                                    setExpandedBook(expandedBook === book.id ? null : book.id)
+                                  }
+                                >
+                                  <div className="p-4 flex items-center gap-4">
+                                    <div
+                                      {...provided.dragHandleProps}
+                                      className="cursor-grab hover:text-[#2563eb]"
+                                    >
+                                      <GripVertical className="w-5 h-5 text-slate-400" />
+                                    </div>
+                                    <div className="w-10 h-14 bg-gradient-to-br from-[#1e3a5f] to-[#2563eb] rounded-lg flex items-center justify-center">
+                                      <BookOpen className="w-5 h-5 text-white" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <h4 className="font-semibold text-slate-800">
+                                        {book.title}
+                                      </h4>
+                                      <p className="text-sm text-slate-500">
+                                        {book.author} • {book.word_count?.toLocaleString()} كلمة
+                                      </p>
+                                    </div>
+                                    <Badge className="bg-slate-100 text-slate-700">
+                                      #{index + 1}
+                                    </Badge>
+                                    <CollapsibleTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                        {expandedBook === book.id ? (
+                                          <ChevronUp className="w-4 h-4" />
+                                        ) : (
+                                          <ChevronDown className="w-4 h-4" />
+                                        )}
+                                      </Button>
+                                    </CollapsibleTrigger>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => removeBook(book.id)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                  <CollapsibleContent>
+                                    <div className="px-4 pb-4 border-t pt-4 mt-2">
+                                      <p className="text-sm text-slate-600">
+                                        {book.chapters?.length || 0} فصول •{" "}
+                                        {book.page_count || 0} صفحة
+                                      </p>
+                                      {book.chapters?.length > 0 && (
+                                        <div className="mt-3 space-y-1">
+                                          {book.chapters.slice(0, 5).map((ch, i) => (
+                                            <p
+                                              key={i}
+                                              className="text-xs text-slate-500 pr-4"
+                                            >
+                                              • {ch.title || `فصل ${i + 1}`}
+                                            </p>
+                                          ))}
+                                          {book.chapters.length > 5 && (
+                                            <p className="text-xs text-slate-400 pr-4">
+                                              و {book.chapters.length - 5} فصول أخرى...
+                                            </p>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </CollapsibleContent>
+                                </Collapsible>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Available Books */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle>الكتب المتاحة</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse" />
+                  ))}
+                </div>
+              ) : availableBooks.length === 0 ? (
+                <p className="text-center text-slate-500 py-8">
+                  تم اختيار جميع الكتب المتاحة
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {availableBooks.map((book) => (
+                    <button
+                      key={book.id}
+                      onClick={() => addBook(book.id)}
+                      className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 hover:border-[#2563eb] hover:bg-blue-50/30 transition-all text-right"
+                    >
+                      <div className="w-10 h-14 bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg flex items-center justify-center">
+                        <BookOpen className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-slate-800">{book.title}</h4>
+                        <p className="text-sm text-slate-500">
+                          {book.word_count?.toLocaleString()} كلمة
+                        </p>
+                      </div>
+                      <Plus className="w-5 h-5 text-[#2563eb]" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Merge Settings */}
+        <div className="space-y-6">
+          <Card className="border-0 shadow-lg sticky top-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#c9a227]" />
+                إعدادات الدمج
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label>عنوان الكتاب المدمج</Label>
+                <Input
+                  value={mergedTitle}
+                  onChange={(e) => setMergedTitle(e.target.value)}
+                  placeholder="أدخل عنوان الكتاب الجديد"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>اسم المؤلف</Label>
+                <Input
+                  value={mergedAuthor}
+                  onChange={(e) => setMergedAuthor(e.target.value)}
+                  placeholder="اسم المؤلف"
+                />
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                <h4 className="font-medium text-slate-700">ملخص الدمج</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">عدد الكتب</span>
+                    <span className="font-medium">{selectedBooks.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">إجمالي الكلمات</span>
+                    <span className="font-medium">{totalWords.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">عدد الصفحات</span>
+                    <span className="font-medium">{totalPages}</span>
+                  </div>
+                </div>
+              </div>
+
+              {merging && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>جاري الدمج...</span>
+                    <span>{mergingProgress}%</span>
+                  </div>
+                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-l from-[#1e3a5f] to-[#2563eb] transition-all duration-300"
+                      style={{ width: `${mergingProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <Button
+                onClick={mergeBooks}
+                disabled={selectedBooks.length < 2 || merging}
+                className="w-full bg-gradient-to-l from-[#1e3a5f] to-[#2563eb] gap-2"
+              >
+                {merging ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <BookCopy className="w-4 h-4" />
+                )}
+                {merging ? "جاري الدمج..." : "دمج الكتب"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

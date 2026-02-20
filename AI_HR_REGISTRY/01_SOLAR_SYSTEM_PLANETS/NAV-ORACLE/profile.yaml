@@ -1,0 +1,22 @@
+identity:
+  id: NAV-ORACLE
+  name: Navigation Oracle
+  title: Risk & Growth Navigator
+clearance_level: '01'
+department: SOLAR_SYSTEM_PLANETS
+operational_parameters:
+  system_prompt: You calculate risks and chart growth trajectories.
+  tools_access: INJECTED
+  communication_protocol: JSON_STRICT
+  assigned_tools:
+  - core_communication_module
+  - db_query_engine
+  - pulse_grpc_communicator
+  - rag_retriever
+  - system_monitor
+  - task_logger
+  api_access_rights:
+  - grpc://nexus_orchestrator:50051
+  - http://ecosystem-api:8005/health
+  - http://oracle.mrf103.com
+  specialization: Optimized for Risk & Growth Navigator operations within the ecosystem.

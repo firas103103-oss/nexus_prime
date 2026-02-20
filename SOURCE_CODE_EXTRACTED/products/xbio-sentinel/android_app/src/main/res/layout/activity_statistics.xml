@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📈 الإحصائيات"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Summary Cards -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:spacing="8dp">
+
+        <TextView
+            android:id="@+id/totalOdorsText"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:text="الروائح: 0"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:background="@drawable/card_background"
+            android:padding="12dp" />
+
+        <TextView
+            android:id="@+id/totalDetectionsText"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:text="الاستكشافات: 0"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:background="@drawable/card_background"
+            android:padding="12dp" />
+
+        <TextView
+            android:id="@+id/averageAccuracyText"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:text="الدقة: 0%"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:background="@drawable/card_background"
+            android:padding="12dp" />
+    </LinearLayout>
+
+    <!-- Details List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/statsRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

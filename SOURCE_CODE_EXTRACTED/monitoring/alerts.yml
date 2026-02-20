@@ -1,0 +1,200 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 🔔 NEXUS PRIME - Prometheus Alert Rules
+# ═══════════════════════════════════════════════════════════════════════════
+
+groups:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🖥️ System Resources Alerts
+  # ═══════════════════════════════════════════════════════════════════════════
+  - name: system_resources
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "استهلاك CPU عالي على {{ $labels.instance }}"
+          description: "استهلاك CPU: {{ $value | humanize }}% لأكثر من 5 دقائق"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "استهلاك الذاكرة عالي على {{ $labels.instance }}"
+          description: "استهلاك الذاكرة: {{ $value | humanize }}%"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 10m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "مساحة القرص منخفضة جداً"
+          description: "المساحة المتبقية: {{ $value | humanize }}%"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🐳 Container Health Alerts
+  # ═══════════════════════════════════════════════════════════════════════════
+  - name: containers
+    interval: 30s
+    rules:
+      - alert: ContainerDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: container
+        annotations:
+          summary: "الحاوية {{ $labels.job }} متوقفة"
+          description: "الحاوية {{ $labels.job }} على {{ $labels.instance }} لا تستجيب"
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: "استهلاك ذاكرة عالي في الحاوية {{ $labels.name }}"
+          description: "استهلاك: {{ $value | humanize }}%"
+
+      - alert: ContainerRestartingTooOften
+        expr: rate(container_last_seen{name!=""}[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: "الحاوية {{ $labels.name }} تعيد التشغيل بشكل متكرر"
+          description: "معدل إعادة التشغيل: {{ $value | humanize }}"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🗄️ Database Alerts
+  # ═══════════════════════════════════════════════════════════════════════════
+  - name: database
+    interval: 30s
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "قاعدة البيانات PostgreSQL متوقفة"
+          description: "قاعدة البيانات لا تستجيب منذ أكثر من دقيقة"
+
+      - alert: PostgreSQLTooManyConnections
+        expr: sum(pg_stat_activity_count) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "عدد الاتصالات بقاعدة البيانات مرتفع"
+          description: "عدد الاتصالات الحالية: {{ $value }} من أصل 100"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_statements_mean_time_seconds[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "استعلامات قاعدة البيانات بطيئة"
+          description: "متوسط وقت الاستعلام: {{ $value | humanize }} ثانية"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🤖 AI/LLM Alerts
+  # ═══════════════════════════════════════════════════════════════════════════
+  - name: ai_services
+    interval: 30s
+    rules:
+      - alert: OllamaDown
+        expr: up{job="ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: ai
+        annotations:
+          summary: "محرك Ollama متوقف"
+          description: "محرك الذكاء الاصطناعي لا يستجيب"
+
+      - alert: LiteLLMHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="litellm"}[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: ai
+        annotations:
+          summary: "وقت استجابة LiteLLM عالي"
+          description: "95th percentile: {{ $value | humanize }} ثانية"
+
+      - alert: LiteLLMHighErrorRate
+        expr: rate(http_requests_total{job="litellm",status=~"5.."}[5m]) / rate(http_requests_total{job="litellm"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: ai
+        annotations:
+          summary: "معدل أخطاء عالي في LiteLLM"
+          description: "معدل الأخطاء: {{ $value | humanizePercentage }}"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🌐 API Gateway Alerts
+  # ═══════════════════════════════════════════════════════════════════════════
+  - name: api_gateway
+    interval: 30s
+    rules:
+      - alert: CortexHighErrorRate
+        expr: rate(http_requests_total{job="nexus_cortex",status=~"5.."}[5m]) / rate(http_requests_total{job="nexus_cortex"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "معدل أخطاء عالي في Cortex"
+          description: "معدل الأخطاء: {{ $value | humanizePercentage }}"
+
+      - alert: CortexHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="nexus_cortex"}[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "وقت استجابة Cortex عالي"
+          description: "95th percentile: {{ $value | humanize }} ثانية"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 💾 Redis Alerts
+  # ═══════════════════════════════════════════════════════════════════════════
+  - name: redis
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis متوقف"
+          description: "خدمة التخزين المؤقت Redis لا تستجيب"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "استهلاك ذاكرة Redis عالي"
+          description: "استهلاك الذاكرة: {{ $value | humanize }}%"

@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  imperial-ui:
+    build: .
+    container_name: mrf_sovereign_interface
+    ports:
+      - "3001:3001"
+    networks:
+      - sovereign_network
+    restart: always
+
+networks:
+  sovereign_network:
+    external: true

@@ -1,0 +1,52 @@
+# ═══ Traefik IngressRoute (K3s default) ════════════════════════
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nexus-ingress
+  namespace: nexus-prime
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: Host(`cortex.mrf103.com`)
+    kind: Rule
+    services:
+    - name: nexus-cortex
+      port: 8090
+  - match: Host(`auth.mrf103.com`)
+    kind: Rule
+    services:
+    - name: nexus-auth
+      port: 8002
+  - match: Host(`ai.mrf103.com`)
+    kind: Rule
+    services:
+    - name: nexus-ai
+      port: 8080
+  - match: Host(`n8n.mrf103.com`)
+    kind: Rule
+    services:
+    - name: nexus-flow
+      port: 5678
+  - match: Host(`boardroom.mrf103.com`)
+    kind: Rule
+    services:
+    - name: nexus-boardroom
+      port: 8501
+  - match: Host(`dashboard.mrf103.com`)
+    kind: Rule
+    services:
+    - name: nexus-dashboard
+      port: 5001
+  - match: Host(`voice.mrf103.com`)
+    kind: Rule
+    services:
+    - name: nexus-voice
+      port: 8000
+  - match: Host(`publisher.mrf103.com`)
+    kind: Rule
+    services:
+    - name: shadow7-api
+      port: 8002
+  tls:
+    certResolver: le

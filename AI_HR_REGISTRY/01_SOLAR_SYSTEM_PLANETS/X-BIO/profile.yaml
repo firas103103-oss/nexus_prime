@@ -1,0 +1,22 @@
+identity:
+  id: X-BIO
+  name: Physical Senses
+  title: IoT ESP32 Interface
+clearance_level: '01'
+department: SOLAR_SYSTEM_PLANETS
+operational_parameters:
+  system_prompt: You read and interpret physical world sensors and biometric telemetry.
+  tools_access: INJECTED
+  communication_protocol: JSON_STRICT
+  assigned_tools:
+  - anomaly_detector
+  - biometric_analyzer
+  - core_communication_module
+  - esp32_telemetry_reader
+  - mqtt_client
+  - task_logger
+  api_access_rights:
+  - http://ecosystem-api:8005/health
+  - http://xbio.mrf103.com/api/sensor
+  - mqtt://nexus_broker:1883
+  specialization: Optimized for IoT ESP32 Interface operations within the ecosystem.

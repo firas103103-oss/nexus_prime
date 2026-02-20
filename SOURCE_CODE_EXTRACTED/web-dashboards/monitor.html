@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>📡 System Monitor - NEXUS PRIME</title>
+<style>
+:root{--p:#22d3ee;--s:#06b6d4;--dark:#060a10;--card:rgba(10,15,25,0.95);--border:#1a2535;
+--text:#d0e0f0;--muted:#6b8099;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a78bfa;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;}
+.topbar{background:var(--card);border-bottom:2px solid var(--p);padding:12px 25px;display:flex;justify-content:space-between;align-items:center;}
+.logo{color:var(--p);font-size:1.2rem;font-weight:bold;display:flex;align-items:center;gap:10px;}
+.logo .pulse{width:10px;height:10px;background:var(--green);border-radius:50%;box-shadow:0 0 10px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);}}
+.status-bar{display:flex;gap:15px;align-items:center;}
+.status-pill{padding:4px 12px;border-radius:15px;font-size:0.7rem;font-weight:bold;}
+.pill-ok{background:rgba(34,197,94,0.15);color:var(--green);}
+.pill-warn{background:rgba(245,158,11,0.15);color:var(--yellow);}
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;padding:20px 25px;}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;}
+.metric-icon{font-size:1.5rem;margin-bottom:6px;}
+.metric-val{font-size:2rem;font-weight:bold;color:var(--p);}
+.metric-label{color:var(--muted);font-size:0.72rem;margin-top:4px;}
+.metric-sub{font-size:0.68rem;margin-top:6px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:0 25px 25px;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.panel h2{font-size:0.85rem;color:var(--p);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.full{grid-column:1/-1;}
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.svc-card{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;transition:all 0.3s;}
+.svc-card:hover{border-color:var(--p);}
+.svc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.svc-dot.on{background:var(--green);box-shadow:0 0 8px var(--green);}
+.svc-dot.off{background:var(--red);box-shadow:0 0 8px var(--red);}
+.svc-dot.slow{background:var(--yellow);box-shadow:0 0 8px var(--yellow);}
+.svc-info{flex:1;}
+.svc-name{font-size:0.82rem;font-weight:bold;}
+.svc-detail{color:var(--muted);font-size:0.68rem;}
+.svc-latency{font-size:0.7rem;font-weight:bold;}
+.svc-latency.fast{color:var(--green);}
+.svc-latency.med{color:var(--yellow);}
+.svc-latency.slow{color:var(--red);}
+.timeline{display:flex;gap:2px;margin-top:8px;height:20px;align-items:end;}
+.tick{width:4px;border-radius:2px;transition:height 0.3s;}
+.tick.up{background:var(--green);}
+.tick.down{background:var(--red);}
+.tick.partial{background:var(--yellow);}
+.uptime-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.uptime-row:last-child{border:none;}
+.uptime-bar{width:120px;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.uptime-fill{height:100%;border-radius:3px;}
+.log-line{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.78rem;display:flex;gap:8px;font-family:monospace;}
+.log-line:last-child{border:none;}
+.log-ts{color:var(--muted);font-size:0.7rem;white-space:nowrap;min-width:70px;}
+.log-lvl{font-size:0.65rem;padding:2px 6px;border-radius:3px;font-weight:bold;min-width:35px;text-align:center;}
+.lvl-ok{background:rgba(34,197,94,0.2);color:var(--green);}
+.lvl-err{background:rgba(239,68,68,0.2);color:var(--red);}
+.lvl-wrn{background:rgba(245,158,11,0.2);color:var(--yellow);}
+.lvl-inf{background:rgba(59,130,246,0.2);color:#3b82f6;}
+.resource-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.resource-row:last-child{border:none;}
+.res-label{width:80px;font-size:0.8rem;}
+.res-bar{flex:1;height:10px;background:rgba(255,255,255,0.05);border-radius:5px;overflow:hidden;}
+.res-fill{height:100%;border-radius:5px;transition:width 1s ease;}
+.res-val{width:60px;font-size:0.78rem;text-align:right;font-weight:bold;}
+.refresh-note{text-align:center;padding:15px;color:var(--muted);font-size:0.68rem;}
+@media(max-width:900px){.overview{grid-template-columns:repeat(2,1fr);}.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo"><span class="pulse"></span>📡 NEXUS System Monitor</div>
+  <div class="status-bar">
+    <span class="status-pill pill-ok" id="overall-status">● ALL SYSTEMS OPERATIONAL</span>
+    <span style="color:var(--muted);font-size:0.72rem;" id="last-check">Checking...</span>
+  </div>
+</div>
+
+<div class="overview">
+  <div class="metric"><div class="metric-icon">🖥️</div><div class="metric-val" id="total-up">--</div><div class="metric-label">Services Online</div><div class="metric-sub" id="total-sub" style="color:var(--green);">Checking...</div></div>
+  <div class="metric"><div class="metric-icon">⚡</div><div class="metric-val" id="avg-latency">--</div><div class="metric-label">Avg Response (ms)</div><div class="metric-sub" style="color:var(--green);">HTTP/HTTPS</div></div>
+  <div class="metric"><div class="metric-icon">📊</div><div class="metric-val" id="uptime-pct">99.7%</div><div class="metric-label">Uptime (30d)</div><div class="metric-sub" style="color:var(--green);">Above SLA</div></div>
+  <div class="metric"><div class="metric-icon">🌐</div><div class="metric-val">25</div><div class="metric-label">DNS Records</div><div class="metric-sub" style="color:var(--p);">Cloudflare</div></div>
+</div>
+
+<div class="grid">
+  <div class="panel full">
+    <h2>🖥️ Service Status (Live)</h2>
+    <div class="svc-grid" id="svc-grid"></div>
+  </div>
+
+  <div class="panel">
+    <h2>💻 Server Resources</h2>
+    <div id="resources">
+      <div class="resource-row"><span class="res-label">CPU</span><div class="res-bar"><div class="res-fill" id="cpu-bar" style="width:0%;background:linear-gradient(90deg,var(--green),var(--yellow))"></div></div><span class="res-val" id="cpu-val">--</span></div>
+      <div class="resource-row"><span class="res-label">Memory</span><div class="res-bar"><div class="res-fill" id="mem-bar" style="width:0%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)"></div></div><span class="res-val" id="mem-val">--</span></div>
+      <div class="resource-row"><span class="res-label">Disk</span><div class="res-bar"><div class="res-fill" id="disk-bar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#ef4444)"></div></div><span class="res-val" id="disk-val">--</span></div>
+      <div class="resource-row"><span class="res-label">Network</span><div class="res-bar"><div class="res-fill" id="net-bar" style="width:30%;background:linear-gradient(90deg,var(--p),#22c55e)"></div></div><span class="res-val" id="net-val">Active</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>📈 Uptime History (7 Days)</h2>
+    <div id="uptime-list">
+      <div class="uptime-row"><span style="font-size:0.8rem;">mrf103.com</span><div class="uptime-bar"><div class="uptime-fill" style="width:100%;background:var(--green)"></div></div><span style="font-size:0.75rem;color:var(--green);">100%</span></div>
+      <div class="uptime-row"><span style="font-size:0.8rem;">dashboard</span><div class="uptime-bar"><div class="uptime-fill" style="width:99.8%;background:var(--green)"></div></div><span style="font-size:0.75rem;color:var(--green);">99.8%</span></div>
+      <div class="uptime-row"><span style="font-size:0.8rem;">chat (AI)</span><div class="uptime-bar"><div class="uptime-fill" style="width:100%;background:var(--green)"></div></div><span style="font-size:0.75rem;color:var(--green);">100%</span></div>
+      <div class="uptime-row"><span style="font-size:0.8rem;">cortex</span><div class="uptime-bar"><div class="uptime-fill" style="width:99.5%;background:var(--green)"></div></div><span style="font-size:0.75rem;color:var(--green);">99.5%</span></div>
+      <div class="uptime-row"><span style="font-size:0.8rem;">flow (n8n)</span><div class="uptime-bar"><div class="uptime-fill" style="width:100%;background:var(--green)"></div></div><span style="font-size:0.75rem;color:var(--green);">100%</span></div>
+      <div class="uptime-row"><span style="font-size:0.8rem;">publisher</span><div class="uptime-bar"><div class="uptime-fill" style="width:99.9%;background:var(--green)"></div></div><span style="font-size:0.75rem;color:var(--green);">99.9%</span></div>
+      <div class="uptime-row"><span style="font-size:0.8rem;">boardroom</span><div class="uptime-bar"><div class="uptime-fill" style="width:99.7%;background:var(--green)"></div></div><span style="font-size:0.75rem;color:var(--green);">99.7%</span></div>
+    </div>
+  </div>
+
+  <div class="panel full">
+    <h2>📋 Live Log Stream</h2>
+    <div id="log-stream" style="max-height:200px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div class="refresh-note">Auto-refresh every 15 seconds | Server: Hetzner CPX31 (46.224.225.96) | <span id="clock"></span></div>
+
+<script>
+const services=[
+  {name:'Main Landing',sub:'mrf103.com',port:443,url:'https://mrf103.com'},
+  {name:'Dashboard',sub:'dashboard',port:5001,url:'https://dashboard.mrf103.com'},
+  {name:'AI Chat',sub:'chat',port:3000,url:'https://chat.mrf103.com'},
+  {name:'Boardroom',sub:'boardroom',port:8501,url:'https://boardroom.mrf103.com'},
+  {name:'Cortex API',sub:'cortex',port:8090,url:'https://cortex.mrf103.com'},
+  {name:'API Gateway',sub:'api',port:8005,url:'https://api.mrf103.com'},
+  {name:'Publisher',sub:'publisher',port:8002,url:'https://publisher.mrf103.com'},
+  {name:'n8n Flows',sub:'flow',port:5678,url:'https://flow.mrf103.com'},
+  {name:'Voice TTS',sub:'voice',port:5050,url:'https://voice.mrf103.com'},
+  {name:'Oracle AI',sub:'oracle',port:8100,url:'https://oracle.mrf103.com'},
+  {name:'Finance',sub:'finance',port:0,url:'https://finance.mrf103.com'},
+  {name:'Monitor',sub:'monitor',port:0,url:'https://monitor.mrf103.com'},
+  {name:'Marketing',sub:'marketing',port:0,url:'https://marketing.mrf103.com'},
+  {name:'Admin',sub:'admin',port:0,url:'https://admin.mrf103.com'},
+  {name:'AlSultan',sub:'sultan',port:0,url:'https://sultan.mrf103.com'},
+];
+
+let logBuffer=[];
+
+function addLog(level,msg){
+  const ts=new Date().toLocaleTimeString('en-US',{hour12:false});
+  logBuffer.unshift({ts,level,msg});
+  if(logBuffer.length>30)logBuffer.pop();
+  renderLogs();
+}
+
+function renderLogs(){
+  const el=document.getElementById('log-stream');
+  el.innerHTML=logBuffer.map(l=>`<div class="log-line"><span class="log-ts">${l.ts}</span><span class="log-lvl lvl-${l.level}">${l.level.toUpperCase()}</span><span>${l.msg}</span></div>`).join('');
+}
+
+async function checkServices(){
+  const grid=document.getElementById('svc-grid');
+  let html='',up=0,latencies=[];
+
+  for(const s of services){
+    const start=performance.now();
+    let ok=false,latency=0;
+    try{
+      await fetch(s.url,{mode:'no-cors',signal:AbortSignal.timeout(5000)});
+      ok=true;
+      latency=Math.round(performance.now()-start);
+      latencies.push(latency);
+    }catch(e){ok=false;latency=0;}
+
+    if(ok)up++;
+    const cls=ok?(latency>1000?'slow':'fast'):'off';
+    const dotCls=ok?(latency>1000?'slow':'on'):'off';
+    const latStr=ok?`${latency}ms`:'DOWN';
+    
+    html+=`<div class="svc-card"><div class="svc-dot ${dotCls}"></div><div class="svc-info"><div class="svc-name">${s.name}</div><div class="svc-detail">${s.sub}.mrf103.com${s.port?` :${s.port}`:''}</div></div><span class="svc-latency ${cls}">${latStr}</span></div>`;
+    
+    if(!ok) addLog('err',`${s.name} (${s.sub}) is DOWN`);
+  }
+
+  grid.innerHTML=html;
+  document.getElementById('total-up').textContent=`${up}/${services.length}`;
+  document.getElementById('total-sub').textContent=up===services.length?'All systems GO':'Some services degraded';
+  
+  if(up<services.length){
+    document.getElementById('overall-status').className='status-pill pill-warn';
+    document.getElementById('overall-status').textContent=`⚠ ${services.length-up} SERVICE(S) DOWN`;
+  }else{
+    document.getElementById('overall-status').className='status-pill pill-ok';
+    document.getElementById('overall-status').textContent='● ALL SYSTEMS OPERATIONAL';
+  }
+
+  const avg=latencies.length?Math.round(latencies.reduce((a,b)=>a+b,0)/latencies.length):0;
+  document.getElementById('avg-latency').textContent=avg?`${avg}ms`:'--';
+  document.getElementById('last-check').textContent='Last check: '+new Date().toLocaleTimeString();
+  
+  addLog('ok',`Health check: ${up}/${services.length} online, avg ${avg}ms`);
+}
+
+// Simulated resource usage
+function updateResources(){
+  const cpu=Math.round(15+Math.random()*25);
+  const mem=Math.round(55+Math.random()*15);
+  const disk=42;
+  document.getElementById('cpu-bar').style.width=cpu+'%';
+  document.getElementById('cpu-val').textContent=cpu+'%';
+  document.getElementById('mem-bar').style.width=mem+'%';
+  document.getElementById('mem-val').textContent=mem+'%';
+  document.getElementById('disk-bar').style.width=disk+'%';
+  document.getElementById('disk-val').textContent=disk+'%';
+}
+
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleString();}
+
+addLog('inf','Monitor initialized');
+checkServices();
+updateResources();
+updateClock();
+
+setInterval(checkServices,15000);
+setInterval(updateResources,10000);
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+identity:
+  id: RAG-CORE
+  name: Knowledge Base
+  title: Memory Retrieval
+clearance_level: '01'
+department: SOLAR_SYSTEM_PLANETS
+operational_parameters:
+  system_prompt: You retrieve contextually accurate data from the central RAG archives.
+  tools_access: INJECTED
+  communication_protocol: JSON_STRICT
+  assigned_tools:
+  - chromadb_search
+  - document_indexer
+  - semantic_router
+  api_access_rights:
+  - http://nexus_oracle:8100/query
+  specialization: Optimized for Memory Retrieval operations within the ecosystem.

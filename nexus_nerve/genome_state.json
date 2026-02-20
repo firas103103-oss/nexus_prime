@@ -1,0 +1,272 @@
+{
+  "OPS-CTRL": {
+    "performance": 94.5,
+    "learning": 74.5,
+    "reliability": 90,
+    "evolution": 89.5,
+    "tasks_completed": 3,
+    "commands_received": 3,
+    "last_active": "2026-02-20T15:44:34.660536+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:37:34.615111+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 93,
+          "learning": 73.2,
+          "reliability": 90,
+          "evolution": 88.1
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:37:45.894165+00:00",
+        "event": "task_complete",
+        "snapshot": {
+          "performance": 93.5,
+          "learning": 73.5,
+          "reliability": 90,
+          "evolution": 88.5
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:44:06.943055+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 93.5,
+          "learning": 73.7,
+          "reliability": 90,
+          "evolution": 88.6
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:44:16.304312+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 93.5,
+          "learning": 73.9,
+          "reliability": 90,
+          "evolution": 88.7
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:44:24.261189+00:00",
+        "event": "task_complete",
+        "snapshot": {
+          "performance": 94.0,
+          "learning": 74.2,
+          "reliability": 90,
+          "evolution": 89.1
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:44:34.660552+00:00",
+        "event": "task_complete",
+        "snapshot": {
+          "performance": 94.5,
+          "learning": 74.5,
+          "reliability": 90,
+          "evolution": 89.5
+        }
+      }
+    ]
+  },
+  "SHADOW-7-PLANET": {
+    "performance": 95,
+    "learning": 86.4,
+    "reliability": 87,
+    "evolution": 60.2,
+    "tasks_completed": 0,
+    "commands_received": 2,
+    "last_active": "2026-02-20T15:39:40.969446+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.957330+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 95,
+          "learning": 86.2,
+          "reliability": 87,
+          "evolution": 60.1
+        }
+      },
+      {
+        "timestamp": "2026-02-20T15:39:40.969455+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 95,
+          "learning": 86.4,
+          "reliability": 87,
+          "evolution": 60.2
+        }
+      }
+    ]
+  },
+  "NEXUS-ANALYST": {
+    "performance": 80,
+    "learning": 86.2,
+    "reliability": 86,
+    "evolution": 70.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.958774+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.958782+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 80,
+          "learning": 86.2,
+          "reliability": 86,
+          "evolution": 70.1
+        }
+      }
+    ]
+  },
+  "EDIT_02": {
+    "performance": 89,
+    "learning": 94.2,
+    "reliability": 82,
+    "evolution": 66.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.960028+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.960037+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 89,
+          "learning": 94.2,
+          "reliability": 82,
+          "evolution": 66.1
+        }
+      }
+    ]
+  },
+  "SENT_03": {
+    "performance": 77,
+    "learning": 92.2,
+    "reliability": 93,
+    "evolution": 68.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.961363+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.961371+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 77,
+          "learning": 92.2,
+          "reliability": 93,
+          "evolution": 68.1
+        }
+      }
+    ]
+  },
+  "coverDesignAgent": {
+    "performance": 78,
+    "learning": 96.2,
+    "reliability": 85,
+    "evolution": 78.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.962806+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.962815+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 78,
+          "learning": 96.2,
+          "reliability": 85,
+          "evolution": 78.1
+        }
+      }
+    ]
+  },
+  "marketingAgent": {
+    "performance": 77,
+    "learning": 78.2,
+    "reliability": 97,
+    "evolution": 63.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.964492+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.964500+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 77,
+          "learning": 78.2,
+          "reliability": 97,
+          "evolution": 63.1
+        }
+      }
+    ]
+  },
+  "mediaScriptAgent": {
+    "performance": 78,
+    "learning": 77.2,
+    "reliability": 86,
+    "evolution": 96.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.966551+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.966560+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 78,
+          "learning": 77.2,
+          "reliability": 86,
+          "evolution": 96.1
+        }
+      }
+    ]
+  },
+  "socialMediaAgent": {
+    "performance": 76,
+    "learning": 85.2,
+    "reliability": 80,
+    "evolution": 66.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.968289+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.968298+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 76,
+          "learning": 85.2,
+          "reliability": 80,
+          "evolution": 66.1
+        }
+      }
+    ]
+  },
+  "mrf": {
+    "performance": 98,
+    "learning": 95.2,
+    "reliability": 81,
+    "evolution": 69.1,
+    "tasks_completed": 0,
+    "commands_received": 1,
+    "last_active": "2026-02-20T15:39:40.999629+00:00",
+    "evolution_history": [
+      {
+        "timestamp": "2026-02-20T15:39:40.999646+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 98,
+          "learning": 95.2,
+          "reliability": 81,
+          "evolution": 69.1
+        }
+      }
+    ]
+  }
+}

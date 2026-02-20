@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MrF | The Visionary Architect Ecosystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .neon-border { border: 1px solid #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .gradient-text { background: linear-gradient(90deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .lang-switch { display: inline-flex; gap: 8px; border: 1px solid #1f2937; padding: 4px; border-radius: 999px; background: #0b0b0b; }
+        .lang-switch button { padding: 6px 12px; border-radius: 999px; font-size: 12px; color: #9ca3af; }
+        .lang-switch button.active { background: #10b981; color: #0b0b0b; font-weight: 700; }
+    </style>
+</head>
+<body class="p-8 lg:p-24">
+    <header class="mb-16 flex flex-col gap-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="lang-switch" role="group" aria-label="Language switcher">
+                <button type="button" class="lang-btn active" data-lang="ar">العربية</button>
+                <button type="button" class="lang-btn" data-lang="en">English</button>
+            </div>
+        </div>
+        <div>
+            <h1 class="text-5xl font-bold mb-4 gradient-text" data-i18n="heroTitle">MrF: المنظومة المعمارية السيادية</h1>
+            <p class="text-xl text-gray-400" data-i18n="heroSubtitle">تصميم منصات عالية الاعتمادية | ذكاء اصطناعي سيادي | هندسة منظومات المؤسسة</p>
+        </div>
+    </header>
+
+    <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="p-6 neon-border rounded-xl bg-black/50 backdrop-blur-sm">
+            <h3 class="text-2xl font-bold mb-2 text-emerald-500" data-i18n="cardArkTitle">The Ark</h3>
+            <p class="text-sm text-gray-400 mb-4" data-i18n="cardArkDesc">منصة الحوكمة السيادية وإدارة المستودعات السبعة المركزية.</p>
+            <a href="#" class="inline-block px-4 py-2 bg-emerald-600 rounded text-white hover:bg-emerald-500 transition" data-i18n="cardArkCta">الدخول إلى المنظومة</a>
+        </div>
+
+        <div class="p-6 neon-border rounded-xl bg-black/50">
+            <h3 class="text-2xl font-bold mb-2 text-blue-500" data-i18n="cardBioTitle">X-Bio Sentinel</h3>
+            <p class="text-sm text-gray-400 mb-4" data-i18n="cardBioDesc">عقدة استشعار متعددة الحواس مدعومة بالذكاء الاصطناعي للأبحاث الحيوية.</p>
+            <a href="#" class="inline-block px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-500 transition" data-i18n="cardBioCta">استعراض المنصة</a>
+        </div>
+
+        <div class="p-6 neon-border rounded-xl bg-black/50">
+            <h3 class="text-2xl font-bold mb-2 text-purple-500" data-i18n="cardCloneTitle">Clone Hub</h3>
+            <p class="text-sm text-gray-400 mb-4" data-i18n="cardCloneDesc">مختبر النسخ الرقمي واستكشاف الوعي الاصطناعي.</p>
+            <a href="#" class="inline-block px-4 py-2 bg-purple-600 rounded text-white hover:bg-purple-500 transition" data-i18n="cardCloneCta">الدخول إلى المركز</a>
+        </div>
+    </main>
+
+    <footer class="mt-24 pt-8 border-t border-gray-800 text-center text-gray-500">
+        <p data-i18n="footerCopy">© 2026 منظومة MrF — جميع الحقوق محفوظة.</p>
+    </footer>
+
+    <script>
+        const translations = {
+            ar: {
+                heroTitle: "MrF: المنظومة المعمارية السيادية",
+                heroSubtitle: "تصميم منصات عالية الاعتمادية | ذكاء اصطناعي سيادي | هندسة منظومات المؤسسة",
+                cardArkTitle: "The Ark",
+                cardArkDesc: "منصة الحوكمة السيادية وإدارة المستودعات السبعة المركزية.",
+                cardArkCta: "الدخول إلى المنظومة",
+                cardBioTitle: "X-Bio Sentinel",
+                cardBioDesc: "عقدة استشعار متعددة الحواس مدعومة بالذكاء الاصطناعي للأبحاث الحيوية.",
+                cardBioCta: "استعراض المنصة",
+                cardCloneTitle: "Clone Hub",
+                cardCloneDesc: "مختبر النسخ الرقمي واستكشاف الوعي الاصطناعي.",
+                cardCloneCta: "الدخول إلى المركز",
+                footerCopy: "© 2026 منظومة MrF — جميع الحقوق محفوظة."
+            },
+            en: {
+                heroTitle: "MrF: Sovereign Architecture",
+                heroSubtitle: "High-reliability platforms | Sovereign AI | Enterprise system engineering",
+                cardArkTitle: "The Ark",
+                cardArkDesc: "Sovereign governance and seven-repository core management.",
+                cardArkCta: "Enter System",
+                cardBioTitle: "X-Bio Sentinel",
+                cardBioDesc: "Multi-sensory AI-enabled bio-sensing node for research.",
+                cardBioCta: "View Platform",
+                cardCloneTitle: "Clone Hub",
+                cardCloneDesc: "Digital replication and artificial consciousness research lab.",
+                cardCloneCta: "Access Hub",
+                footerCopy: "© 2026 MrF Ecosystem — All rights reserved."
+            }
+        };
+
+        const langButtons = document.querySelectorAll(".lang-btn");
+        const setLanguage = (lang) => {
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+            document.querySelectorAll("[data-i18n]").forEach((el) => {
+                const key = el.getAttribute("data-i18n");
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            langButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.lang === lang));
+        };
+
+        langButtons.forEach((btn) => {
+            btn.addEventListener("click", () => setLanguage(btn.dataset.lang));
+        });
+
+        setLanguage("ar");
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+identity:
+  id: CINE_05
+  name: Cinematic Agent
+  title: Video Content Creator
+clearance_level: '03'
+department: IMPERIAL_AGENCY
+operational_parameters:
+  system_prompt: You script and direct video generation parameters.
+  tools_access: INJECTED
+  communication_protocol: JSON_STRICT
+  assigned_tools:
+  - core_communication_module
+  - financial_calculator
+  - kpi_dashboard_generator
+  - strategic_planner
+  - system_orchestrator
+  - task_logger
+  api_access_rights:
+  - http://dashboard.mrf103.com/api
+  - http://ecosystem-api:8005/health
+  - http://grafana.mrf103.com
+  - http://nexus_litellm:4000
+  specialization: Optimized for Video Content Creator operations within the ecosystem.

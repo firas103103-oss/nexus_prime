@@ -1,0 +1,311 @@
+import React, { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { motion } from "framer-motion";
+import {
+  Settings as SettingsIcon,
+  User,
+  Bell,
+  Palette,
+  Globe,
+  Save,
+  Loader2,
+  Check,
+  Moon,
+  Sun
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+
+export default function Settings() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
+  
+  const [profileData, setProfileData] = useState({
+    full_name: "",
+    organization: "",
+    role_title: ""
+  });
+  
+  const [preferences, setPreferences] = useState({
+    default_language: "ar",
+    default_direction: "rtl",
+    default_page_size: "a5",
+    auto_save: true,
+    notifications: true,
+    dark_mode: false
+  });
+
+  useEffect(() => {
+    base44.auth.me().then((userData) => {
+      setUser(userData);
+      setProfileData({
+        full_name: userData.full_name || "",
+        organization: userData.organization || "",
+        role_title: userData.role_title || ""
+      });
+      setPreferences(prev => ({
+        ...prev,
+        ...userData.preferences
+      }));
+      setLoading(false);
+    });
+  }, []);
+
+  const updateMeMutation = useMutation({
+    mutationFn: (data) => base44.auth.updateMe(data),
+    onSuccess: () => {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    },
+  });
+
+  const saveSettings = () => {
+    updateMeMutation.mutate({
+      ...profileData,
+      preferences
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8 max-w-4xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+          <SettingsIcon className="w-8 h-8 text-[#2563eb]" />
+          الإعدادات
+        </h1>
+        <p className="text-slate-500 mt-1">إدارة حسابك وتفضيلات النظام</p>
+      </motion.div>
+
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList className="bg-slate-100">
+          <TabsTrigger value="profile" className="gap-2">
+            <User className="w-4 h-4" />
+            الملف الشخصي
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="gap-2">
+            <Palette className="w-4 h-4" />
+            التفضيلات
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="gap-2">
+            <Bell className="w-4 h-4" />
+            الإشعارات
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile">
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle>الملف الشخصي</CardTitle>
+              <CardDescription>معلوماتك الشخصية وبيانات الحساب</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label>الاسم الكامل</Label>
+                  <Input
+                    value={profileData.full_name}
+                    onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                    placeholder="أدخل اسمك الكامل"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>البريد الإلكتروني</Label>
+                  <Input
+                    value={user?.email || ""}
+                    disabled
+                    className="bg-slate-50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>المؤسسة / دار النشر</Label>
+                  <Input
+                    value={profileData.organization}
+                    onChange={(e) => setProfileData({ ...profileData, organization: e.target.value })}
+                    placeholder="اسم المؤسسة أو دار النشر"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>المسمى الوظيفي</Label>
+                  <Input
+                    value={profileData.role_title}
+                    onChange={(e) => setProfileData({ ...profileData, role_title: e.target.value })}
+                    placeholder="مثال: محرر، ناشر، مؤلف"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="preferences">
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle>تفضيلات النظام</CardTitle>
+              <CardDescription>تخصيص تجربة الاستخدام</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    اللغة الافتراضية
+                  </Label>
+                  <Select
+                    value={preferences.default_language}
+                    onValueChange={(value) => setPreferences({ ...preferences, default_language: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ar">العربية</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="mixed">مختلطة</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>اتجاه النص الافتراضي</Label>
+                  <Select
+                    value={preferences.default_direction}
+                    onValueChange={(value) => setPreferences({ ...preferences, default_direction: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rtl">من اليمين لليسار (RTL)</SelectItem>
+                      <SelectItem value="ltr">من اليسار لليمين (LTR)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>مقاس الصفحة الافتراضي</Label>
+                  <Select
+                    value={preferences.default_page_size}
+                    onValueChange={(value) => setPreferences({ ...preferences, default_page_size: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="a5">A5 (148×210mm)</SelectItem>
+                      <SelectItem value="b5">B5 (176×250mm)</SelectItem>
+                      <SelectItem value="pocket">Pocket (111×178mm)</SelectItem>
+                      <SelectItem value="royal">Royal (156×234mm)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>الحفظ التلقائي</Label>
+                    <p className="text-sm text-slate-500">حفظ التغييرات تلقائياً أثناء التحرير</p>
+                  </div>
+                  <Switch
+                    checked={preferences.auto_save}
+                    onCheckedChange={(checked) => setPreferences({ ...preferences, auto_save: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      {preferences.dark_mode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                      الوضع الليلي
+                    </Label>
+                    <p className="text-sm text-slate-500">تفعيل الوضع الداكن للواجهة</p>
+                  </div>
+                  <Switch
+                    checked={preferences.dark_mode}
+                    onCheckedChange={(checked) => setPreferences({ ...preferences, dark_mode: checked })}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle>الإشعارات</CardTitle>
+              <CardDescription>إدارة إشعارات النظام والتنبيهات</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>تفعيل الإشعارات</Label>
+                  <p className="text-sm text-slate-500">استلام إشعارات عند اكتمال المهام</p>
+                </div>
+                <Switch
+                  checked={preferences.notifications}
+                  onCheckedChange={(checked) => setPreferences({ ...preferences, notifications: checked })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Save Button */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="mt-8 flex justify-end"
+      >
+        <Button
+          onClick={saveSettings}
+          disabled={updateMeMutation.isPending}
+          className="bg-gradient-to-l from-[#1e3a5f] to-[#2563eb] gap-2 min-w-32"
+        >
+          {updateMeMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : saved ? (
+            <>
+              <Check className="w-4 h-4" />
+              تم الحفظ
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              حفظ الإعدادات
+            </>
+          )}
+        </Button>
+      </motion.div>
+    </div>
+  );
+}

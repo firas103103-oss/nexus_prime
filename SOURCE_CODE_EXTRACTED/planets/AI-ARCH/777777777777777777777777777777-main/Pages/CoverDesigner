@@ -1,0 +1,521 @@
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import {
+  Palette,
+  BookOpen,
+  ArrowLeft,
+  Loader2,
+  Sparkles,
+  Download,
+  RefreshCw,
+  Check,
+  Image,
+  Type,
+  Layers,
+  Maximize2
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+
+const STYLES = [
+  { value: "classic", label: "كلاسيكي", desc: "تصميم تقليدي أنيق" },
+  { value: "modern", label: "عصري", desc: "تصميم حديث ومعاصر" },
+  { value: "minimal", label: "بسيط", desc: "تصميم مينيمالي نظيف" },
+  { value: "artistic", label: "فني", desc: "تصميم فني إبداعي" },
+  { value: "academic", label: "أكاديمي", desc: "تصميم رسمي علمي" },
+  { value: "religious", label: "ديني", desc: "تصميم إسلامي تراثي" },
+];
+
+const DIMENSIONS = [
+  { value: "a5", label: "A5 (148×210mm)", width: 148, height: 210 },
+  { value: "b5", label: "B5 (176×250mm)", width: 176, height: 250 },
+  { value: "pocket", label: "Pocket (111×178mm)", width: 111, height: 178 },
+  { value: "royal", label: "Royal (156×234mm)", width: 156, height: 234 },
+];
+
+export default function CoverDesigner() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const urlParams = new URLSearchParams(window.location.search);
+  const manuscriptId = urlParams.get("id");
+
+  const [selectedManuscript, setSelectedManuscript] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [generatedCover, setGeneratedCover] = useState(null);
+  
+  const [coverData, setCoverData] = useState({
+    title: "",
+    subtitle: "",
+    author_name: "",
+    style: "modern",
+    description: "",
+    dimensions: "a5",
+    color_scheme: {
+      primary: "#1e3a5f",
+      secondary: "#2563eb",
+      accent: "#c9a227",
+      text: "#ffffff"
+    }
+  });
+
+  const { data: manuscripts = [] } = useQuery({
+    queryKey: ["manuscripts"],
+    queryFn: () => base44.entities.Manuscript.list("-created_date"),
+  });
+
+  const { data: manuscript } = useQuery({
+    queryKey: ["manuscript", manuscriptId],
+    queryFn: () => base44.entities.Manuscript.filter({ id: manuscriptId }),
+    enabled: !!manuscriptId,
+    select: (data) => data[0],
+  });
+
+  React.useEffect(() => {
+    if (manuscript) {
+      setSelectedManuscript(manuscript);
+      setCoverData(prev => ({
+        ...prev,
+        title: manuscript.title || "",
+        author_name: manuscript.author || "",
+      }));
+    }
+  }, [manuscript]);
+
+  const saveCoverMutation = useMutation({
+    mutationFn: async (data) => {
+      const coverDesign = await base44.entities.CoverDesign.create({
+        manuscript_id: selectedManuscript.id,
+        ...data
+      });
+      
+      await base44.entities.Manuscript.update(selectedManuscript.id, {
+        cover_image_url: data.front_image_url
+      });
+      
+      return coverDesign;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["manuscripts"] });
+    },
+  });
+
+  const generateCover = async () => {
+    setGenerating(true);
+    
+    const styleDescriptions = {
+      classic: "تصميم كلاسيكي أنيق مع إطارات زخرفية ذهبية، خلفية داكنة فاخرة",
+      modern: "تصميم عصري بسيط مع ألوان جريئة، خطوط نظيفة وجريئة",
+      minimal: "تصميم مينيمالي نظيف بخلفية بيضاء وعناصر بسيطة",
+      artistic: "تصميم فني إبداعي مع رسومات تجريدية وألوان نابضة",
+      academic: "تصميم أكاديمي رسمي مناسب للكتب العلمية والبحثية",
+      religious: "تصميم إسلامي تراثي مع زخارف عربية وأرابيسك"
+    };
+
+    const selectedDimension = DIMENSIONS.find(d => d.value === coverData.dimensions);
+
+    const prompt = `صمم غلاف كتاب احترافي للطباعة:
+العنوان: "${coverData.title}"
+${coverData.subtitle ? `العنوان الفرعي: "${coverData.subtitle}"` : ""}
+المؤلف: "${coverData.author_name}"
+النمط: ${styleDescriptions[coverData.style]}
+الألوان الأساسية: ${coverData.color_scheme.primary}, ${coverData.color_scheme.secondary}
+${coverData.description ? `وصف إضافي: ${coverData.description}` : ""}
+
+التصميم يجب أن يكون:
+- عالي الجودة ومناسب للطباعة
+- يعكس محتوى الكتاب وأسلوبه
+- متوافق مع RTL للنصوص العربية
+- بدون نص مكتوب على الصورة (سيُضاف لاحقاً)`;
+
+    const result = await base44.integrations.Core.GenerateImage({
+      prompt
+    });
+
+    setGeneratedCover({
+      front_image_url: result.url,
+      style: coverData.style,
+      dimensions: selectedDimension
+    });
+    
+    setGenerating(false);
+  };
+
+  const saveCover = () => {
+    if (!generatedCover || !selectedManuscript) return;
+    
+    saveCoverMutation.mutate({
+      ...coverData,
+      front_image_url: generatedCover.front_image_url,
+      dimensions: {
+        width: generatedCover.dimensions?.width || 148,
+        height: generatedCover.dimensions?.height || 210,
+        spine_width: Math.ceil((selectedManuscript.page_count || 100) * 0.05),
+        bleed: 3
+      },
+      is_approved: true
+    });
+  };
+
+  if (!manuscriptId) {
+    return (
+      <div className="p-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <Button
+            variant="ghost"
+            onClick={() => navigate(createPageUrl("Dashboard"))}
+            className="mb-4 gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            العودة للوحة التحكم
+          </Button>
+          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+            <Palette className="w-8 h-8 text-[#2563eb]" />
+            تصميم الأغلفة
+          </h1>
+          <p className="text-slate-500 mt-1">اختر مخطوطة لتصميم غلافها</p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {manuscripts.map((m) => (
+            <Card
+              key={m.id}
+              className="border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden"
+              onClick={() => navigate(createPageUrl(`CoverDesigner?id=${m.id}`))}
+            >
+              <div className="h-40 bg-gradient-to-br from-[#1e3a5f] to-[#2563eb] p-6">
+                {m.cover_image_url ? (
+                  <img
+                    src={m.cover_image_url}
+                    alt={m.title}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="h-full flex flex-col justify-end">
+                    <BookOpen className="w-10 h-10 text-white/30 mb-2" />
+                    <h3 className="text-lg font-bold text-white truncate">{m.title}</h3>
+                  </div>
+                )}
+              </div>
+              <CardContent className="p-4">
+                <p className="text-sm text-slate-500">{m.author}</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  {m.cover_image_url ? "له غلاف" : "بدون غلاف"}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <Button
+          variant="ghost"
+          onClick={() => navigate(createPageUrl("CoverDesigner"))}
+          className="mb-4 gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          العودة للقائمة
+        </Button>
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+          <Palette className="w-8 h-8 text-[#2563eb]" />
+          تصميم غلاف: {selectedManuscript?.title}
+        </h1>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Settings */}
+        <div className="space-y-6">
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-6">
+              <Tabs defaultValue="content">
+                <TabsList className="mb-6">
+                  <TabsTrigger value="content" className="gap-2">
+                    <Type className="w-4 h-4" />
+                    المحتوى
+                  </TabsTrigger>
+                  <TabsTrigger value="style" className="gap-2">
+                    <Palette className="w-4 h-4" />
+                    الأسلوب
+                  </TabsTrigger>
+                  <TabsTrigger value="dimensions" className="gap-2">
+                    <Maximize2 className="w-4 h-4" />
+                    الأبعاد
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="content" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>العنوان الرئيسي</Label>
+                    <Input
+                      value={coverData.title}
+                      onChange={(e) => setCoverData({ ...coverData, title: e.target.value })}
+                      placeholder="عنوان الكتاب"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>العنوان الفرعي (اختياري)</Label>
+                    <Input
+                      value={coverData.subtitle}
+                      onChange={(e) => setCoverData({ ...coverData, subtitle: e.target.value })}
+                      placeholder="العنوان الفرعي"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>اسم المؤلف</Label>
+                    <Input
+                      value={coverData.author_name}
+                      onChange={(e) => setCoverData({ ...coverData, author_name: e.target.value })}
+                      placeholder="اسم المؤلف"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>وصف إضافي للتصميم</Label>
+                    <Textarea
+                      value={coverData.description}
+                      onChange={(e) => setCoverData({ ...coverData, description: e.target.value })}
+                      placeholder="أضف وصفاً للأجواء أو العناصر المطلوبة في الغلاف..."
+                      rows={3}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="style" className="space-y-6">
+                  <div className="space-y-3">
+                    <Label>نمط التصميم</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {STYLES.map((style) => (
+                        <button
+                          key={style.value}
+                          onClick={() => setCoverData({ ...coverData, style: style.value })}
+                          className={`p-4 rounded-xl border-2 text-right transition-all ${
+                            coverData.style === style.value
+                              ? "border-[#2563eb] bg-blue-50"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <h4 className="font-medium text-slate-800">{style.label}</h4>
+                          <p className="text-xs text-slate-500 mt-1">{style.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>الألوان الأساسية</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs text-slate-500">اللون الرئيسي</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <input
+                            type="color"
+                            value={coverData.color_scheme.primary}
+                            onChange={(e) => setCoverData({
+                              ...coverData,
+                              color_scheme: { ...coverData.color_scheme, primary: e.target.value }
+                            })}
+                            className="w-10 h-10 rounded cursor-pointer"
+                          />
+                          <Input
+                            value={coverData.color_scheme.primary}
+                            onChange={(e) => setCoverData({
+                              ...coverData,
+                              color_scheme: { ...coverData.color_scheme, primary: e.target.value }
+                            })}
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-slate-500">اللون الثانوي</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <input
+                            type="color"
+                            value={coverData.color_scheme.secondary}
+                            onChange={(e) => setCoverData({
+                              ...coverData,
+                              color_scheme: { ...coverData.color_scheme, secondary: e.target.value }
+                            })}
+                            className="w-10 h-10 rounded cursor-pointer"
+                          />
+                          <Input
+                            value={coverData.color_scheme.secondary}
+                            onChange={(e) => setCoverData({
+                              ...coverData,
+                              color_scheme: { ...coverData.color_scheme, secondary: e.target.value }
+                            })}
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="dimensions" className="space-y-4">
+                  <div className="space-y-3">
+                    <Label>مقاس الكتاب</Label>
+                    <Select
+                      value={coverData.dimensions}
+                      onValueChange={(value) => setCoverData({ ...coverData, dimensions: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DIMENSIONS.map((dim) => (
+                          <SelectItem key={dim.value} value={dim.value}>
+                            {dim.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-xl p-4">
+                    <h4 className="font-medium text-slate-700 mb-3">معلومات الطباعة</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">عدد الصفحات</span>
+                        <span className="font-medium">{selectedManuscript?.page_count || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">سمك الكعب (تقديري)</span>
+                        <span className="font-medium">
+                          {Math.ceil((selectedManuscript?.page_count || 100) * 0.05)} مم
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">هامش القص (Bleed)</span>
+                        <span className="font-medium">3 مم</span>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex gap-3 mt-6">
+                <Button
+                  onClick={generateCover}
+                  disabled={generating || !coverData.title}
+                  className="flex-1 bg-gradient-to-l from-[#1e3a5f] to-[#2563eb] gap-2"
+                >
+                  {generating ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                  {generating ? "جاري التصميم..." : "توليد الغلاف"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Preview */}
+        <div className="space-y-6">
+          <Card className="border-0 shadow-lg sticky top-8">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Image className="w-5 h-5 text-[#2563eb]" />
+                  معاينة الغلاف
+                </span>
+                {generatedCover && (
+                  <Button variant="ghost" size="sm" onClick={generateCover}>
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="aspect-[3/4] bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl overflow-hidden relative">
+                {generating ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <Loader2 className="w-12 h-12 text-[#2563eb] animate-spin mb-4" />
+                    <p className="text-slate-500">جاري تصميم الغلاف...</p>
+                  </div>
+                ) : generatedCover ? (
+                  <>
+                    <img
+                      src={generatedCover.front_image_url}
+                      alt="Cover Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white text-right">
+                      <h2 className="text-2xl font-bold mb-1">{coverData.title}</h2>
+                      {coverData.subtitle && (
+                        <p className="text-white/80 mb-2">{coverData.subtitle}</p>
+                      )}
+                      <p className="text-white/70">{coverData.author_name}</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
+                    <Palette className="w-16 h-16 text-slate-300 mb-4" />
+                    <p className="text-slate-500 text-center">
+                      أدخل بيانات الغلاف واضغط على "توليد الغلاف"
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {generatedCover && (
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    className="flex-1 gap-2"
+                    onClick={() => window.open(generatedCover.front_image_url, "_blank")}
+                  >
+                    <Download className="w-4 h-4" />
+                    تحميل
+                  </Button>
+                  <Button
+                    onClick={saveCover}
+                    disabled={saveCoverMutation.isPending}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 gap-2"
+                  >
+                    {saveCoverMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4" />
+                    )}
+                    حفظ الغلاف
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

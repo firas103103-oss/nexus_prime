@@ -1,0 +1,14 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# NEXUS PRIME — Agent Requirements (Production-Grade)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# gRPC Core
+grpcio==1.68.1
+grpcio-tools==1.68.1
+protobuf==5.29.2
+
+# System Metrics
+psutil==6.1.1
+
+# Optional: High-performance async event loop
+uvloop==0.21.0; platform_system != "Windows"

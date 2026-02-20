@@ -1,0 +1,432 @@
+{
+  "name": "SHADOW-7 Publisher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shadow7-generate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "shadow7-generate"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"status\":\"accepted\",\"tracking_id\":\"{{ $json.tracking_id }}\"}",
+        "options": {}
+      },
+      "id": "respond-accepted",
+      "name": "Respond Accepted",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nexus_ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3.2:3b\",\n  \"prompt\": \"You are an expert book architect. Based on this text, create a detailed book outline in JSON format.\\n\\nInput Text ({{ $json.word_count }} words, Language: {{ $json.language }}):\\n{{ $json.raw_text.substring(0, 3000) }}\\n\\nTarget: {{ $json.target_audience }}\\nGenre: {{ $json.book_genre }}\\nTone: {{ $json.tone }}\\n\\nRespond ONLY with valid JSON:\\n{\\n  \\\"book_title\\\": \\\"A compelling title\\\",\\n  \\\"subtitle\\\": \\\"Optional subtitle\\\",\\n  \\\"chapters\\\": [\\n    {\\\"number\\\": 1, \\\"title\\\": \\\"Chapter Title\\\", \\\"summary\\\": \\\"What this chapter covers\\\", \\\"target_words\\\": 2000},\\n    ...\\n  ],\\n  \\\"total_chapters\\\": 8\\n}\",\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.7,\n    \"num_predict\": 2000\n  }\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "generate-outline",
+      "name": "Generate Outline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse outline from Ollama response\nconst ollamaResponse = $input.first().json;\nconst rawResponse = ollamaResponse.response || '';\n\n// Extract JSON from response\nlet outline;\ntry {\n  // Try to find JSON in the response\n  const jsonMatch = rawResponse.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    outline = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON found');\n  }\n} catch (e) {\n  // Fallback outline\n  outline = {\n    book_title: 'Generated Book',\n    subtitle: '',\n    chapters: [\n      { number: 1, title: 'Introduction', summary: 'Opening chapter', target_words: 2000 },\n      { number: 2, title: 'Foundation', summary: 'Core concepts', target_words: 2500 },\n      { number: 3, title: 'Development', summary: 'Main content', target_words: 3000 },\n      { number: 4, title: 'Application', summary: 'Practical use', target_words: 2500 },\n      { number: 5, title: 'Conclusion', summary: 'Summary', target_words: 1500 }\n    ],\n    total_chapters: 5\n  };\n}\n\n// Merge with original data\nconst originalData = $('Webhook Trigger').first().json;\n\nreturn [{\n  json: {\n    ...originalData,\n    outline: outline,\n    chapters_to_generate: outline.chapters,\n    current_chapter: 0,\n    generated_chapters: []\n  }\n}];"
+      },
+      "id": "parse-outline",
+      "name": "Parse Outline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shadow7_api:8002/api/shadow7/outline",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tracking_id\": \"{{ $json.tracking_id }}\",\n  \"outline\": {{ JSON.stringify($json.outline) }}\n}",
+        "options": {}
+      },
+      "id": "save-outline",
+      "name": "Save Outline to DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-chapters",
+      "name": "Split into Chapters",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nexus_ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3.2:3b\",\n  \"prompt\": \"Write Chapter {{ $json.chapter.number }}: {{ $json.chapter.title }}\\n\\nBook: {{ $json.outline.book_title }}\\nChapter Summary: {{ $json.chapter.summary }}\\nTarget words: {{ $json.chapter.target_words }}\\nTone: {{ $json.tone }}\\nLanguage: {{ $json.language }}\\n\\nSource content for context:\\n{{ $json.raw_text.substring(0, 2000) }}\\n\\nPrevious chapter ending: {{ $json.previous_ending || 'This is the first chapter' }}\\n\\nWrite the full chapter content. Be detailed and engaging. End with a natural transition to the next chapter.\",\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.8,\n    \"num_predict\": 4000\n  }\n}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "generate-chapter",
+      "name": "Generate Chapter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse chapter content\nconst chapterResponse = $input.first().json;\nconst content = chapterResponse.response || 'Chapter generation failed';\nconst originalData = $('Split into Chapters').first().json;\n\n// Word count\nconst wordCount = content.split(/\\s+/).length;\n\n// Get last paragraph as ending summary\nconst paragraphs = content.split('\\n\\n').filter(p => p.trim());\nconst endingSummary = paragraphs[paragraphs.length - 1] || '';\n\nreturn [{\n  json: {\n    ...originalData,\n    chapter_content: content,\n    chapter_word_count: wordCount,\n    ending_summary: endingSummary.substring(0, 500)\n  }\n}];"
+      },
+      "id": "parse-chapter",
+      "name": "Parse Chapter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shadow7_api:8002/api/shadow7/chapter",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tracking_id\": \"{{ $json.tracking_id }}\",\n  \"chapter_number\": {{ $json.chapter.number }},\n  \"title\": \"{{ $json.chapter.title }}\",\n  \"content\": {{ JSON.stringify($json.chapter_content) }},\n  \"word_count\": {{ $json.chapter_word_count }},\n  \"ending_summary\": {{ JSON.stringify($json.ending_summary) }}\n}",
+        "options": {}
+      },
+      "id": "save-chapter",
+      "name": "Save Chapter to DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shadow7_api:8002/api/shadow7/progress",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tracking_id\": \"{{ $json.tracking_id }}\",\n  \"progress\": {{ Math.round(($json.chapter.number / $json.outline.total_chapters) * 70) }},\n  \"status\": \"generating_chapters\",\n  \"current_step\": \"Chapter {{ $json.chapter.number }} of {{ $json.outline.total_chapters }}\"\n}",
+        "options": {}
+      },
+      "id": "update-progress",
+      "name": "Update Progress",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nexus_ollama:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama3.2:3b\",\n  \"prompt\": \"You are a marketing consultant. Create 4 detailed consulting reports for a book titled: {{ $json.outline.book_title }}\\n\\nBook Details:\\n- Genre: {{ $json.book_genre }}\\n- Target: {{ $json.target_audience }}\\n- Platform: {{ $json.platform }}\\n\\nProvide JSON with these reports:\\n1. Market Research (market_research): Market analysis, competitors, positioning\\n2. Audience Persona (audience_persona): Detailed reader profile, demographics, psychographics\\n3. Marketing Strategy (marketing_strategy): Channels, tactics, budget allocation\\n4. Success Forecast (success_forecast): Sales projections, KPIs, milestones\\n\\nRespond ONLY with valid JSON:\\n{\\n  \\\"reports\\\": {\\n    \\\"market_research\\\": { \\\"title\\\": \\\"...\\\", \\\"executive_summary\\\": \\\"...\\\", \\\"sections\\\": [...], \\\"score\\\": 85 },\\n    \\\"audience_persona\\\": { ... },\\n    \\\"marketing_strategy\\\": { ... },\\n    \\\"success_forecast\\\": { ... }\\n  }\\n}\",\n  \"stream\": false,\n  \"options\": {\n    \"temperature\": 0.7,\n    \"num_predict\": 3000\n  }\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "generate-reports",
+      "name": "Generate Consulting Reports",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse consulting reports\nconst reportResponse = $input.first().json;\nconst rawResponse = reportResponse.response || '';\n\nlet reports;\ntry {\n  const jsonMatch = rawResponse.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    reports = JSON.parse(jsonMatch[0]).reports;\n  } else {\n    throw new Error('No JSON');\n  }\n} catch (e) {\n  // Fallback reports\n  reports = {\n    market_research: { title: 'Market Research Report', score: 75, sections: [] },\n    audience_persona: { title: 'Audience Persona Report', score: 80, sections: [] },\n    marketing_strategy: { title: 'Marketing Strategy Report', score: 72, sections: [] },\n    success_forecast: { title: 'Success Forecast Report', score: 78, sections: [] }\n  };\n}\n\nconst originalData = $('Update Progress').first().json;\n\nreturn [{\n  json: {\n    ...originalData,\n    consulting_reports: reports\n  }\n}];"
+      },
+      "id": "parse-reports",
+      "name": "Parse Reports",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shadow7_api:8002/api/shadow7/reports",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tracking_id\": \"{{ $json.tracking_id }}\",\n  \"reports\": {{ JSON.stringify($json.consulting_reports) }}\n}",
+        "options": {}
+      },
+      "id": "save-reports",
+      "name": "Save Reports to DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2880, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shadow7_api:8002/api/shadow7/package",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tracking_id\": \"{{ $json.tracking_id }}\"\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "create-package",
+      "name": "Create Package",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3100, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shadow7_api:8002/api/shadow7/callback",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tracking_id\": \"{{ $json.tracking_id }}\",\n  \"status\": \"completed\",\n  \"progress\": 100,\n  \"download_url\": \"{{ $json.download_url }}\"\n}",
+        "options": {}
+      },
+      "id": "complete-callback",
+      "name": "Complete Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3320, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "shadow7@mrf103.com",
+        "toEmail": "={{ $json.user_email }}",
+        "subject": "=🎉 Your Book Package is Ready - {{ $json.outline.book_title }}",
+        "emailType": "html",
+        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\">\n  <div style=\"background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;\">\n    <h1 style=\"color: white; margin: 0;\">📚 SHADOW-7 Publisher</h1>\n    <p style=\"color: rgba(255,255,255,0.9); margin-top: 10px;\">Your book package is ready!</p>\n  </div>\n  \n  <div style=\"padding: 30px; background: #f9f9f9;\">\n    <h2 style=\"color: #333;\">{{ $json.outline.book_title }}</h2>\n    <p style=\"color: #666;\">Tracking ID: <strong>{{ $json.tracking_id }}</strong></p>\n    \n    <div style=\"background: white; padding: 20px; border-radius: 10px; margin: 20px 0;\">\n      <h3 style=\"color: #667eea; margin-top: 0;\">📦 Package Contents:</h3>\n      <ul style=\"color: #555;\">\n        <li>Complete manuscript ({{ $json.outline.total_chapters }} chapters)</li>\n        <li>4 Consulting Reports (PDF)</li>\n        <li>Book outline & metadata</li>\n      </ul>\n    </div>\n    \n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"https://publisher.mrf103.com/download/{{ $json.tracking_id }}\" style=\"display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 25px; font-weight: bold;\">Download Your Package</a>\n    </div>\n    \n    <p style=\"color: #999; font-size: 12px; text-align: center;\">This download link will expire in 7 days.</p>\n  </div>\n  \n  <div style=\"background: #333; color: white; padding: 20px; text-align: center;\">\n    <p style=\"margin: 0; font-size: 12px;\">SHADOW-7 Publisher | Powered by Nexus Prime</p>\n  </div>\n</div>",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Completion Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [3540, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shadow7_api:8002/api/shadow7/callback",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tracking_id\": \"{{ $json.tracking_id }}\",\n  \"status\": \"failed\",\n  \"error\": \"{{ $json.error || 'Unknown error' }}\"\n}",
+        "options": {}
+      },
+      "id": "error-callback",
+      "name": "Error Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 500]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Respond Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Accepted": {
+      "main": [
+        [
+          {
+            "node": "Generate Outline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Outline": {
+      "main": [
+        [
+          {
+            "node": "Parse Outline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Outline": {
+      "main": [
+        [
+          {
+            "node": "Save Outline to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Outline to DB": {
+      "main": [
+        [
+          {
+            "node": "Split into Chapters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split into Chapters": {
+      "main": [
+        [
+          {
+            "node": "Generate Chapter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Consulting Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Chapter": {
+      "main": [
+        [
+          {
+            "node": "Parse Chapter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Chapter": {
+      "main": [
+        [
+          {
+            "node": "Save Chapter to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Chapter to DB": {
+      "main": [
+        [
+          {
+            "node": "Update Progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Progress": {
+      "main": [
+        [
+          {
+            "node": "Split into Chapters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Consulting Reports": {
+      "main": [
+        [
+          {
+            "node": "Parse Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Reports": {
+      "main": [
+        [
+          {
+            "node": "Save Reports to DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Reports to DB": {
+      "main": [
+        [
+          {
+            "node": "Create Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Package": {
+      "main": [
+        [
+          {
+            "node": "Complete Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complete Callback": {
+      "main": [
+        [
+          {
+            "node": "Send Completion Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "shadow7"
+    },
+    {
+      "name": "publishing"
+    }
+  ],
+  "pinData": {}
+}
