@@ -302,6 +302,33 @@ services:
       retries: 3
       start_period: 15s
 
+  # ═══ PHASE 8: Nexus Oracle — RAG Documentation AI ═══════════
+  nexus_oracle:
+    build: ./nexus_oracle
+    container_name: nexus_oracle
+    ports:
+      - "8100:8100"
+    volumes:
+      - ./data/rag:/data/rag:ro
+    environment:
+      - CHROMA_PATH=/data/rag/chromadb
+      - OLLAMA_URL=http://nexus_ollama:11434
+      - MODEL_NAME=llama3.2:3b
+      - TOP_K=5
+    depends_on:
+      nexus_ollama:
+        condition: service_started
+    networks:
+      - nexus_network
+    mem_limit: 768m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
 networks:
   nexus_network:
     driver: bridge
