@@ -1,0 +1,65 @@
+# ═══ Network Policies — Sovereignty Enforcement ═══════════════
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-external-egress
+  namespace: nexus-prime
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  # Allow DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow internal cluster traffic
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: nexus-prime
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-access-control
+  namespace: nexus-prime
+spec:
+  podSelector:
+    matchLabels:
+      app: nexus-db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values: [nexus-cortex, nexus-auth, shadow7-api]
+    ports:
+    - port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ollama-access-control
+  namespace: nexus-prime
+spec:
+  podSelector:
+    matchLabels:
+      app: nexus-ollama
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values: [nexus-litellm, nexus-cortex]
+    ports:
+    - port: 11434

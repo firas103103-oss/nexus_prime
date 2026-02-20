@@ -1,0 +1,170 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "nexus-prime-overview",
+    "title": "NEXUS PRIME - System Overview",
+    "tags": ["nexus", "overview"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "type": "stat",
+        "title": "System Health",
+        "targets": [
+          {
+            "expr": "up{job=\"nexus_cortex\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "type": "stat",
+        "title": "Active Containers",
+        "targets": [
+          {
+            "expr": "count(up == 1)",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "type": "stat",
+        "title": "CPU Usage",
+        "targets": [
+          {
+            "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 70, "color": "yellow"},
+                {"value": 85, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "type": "stat",
+        "title": "Memory Usage",
+        "targets": [
+          {
+            "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 75, "color": "yellow"},
+                {"value": 90, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "type": "graph",
+        "title": "CPU Usage Over Time",
+        "targets": [
+          {
+            "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+            "legendFormat": "CPU Usage",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "min": 0, "max": 100},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "type": "graph",
+        "title": "Memory Usage Over Time",
+        "targets": [
+          {
+            "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
+            "legendFormat": "Memory Usage",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percent", "min": 0, "max": 100},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {"x": 0, "y": 12, "w": 8, "h": 8},
+        "type": "graph",
+        "title": "Database Connections",
+        "targets": [
+          {
+            "expr": "sum(pg_stat_activity_count)",
+            "legendFormat": "Active Connections",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {"x": 8, "y": 12, "w": 8, "h": 8},
+        "type": "graph",
+        "title": "Container Count by Status",
+        "targets": [
+          {
+            "expr": "count(up) by (job)",
+            "legendFormat": "{{job}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "gridPos": {"x": 16, "y": 12, "w": 8, "h": 8},
+        "type": "graph",
+        "title": "HTTP Request Rate",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{job}} - {{status}}",
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  }
+}

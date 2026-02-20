@@ -1,0 +1,144 @@
+version: '3.8'
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 📊 NEXUS PRIME - Monitoring Stack (Prometheus + Grafana)
+# ═══════════════════════════════════════════════════════════════════════════
+# Purpose: مراقبة حية للنظام مع إنذار مبكر
+# Components: Prometheus (Metrics), Grafana (Visualization), Node Exporter
+# Access: Grafana at http://localhost:3001 (admin/nexussovereign)
+# ═══════════════════════════════════════════════════════════════════════════
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 📈 Prometheus (مجمع المقاييس)
+  # ═══════════════════════════════════════════════════════════════════════════
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nexus_prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - nexus_network
+    healthcheck:
+      test: ["CMD", "wget", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 📊 Grafana (لوحة التحكم المرئية)
+  # ═══════════════════════════════════════════════════════════════════════════
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nexus_grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=nexussovereign
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_DATE_FORMATS_DEFAULT_TIMEZONE=Asia/Riyadh
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3001:3000"
+    networks:
+      - nexus_network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🖥️ Node Exporter (مقاييس السيرفر)
+  # ═══════════════════════════════════════════════════════════════════════════
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: nexus_node_exporter
+    restart: unless-stopped
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /:/host:ro,rslave
+    ports:
+      - "9100:9100"
+    networks:
+      - nexus_network
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🐳 cAdvisor (مقاييس الـ Containers)
+  # ═══════════════════════════════════════════════════════════════════════════
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: nexus_cadvisor
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - nexus_network
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 🔔 AlertManager (إدارة التنبيهات)
+  # ═══════════════════════════════════════════════════════════════════════════
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: nexus_alertmanager
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - nexus_network
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 💾 Volumes
+# ═══════════════════════════════════════════════════════════════════════════
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 🌐 Networks
+# ═══════════════════════════════════════════════════════════════════════════
+networks:
+  nexus_network:
+    external: true

@@ -4,17 +4,40 @@ __pycache__/
 *$py.class
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.log
+local_settings.py
 venv/
-env/
 ENV/
+env/
 
 # Node
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 dist/
 build/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
 
 # Environment
 .env
@@ -26,25 +49,72 @@ build/
 .idea/
 *.swp
 *.swo
+*~
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+*.sql
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Data directories (keep structure, ignore data)
+data/db_data/*
+!data/db_data/.gitkeep
+data/ollama/*
+!data/ollama/.gitkeep
+data/redis_data/*
+!data/redis_data/.gitkeep
+data/auth_keys/*
+!data/auth_keys/.gitkeep
+data/open-webui/*
+!data/open-webui/.gitkeep
+data/n8n_data/*
+!data/n8n_data/.gitkeep
+
+# Backups
+nexus_prime_backups/
+*.backup
+*.bak
+
+# Temporary
+tmp/
+temp/
+*.tmp
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-logs/
+# Kubernetes
+*.kubeconfig
 
-# Docker
-*.pid
-*.sock
+# Certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
 
-# Large files
+# Secrets
+secrets/
+credentials/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Build artifacts
 *.tar.gz
 *.zip
-*.rar
-# Data directories (runtime data, not code)
-data/
-*.pid
-*.log
-.env
+
+# Local configuration
+docker-compose.override.yml
+config.local.yaml

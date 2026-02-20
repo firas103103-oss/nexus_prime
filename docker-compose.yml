@@ -20,6 +20,47 @@ services:
       - nexus_network
     restart: always
 
+  # ═══ PHASE 1: LiteLLM Sovereignty Proxy ═══════════════════════
+  nexus_litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: nexus_litellm
+    ports:
+      - "4000:4000"
+    command: --config /app/config.yaml --port 4000
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml:ro
+    environment:
+      - LITELLM_MASTER_KEY=sk-nexus-sovereign-mrf103
+    depends_on:
+      - nexus_ollama
+    networks:
+      - nexus_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health/liveliness"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ═══ PHASE 2: Redis Event Bus ═════════════════════════════════
+  nexus_redis:
+    image: redis:7-alpine
+    container_name: nexus_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - ./data/redis_data:/data
+    networks:
+      - nexus_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   nexus_voice:
     build: ./edge-tts-repo
     container_name: nexus_voice
@@ -36,8 +77,8 @@ services:
       - "8501:8501"
     env_file: .env
     environment:
-      - OPENAI_BASE_URL=http://nexus_ollama:11434/v1
-      - OPENAI_API_KEY=sk-ollama-local
+      - OPENAI_BASE_URL=http://nexus_litellm:4000/v1
+      - OPENAI_API_KEY=sk-nexus-sovereign-mrf103
       - MODEL_NAME=llama3.2:3b
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES_DB}
       - VOICE_ENGINE_URL=http://nexus_voice:8000
@@ -45,6 +86,7 @@ services:
       - nexus_db
       - nexus_ollama
       - nexus_voice
+      - nexus_litellm
     networks:
       - nexus_network
     restart: always
@@ -64,13 +106,15 @@ services:
       - "5001:5001"
     env_file: .env
     environment:
-      - OPENAI_BASE_URL=http://nexus_ollama:11434/v1
+      - OPENAI_BASE_URL=http://nexus_litellm:4000/v1
+      - OPENAI_API_KEY=sk-nexus-sovereign-mrf103
       - ELEVENLABS_API_URL=http://nexus_voice:8000/v1
     networks:
       - nexus_network
     depends_on:
       - nexus_db
       - nexus_ollama
+      - nexus_litellm
     restart: always
 
   # Open WebUI - AI Chat Interface
@@ -79,8 +123,8 @@ services:
     container_name: nexus_ai
     environment:
       - OLLAMA_BASE_URL=http://nexus_ollama:11434
-      - OPENAI_API_BASE_URL=http://nexus_ollama:11434/v1
-      - OPENAI_API_KEY=sk-nexus-sovereign-mrf
+      - OPENAI_API_BASE_URL=http://nexus_litellm:4000/v1
+      - OPENAI_API_KEY=sk-nexus-sovereign-mrf103
       - DEFAULT_MODELS=llama3.2:3b
       - WEBUI_SECRET_KEY=nexus_wiring_103
       - TZ=Asia/Riyadh
@@ -92,6 +136,7 @@ services:
       - nexus_network
     depends_on:
       - nexus_ollama
+      - nexus_litellm
     restart: always
 
   # n8n Workflow Automation
@@ -140,10 +185,12 @@ services:
       - "8090:8090"
     environment:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
+      - REDIS_URL=redis://nexus_redis:6379/0
     networks:
       - nexus_network
     depends_on:
       - nexus_db
+      - nexus_redis
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
@@ -175,6 +222,55 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+
+  # ═══ PHASE 3: RS256 Auth Service ══════════════════════════════
+  nexus_auth:
+    build: ../integration/shared-auth
+    container_name: nexus_auth
+    ports:
+      - "8003:8002"
+    volumes:
+      - ./data/auth_keys:/app/keys
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
+      - JWT_TOKEN_EXPIRY=86400
+    networks:
+      - nexus_network
+    depends_on:
+      - nexus_db
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══ NEXUS MEMORY KEEPER - حارس الذاكرة المركزية ══════════
+  nexus_memory_keeper:
+    build: ./memory_keeper
+    container_name: nexus_memory_keeper
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Web UI
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
+      - CORTEX_URL=http://nexus_cortex:8090
+      - LITELLM_URL=http://nexus_litellm:4000
+      - LITELLM_MASTER_KEY=sk-nexus-sovereign-mrf103
+    depends_on:
+      - nexus_db
+      - nexus_cortex
+      - nexus_litellm
+      - nexus_redis
+    networks:
+      - nexus_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   nexus_network:

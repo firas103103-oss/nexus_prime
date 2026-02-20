@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-NEXUS CORTEX — المركز العصبي المركزي
+NEXUS CORTEX v2.0.0-sovereign
+المركز العصبي المركزي + Redis Pub/Sub
 ضابط السير والحركة — يوجه الأوامر، يراقب الوكلاء، يحافظ على المركزية
 
 Port: 8090
@@ -15,6 +16,7 @@ from typing import Optional, List, Any
 from uuid import UUID
 
 import asyncpg
+import redis.asyncio as aioredis
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -24,16 +26,24 @@ DB_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://postgres:nexus_mrf_password_2026@nexus_db:5432/nexus_db"
 )
-CORTEX_VERSION = "1.0.0"
+REDIS_URL = os.getenv("REDIS_URL", "redis://nexus_redis:6379/0")
+CORTEX_VERSION = "2.0.0-sovereign"
 
-# ─────────────────── Connection Pool ────────────────────────────
+# ─────────────────── Connection Pools ───────────────────────────
 pool: asyncpg.Pool = None
+redis_pool: aioredis.Redis = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global pool
+    global pool, redis_pool
     pool = await asyncpg.create_pool(DB_URL, min_size=5, max_size=20)
     print(f"[CORTEX] ✅ Connected to nexus_db")
+    # Redis
+    redis_pool = aioredis.from_url(REDIS_URL, decode_responses=True)
+    await redis_pool.ping()
+    print(f"[CORTEX] ✅ Connected to Redis")
+    # Start subscriber
+    asyncio.create_task(redis_subscriber())
     # register cortex itself as online
     async with pool.acquire() as conn:
         await conn.execute("""
@@ -46,6 +56,9 @@ async def lifespan(app: FastAPI):
             WHERE name='nexus_cortex'
         """)
     yield
+    if redis_pool:
+        await redis_pool.aclose()
+        print(f"[CORTEX] 🛑 Redis closed")
     await pool.close()
     print(f"[CORTEX] 🛑 Pool closed")
 
@@ -89,6 +102,25 @@ class ConnectionManager:
             self.active.remove(ws)
 
 ws_manager = ConnectionManager()
+
+
+# ─────────────────── Redis Subscriber ───────────────────────────
+async def redis_subscriber():
+    """Subscribe to Redis channels and broadcast to WebSocket clients"""
+    try:
+        pubsub = redis_pool.pubsub()
+        await pubsub.subscribe("nexus:commands", "nexus:events", "nexus:agents")
+        print(f"[CORTEX] 📡 Redis subscriber active on 3 channels")
+        async for message in pubsub.listen():
+            if message["type"] == "message":
+                try:
+                    data = json.loads(message["data"])
+                    await ws_manager.broadcast(data)
+                except Exception as e:
+                    print(f"[CORTEX] ⚠️ Broadcast error: {e}")
+    except Exception as e:
+        print(f"[CORTEX] ❌ Redis subscriber failed: {e}")
+
 
 # ─────────────────── Pydantic Models ────────────────────────────
 class CommandRequest(BaseModel):
@@ -138,7 +170,13 @@ async def root():
 async def health():
     async with pool.acquire() as conn:
         db_ok = await conn.fetchval("SELECT 1") == 1
-    return {"cortex": "online", "db": "ok" if db_ok else "error"}
+    redis_ok = await redis_pool.ping() if redis_pool else False
+    return {
+        "cortex": "online",
+        "version": CORTEX_VERSION,
+        "db": "ok" if db_ok else "error",
+        "redis": "ok" if redis_ok else "error"
+    }
 
 # ─── Dashboard ──────────────────────────────────────────────────
 
@@ -192,7 +230,7 @@ async def register_agent(body: AgentRegister):
             ON CONFLICT (agent_name) DO UPDATE SET status='online', updated_at=now()
         """, body.name)
 
-    await ws_manager.broadcast({"type": "agent_online", "agent": body.name})
+    await redis_pool.publish("nexus:agents", json.dumps({"type": "agent_online", "agent": body.name}))
     return {"registered": body.name, "status": "online"}
 
 @app.post("/agent/{agent_name}/heartbeat", tags=["Agents"])
@@ -262,13 +300,13 @@ async def issue_command(body: CommandRequest, bg: BackgroundTasks):
             json.dumps({"origin": body.origin, "target": target}),
             cmd_id)
 
-    await ws_manager.broadcast({
+    await redis_pool.publish("nexus:commands", json.dumps({
         "type": "command_issued",
         "command_id": str(cmd_id),
         "command_type": body.command_type,
         "target": target,
         "priority": body.priority
-    })
+    }))
 
     return {
         "command_id": str(cmd_id),
@@ -302,7 +340,7 @@ async def update_command(command_id: str, body: CommandUpdate):
             body.error_msg, UUID(command_id))
         if not row:
             raise HTTPException(404, "Command not found")
-    await ws_manager.broadcast({"type": "command_updated", "command_id": command_id, "status": body.status})
+    await redis_pool.publish("nexus:commands", json.dumps({"type": "command_updated", "command_id": command_id, "status": body.status}))
     return dict(row)
 
 @app.get("/commands", tags=["Commands"])
@@ -348,14 +386,14 @@ async def post_event(body: EventPost):
             "UPDATE nexus_core.agents SET last_seen=now() WHERE name=$1",
             body.agent_name
         )
-    await ws_manager.broadcast({
+    await redis_pool.publish("nexus:events", json.dumps({
         "type": "event",
         "event_id": eid,
         "agent": body.agent_name,
         "event_type": body.event_type,
         "severity": body.severity,
         "title": body.title
-    })
+    }))
     return {"event_id": eid, "recorded": True}
 
 @app.get("/events", tags=["Events"])

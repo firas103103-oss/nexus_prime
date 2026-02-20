@@ -1,240 +1,289 @@
-# 🌌 NEXUS PRIME
+# 🧠 NEXUS PRIME - Command Intelligence Platform
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-2.6.2-blue)
-![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
-![Docker](https://img.shields.io/badge/docker-11%20services-blue)
-![License](https://img.shields.io/badge/license-Proprietary-red)
+![NEXUS PRIME](https://img.shields.io/badge/NEXUS-PRIME-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-2.0.0--sovereign-green?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
+![Data Sovereignty](https://img.shields.io/badge/Data%20Sovereignty-100%25-success?style=for-the-badge)
 
-**Complete AI-Powered Sovereign Digital Ecosystem**
+**المنصة الذكية للقيادة والتحكم | Enterprise Command Intelligence Platform**
 
-[العربية](docs/README_AR.md) | English
+[Documentation](#-documentation) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [API Reference](#-api-reference) • [Contributing](#-contributing)
 
 </div>
 
 ---
 
-## 🎯 What is NEXUS PRIME?
+## 📋 Table of Contents
 
-NEXUS PRIME is a unified, self-hosted AI ecosystem that consolidates multiple AI-powered products, automation workflows, and intelligent agents into one cohesive platform. It was created to bring order to 105GB of scattered projects, resulting in a lean 3.9GB organized system.
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [Quick Start](#-quick-start)
+- [System Requirements](#-system-requirements)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [API Reference](#-api-reference)
+- [Deployment](#-deployment)
+- [Monitoring](#-monitoring)
+- [Security](#-security)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-### Core Philosophy
-- **Sovereignty**: Complete ownership and control over your AI infrastructure
-- **Unity**: One platform, multiple AI-powered products
-- **Intelligence**: 12 specialized AI agents (Planets) working in harmony
-- **Automation**: n8n workflows for lead capture, nurturing, and onboarding
+---
+
+## 🎯 Overview
+
+**NEXUS PRIME** is an enterprise-grade command intelligence platform that provides **100% data sovereignty** for AI-powered applications. It combines real-time event processing, secure authentication, and local AI inference to deliver a complete solution for organizations requiring full control over their data.
+
+### 🌟 Why NEXUS PRIME?
+
+- **🔒 100% Data Sovereignty**: All AI processing happens locally - zero external API calls
+- **⚡ Real-time Processing**: Redis-powered event bus for instant command routing
+- **🛡️ Enterprise Security**: RS256 JWT with JWKS endpoint support
+- **📈 Production Ready**: Built for 1K-100K concurrent users
+- **🚀 Cloud Native**: Kubernetes-ready with auto-scaling
+- **🔧 Developer Friendly**: OpenAPI documentation, Docker Compose for local dev
+
+---
+
+## ✨ Key Features
+
+### 🤖 AI & Intelligence
+
+- **Local LLM Engine**: Ollama-powered (llama3.2:3b, 8K context)
+- **LiteLLM Proxy**: Universal AI gateway supporting 9+ model formats
+- **Model Agnostic**: Gemini, GPT, Claude API compatibility
+- **Zero Latency**: No external API calls = faster responses
+
+### 🔄 Event Processing
+
+- **Redis Pub/Sub**: Real-time event bus with 3 channels
+- **Command Routing**: Intelligent agent task distribution
+- **Event Streaming**: WebSocket support for live updates
+- **State Management**: Persistent agent state tracking
+
+### 🔐 Security & Auth
+
+- **RS256 JWT**: Asymmetric cryptography (2048-bit RSA)
+- **JWKS Endpoint**: Standard key distribution
+- **Key Rotation**: Built-in support for zero-downtime rotation
+- **Session Management**: Secure user session handling
+
+### 📊 Monitoring & Observability
+
+- **Health Checks**: All services expose `/health` endpoints
+- **Metrics Ready**: Prometheus-compatible metrics
+- **Structured Logging**: JSON logs for easy parsing
+- **Dashboard Integration**: Grafana-ready
+
+### 🎨 User Interfaces
+
+- **Cognitive Boardroom**: AI-powered meeting assistant (Port 8501)
+- **Command Dashboard**: Real-time operations center (Port 5001)
+- **Voice Interface**: Natural language control (Port 5050)
+- **Open WebUI**: Chat interface for AI models (Port 3000)
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        NEXUS PRIME v2.0.0                       │
+│                   Command Intelligence Platform                  │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                ┌───────────────┼───────────────┐
+                │               │               │
+        ┌───────▼──────┐ ┌─────▼──────┐ ┌─────▼──────┐
+        │   Cortex     │ │    Auth    │ │  LiteLLM   │
+        │   (8090)     │ │   (8003)   │ │   (4000)   │
+        │              │ │            │ │            │
+        │ Command      │ │ RS256 JWT  │ │ AI Proxy   │
+        │ Router       │ │ + JWKS     │ │ Sovereign  │
+        └──────┬───────┘ └─────┬──────┘ └─────┬──────┘
+               │               │               │
+               └───────┬───────┴───────┬───────┘
+                       │               │
+                ┌──────▼──────┐ ┌─────▼──────┐
+                │    Redis    │ │  Ollama    │
+                │   (6379)    │ │  (11434)   │
+                │             │ │            │
+                │  Event Bus  │ │ LLM Engine │
+                │  Pub/Sub    │ │ llama3.2   │
+                └──────┬──────┘ └─────┬──────┘
+                       │               │
+                ┌──────▼───────────────▼──────┐
+                │      PostgreSQL 15          │
+                │         (5432)              │
+                │                             │
+                │   Central Data Store        │
+                └─────────────────────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+┌───────▼─────┐ ┌─────▼──────┐ ┌────▼─────┐
+│ Boardroom   │ │ Dashboard  │ │  Voice   │
+│   (8501)    │ │   (5001)   │ │  (5050)  │
+└─────────────┘ └────────────┘ └──────────┘
+```
+
+### 📦 Components
+
+| Component | Version | Port | Purpose |
+|-----------|---------|------|---------|
+| **NEXUS Cortex** | 2.0.0-sovereign | 8090 | Command routing & agent coordination |
+| **NEXUS Auth** | 2.0.0-rs256 | 8003 | RS256 JWT authentication service |
+| **LiteLLM Proxy** | main-latest | 4000 | AI sovereignty gateway |
+| **Redis** | 7-alpine | 6379 | Event bus & real-time pub/sub |
+| **Ollama** | latest | 11434 | Local LLM inference engine |
+| **PostgreSQL** | 15.1.0.147 | 5432 | Primary data store |
+| **Boardroom AI** | 1.0.0 | 8501 | Meeting intelligence |
+| **Dashboard** | 1.0.0 | 5001 | Command center UI |
+| **Voice Assistant** | 1.0.0 | 5050 | Voice interface |
+| **Open WebUI** | main | 3000 | AI chat interface |
+| **n8n** | latest | 5678 | Workflow automation |
+| **Shadow7 API** | 1.0.0 | 8002 | Publishing platform |
 
 ---
 
 ## 🚀 Quick Start
 
-```bash
-# Clone the repository
-git clone git@github.com:firas103103-oss/nexus_prime.git
-cd NEXUS_PRIME_UNIFIED
+### Prerequisites
 
-# Launch all services
-bash scripts/IGNITION.sh
+- Docker 24.0+ & Docker Compose v2.20+
+- 16GB RAM minimum (23GB recommended)
+- 4 CPU cores minimum (6 recommended)
+- 50GB disk space
 
-# Check system status
-bash scripts/STATUS.sh
-
-# Run comprehensive tests
-bash scripts/final_test.sh
-```
-
----
-
-## 📦 Architecture Overview
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      NEXUS PRIME v2.2.0                      │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │   Ollama    │  │  Open-WebUI │  │     n8n     │          │
-│  │  (Brain)    │  │ (Interface) │  │(Automation) │          │
-│  │ Port 11434  │  │  Port 3000  │  │  Port 5678  │          │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘          │
-│         │                │                │                  │
-│         └────────────────┴────────────────┘                  │
-│                          │                                   │
-│  ┌───────────────────────┴───────────────────────┐          │
-│  │              PostgreSQL Database               │          │
-│  │                  Port 5432                     │          │
-│  └────────────────────────────────────────────────┘          │
-│                                                              │
-│  ┌────────────────────────────────────────────────┐          │
-│  │                 12 AI Planets                  │          │
-│  │  AI-ARCH · AS-SULTAN · CLONE-HUB · LEGAL-EAGLE │          │
-│  │  NAV-ORACLE · NEXUS-ANALYST · N-TARGET · OPS   │          │
-│  │  RAG-CORE · SEC-GUARD · SHADOW-7 · X-BIO       │          │
-│  └────────────────────────────────────────────────┘          │
-│                                                              │
-│  ┌────────────────────────────────────────────────┐          │
-│  │               7 Products Suite                 │          │
-│  │  Shadow Seven · AlSultan · Jarvis · Imperial   │          │
-│  │  MRF103 Mobile · X-BIO Sentinel · Data Core    │          │
-│  └────────────────────────────────────────────────┘          │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🐳 Docker Services
-
-| Service | Container | Port | Description |
-|---------|-----------|------|-------------|
-| **Database** | nexus_db | 5432 | PostgreSQL 15.1 (Supabase) |
-| **Brain** | nexus_ollama | 11434 | Ollama LLM Engine (llama3.2, qwen2.5:14b) |
-| **Interface** | nexus_ai | 3000→8080 | Open-WebUI Chat Interface |
-| **Automation** | nexus_flow | 5678 | n8n Workflow Engine |
-| **Voice** | nexus_voice | 5050→8000 | Edge-TTS Text-to-Speech |
+### One-Command Launch
 
 ```bash
-# Status
-docker ps
+git clone https://github.com/mrf103/nexus-prime.git
+cd nexus-prime
+docker compose up -d
+```
 
-# Restart all
-cd /root/nexus_prime && docker compose restart
+**That's it!** 🎉 All 12 services will start automatically.
 
-# Logs
-docker logs -f nexus_ai
+### Verify Installation
+
+```bash
+# Check all containers
+docker compose ps
+
+# Test health endpoints
+curl localhost:8090/health              # Cortex
+curl localhost:4000/health/liveliness   # LiteLLM
+curl localhost:8003/api/v1/auth/health  # Auth
+```
+
+### Access UIs
+
+- **Dashboard**: http://localhost:5001
+- **Boardroom AI**: http://localhost:8501
+- **Open WebUI**: http://localhost:3000
+- **n8n Workflows**: http://localhost:5678
+- **Voice Interface**: http://localhost:5050
+
+---
+
+## 💻 System Requirements
+
+### Minimum Requirements
+
+```yaml
+CPU: 4 cores
+RAM: 16 GB
+Disk: 50 GB SSD
+Network: 100 Mbps
+OS: Linux (Ubuntu 20.04+), macOS 12+
+```
+
+### Recommended (Production)
+
+```yaml
+CPU: 6-8 cores
+RAM: 23-32 GB
+Disk: 100 GB NVMe SSD
+Network: 1 Gbps
+OS: Ubuntu 22.04 LTS
 ```
 
 ---
 
-## 🪐 The 12 Planets (AI Agents)
+## 📥 Installation
 
-Each "Planet" is a specialized AI agent with its own identity and purpose:
-
-| Planet | Role | Specialty |
-|--------|------|-----------|
-| **AI-ARCH** | AI Architecture | System design, ARC-Namer protocol |
-| **AS-SULTAN** | Quranic Analysis | Islamic text interpretation |
-| **CLONE-HUB** | Repository Management | Code cloning and versioning |
-| **LEGAL-EAGLE** | Legal Affairs | Contracts, compliance |
-| **NAV-ORACLE** | Navigation | User journey optimization |
-| **NEXUS-ANALYST** | Data Analysis | Business intelligence |
-| **N-TARGET** | Business Targeting | Lead identification |
-| **OPS-CTRL** | Operations Control | System monitoring |
-| **RAG-CORE** | Knowledge Engine | RAG-based retrieval |
-| **SEC-GUARD** | Security | Threat detection |
-| **SHADOW-7** | Publishing | AI content distribution |
-| **X-BIO** | IoT Biomedical | ESP32 sensor integration |
+See [INSTALLATION.md](docs/INSTALLATION.md) for detailed instructions.
 
 ---
 
-## 📦 7 Products
+## ⚙️ Configuration
 
-| Product | Tech Stack | Description |
-|---------|------------|-------------|
-| **Shadow Seven Publisher** | Python + AI | AI-powered publishing platform |
-| **AlSultan Intelligence** | Python + Gemini | Quranic analysis (Chronos, Decoder, Identity) |
-| **Jarvis Control Hub** | Python + FastAPI | Central monitoring and coordination |
-| **Imperial UI** | React + Vite + Tailwind | Admin dashboard interface |
-| **MRF103 Mobile** | React Native + Expo | Mobile application |
-| **X-BIO Sentinel** | Python + ESP32 | Biomedical IoT monitoring |
-| **NEXUS Data Core** | Python | Unified data processing engine |
+See [CONFIGURATION.md](docs/CONFIGURATION.md) for all configuration options.
 
 ---
 
-## 🔗 Integrations
+## 📖 Usage
 
-```
-integration/
-├── admin-portal/      # Unified admin interface
-├── clone-hub/         # Repository management
-├── command-center/    # Central command dispatch
-├── ecosystem-api/     # Unified REST API
-└── shared-auth/       # SSO authentication
-```
+See [API_REFERENCE.md](docs/API_REFERENCE.md) for complete API documentation.
 
 ---
 
-## 🌐 Domains & SSL
+## 🚢 Deployment
 
-**Primary:** `mrf103.com` (Cloudflare + Let's Encrypt Wildcard)
-
-| Subdomain | Service |
-|-----------|---------|
-| `ai.mrf103.com` | Open-WebUI |
-| `flow.mrf103.com` | n8n Automation |
-| `voice.mrf103.com` | Edge-TTS |
-| `publisher.mrf103.com` | Shadow Seven |
-| `sultan.mrf103.com` | AlSultan |
-| `admin.mrf103.com` | Dashboard |
+See [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for production deployment instructions.
 
 ---
 
-## 🔧 Scripts
+## 📊 Monitoring
 
-| Script | Purpose |
-|--------|---------|
-| `IGNITION.sh` | Full system launch |
-| `STATUS.sh` | Quick status report |
-| `final_test.sh` | Comprehensive testing (41 tests) |
-| `git_sync_all.sh` | Sync all products to GitHub |
-| `setup_dns.sh` | Configure Cloudflare DNS |
-| `monitor.sh` | Service monitoring |
-
----
-
-## 📊 Stats
-
-| Metric | Value |
-|--------|-------|
-| Total Files | ~55,000+ |
-| System Size | 3.9 GB |
-| Active Repos | 9 |
-| Products | 7 |
-| AI Planets | 12 |
-| Docker Services | 5 |
-| Test Score | 100% (41/41) ✅ |
-| Space Freed | 13 GB |
-
----
-
-## 📚 Documentation
-
-- [MASTER_DOCUMENTATION.md](MASTER_DOCUMENTATION.md) - Complete reference (Arabic)
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Technical architecture
-- [QUICKSTART.md](docs/QUICKSTART.md) - Getting started guide
-- [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment instructions
+See [MONITORING.md](docs/MONITORING.md) for monitoring setup and best practices.
 
 ---
 
 ## 🔒 Security
 
-- ✅ All API keys use environment variables
-- ✅ UFW firewall with Cloudflare IP whitelist
-- ✅ Internal services blocked from external access
-- ✅ SSL/TLS via Let's Encrypt wildcard
-- ✅ Shell injection vulnerabilities patched
+See [SECURITY.md](docs/SECURITY.md) for security guidelines and best practices.
 
 ---
 
-## 📝 License
+## 🐛 Troubleshooting
 
-Proprietary - All rights reserved by MrF
+See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and solutions.
 
 ---
 
-## 🤝 Contact
+## 🤝 Contributing
 
-- **GitHub:** [firas103103-oss](https://github.com/firas103103-oss)
-- **Domain:** [mrf103.com](https://mrf103.com)
-- **Email:** admin@mrf103.com
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+## 📞 Support
+
+- **Documentation**: Full documentation in `/docs` directory
+- **Issues**: [GitHub Issues](https://github.com/mrf103/nexus-prime/issues)
+- **Email**: support@mrf103.com
 
 ---
 
 <div align="center">
 
-**NEXUS PRIME v2.2.0** - Built with 💜 by MrF
+**⭐ Star us on GitHub if you find NEXUS PRIME useful! ⭐**
 
-*Last updated: February 18, 2026*
+Made with ❤️ by MRF103 Team
+
+[Website](https://mrf103.com) • [Documentation](docs/) • [API Reference](docs/API_REFERENCE.md)
 
 </div>
