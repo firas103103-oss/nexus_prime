@@ -47,7 +47,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=nexussovereign
-      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_SERVER_ROOT_URL=http://localhost:3002
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
       - GF_AUTH_ANONYMOUS_ENABLED=false
       - GF_DATE_FORMATS_DEFAULT_TIMEZONE=Asia/Riyadh
@@ -56,7 +56,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     ports:
-      - "3001:3000"
+      - "3002:3000"
     networks:
       - nexus_network
     depends_on:
@@ -103,7 +103,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
     ports:
-      - "8080:8080"
+      - "8081:8080"
     networks:
       - nexus_network
 
@@ -142,3 +142,4 @@ volumes:
 networks:
   nexus_network:
     external: true
+    name: nexus_network

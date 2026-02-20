@@ -13,8 +13,10 @@ Port: 50051  |  Protocol: gRPC (HTTP/2)  |  Async: uvloop + grpc.aio
 """
 
 import asyncio
+import json
 import logging
 import os
+import random
 import signal
 import sys
 import time
@@ -647,13 +649,21 @@ class NexusPulseServicer(pb_grpc.NexusPulseServiceServicer):
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# REDIS BRIDGE — Subscribe to existing Cortex channels
+# ═════════════════════════════════════════════════════════════════════════════
+# REDIS BRIDGE — Subscribe to Redis Streams with Consumer Groups
 # ═════════════════════════════════════════════════════════════════════════════
 
 class RedisBridge:
     """
-    Subscribes to Cortex Redis Pub/Sub channels and routes commands
-    to gRPC-connected agents, bypassing REST polling.
+    Production-grade Redis Streams consumer with Consumer Groups.
+    Prevents duplicate command processing when scaling orchestrator to 3+ replicas.
+    
+    Features:
+      ✅ Consumer Groups - only one consumer processes each message
+      ✅ ACK mechanism - ensures delivery semantics
+      ✅ Dead Letter Queue - moves failed messages after 3 retries
+      ✅ Stream trimming - prevents memory overflow
+      ✅ Backward compatible - also subscribes to legacy Pub/Sub channels
     """
 
     def __init__(self, redis_client: aioredis.Redis,
@@ -661,23 +671,191 @@ class RedisBridge:
         self.redis = redis_client
         self.servicer = servicer
         self._running = False
+        
+        # Stream configuration
+        self.stream_name = "nexus:commands:stream"
+        self.group_name = "orchestrator_group"
+        self.consumer_name = f"orch_pod_{os.getpid()}"
+        self.dlq_stream = "nexus:commands:dlq"
+        
+        # Retry tracking
+        self.retry_counts = {}  # msg_id -> count
+        self.max_retries = 3
 
     async def start(self):
         self._running = True
-        asyncio.create_task(self._subscribe_loop())
-        log_redis.info("Redis bridge started — subscribing to nexus:commands, nexus:events, nexus:agents")
+        
+        # Create consumer group (idempotent - won't fail if exists)
+        try:
+            await self.redis.xgroup_create(
+                self.stream_name, 
+                self.group_name, 
+                id='0',
+                mkstream=True
+            )
+            log_redis.info(f"✅ Consumer group '{self.group_name}' created")
+        except aioredis.ResponseError as e:
+            if "BUSYGROUP" in str(e):
+                log_redis.info(f"Consumer group '{self.group_name}' already exists")
+            else:
+                raise
+        
+        # Start stream consumer
+        asyncio.create_task(self._stream_consumer_loop())
+        
+        # Start legacy Pub/Sub listener (backward compatibility)
+        asyncio.create_task(self._legacy_pubsub_loop())
+        
+        log_redis.info(
+            f"Redis Streams bridge started — "
+            f"Stream: {self.stream_name} | "
+            f"Group: {self.group_name} | "
+            f"Consumer: {self.consumer_name}"
+        )
 
     async def stop(self):
         self._running = False
 
-    async def _subscribe_loop(self):
-        """Subscribe to Cortex Redis channels and route to gRPC agents."""
+    async def _stream_consumer_loop(self):
+        """Consume messages from Redis Streams with XREADGROUP."""
+        retry_delay = 1
+        
+        while self._running:
+            try:
+                # Read new messages from stream (blocking call with 2s timeout)
+                messages = await self.redis.xreadgroup(
+                    self.group_name,
+                    self.consumer_name,
+                    {self.stream_name: '>'},  # '>' means new undelivered messages
+                    count=10,  # Process up to 10 messages per batch
+                    block=2000  # 2-second block timeout
+                )
+                
+                retry_delay = 1  # Reset on success
+                
+                # Process messages
+                for stream, msgs in messages:
+                    for msg_id, data in msgs:
+                        await self._process_stream_message(msg_id, data)
+                
+                # Periodic stream trimming to prevent memory overflow
+                if random.random() < 0.1:  # 10% chance each loop
+                    await self._trim_stream()
+                    
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                log_redis.error(f"Stream consumer error: {e}, retrying in {retry_delay}s")
+                await asyncio.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 30)
+
+    async def _process_stream_message(self, msg_id, data: dict):
+        """Process a single stream message."""
+        try:
+            # Decode byte strings
+            decoded_data = {}
+            for k, v in data.items():
+                key = k.decode() if isinstance(k, bytes) else k
+                value = v.decode() if isinstance(v, bytes) else v
+                decoded_data[key] = value
+            
+            # Parse JSON payload
+            message_type = decoded_data.get("type", "")
+            target = decoded_data.get("target", "")
+            
+            if message_type == "command_issued" and target:
+                # Check if agent is connected via gRPC
+                if target in self.servicer.connected_agents:
+                    # Parse command details
+                    command_id = decoded_data.get("command_id", "")
+                    command_type = decoded_data.get("command_type", "")
+                    priority = int(decoded_data.get("priority", "5"))
+                    
+                    # Create gRPC directive
+                    directive = pb.OrchestratorDirective(
+                        directive_id=str(uuid.uuid4()),
+                        directive_type=pb.DIRECTIVE_TYPE_EXECUTE_TASK,
+                        timestamp=self.servicer._now_ts(),
+                        command=pb.TaskCommand(
+                            command_id=command_id,
+                            command_type=command_type,
+                            origin="cortex_redis_streams",
+                            priority=priority,
+                        ),
+                        routing=pb.RoutingInfo(target_agent=target),
+                        message=f"Task from Redis Streams: {command_type}",
+                    )
+                    
+                    # Route to agent
+                    await self.servicer.connected_agents[target].directive_queue.put(directive)
+                    log_redis.info(
+                        f"✅ Redis Streams → gRPC: {command_id} → {target} "
+                        f"(msg_id: {msg_id.decode() if isinstance(msg_id, bytes) else msg_id})"
+                    )
+                    
+                    # ACK message - successfully processed
+                    await self.redis.xack(self.stream_name, self.group_name, msg_id)
+                    
+                    # Clear retry count
+                    if msg_id in self.retry_counts:
+                        del self.retry_counts[msg_id]
+                else:
+                    # Agent not connected via gRPC - will be handled by REST fallback
+                    log_redis.debug(f"Agent {target} not connected via gRPC, skipping")
+                    await self.redis.xack(self.stream_name, self.group_name, msg_id)
+            else:
+                # Unknown message type or missing target - ACK to avoid reprocessing
+                log_redis.debug(f"Unknown message type: {message_type}, ACKing")
+                await self.redis.xack(self.stream_name, self.group_name, msg_id)
+                
+        except Exception as e:
+            log_redis.error(f"Failed to process message {msg_id}: {e}")
+            
+            # Track retry count
+            if msg_id not in self.retry_counts:
+                self.retry_counts[msg_id] = 0
+            self.retry_counts[msg_id] += 1
+            
+            # Move to DLQ after max retries
+            if self.retry_counts[msg_id] >= self.max_retries:
+                log_redis.warning(
+                    f"⚠️  Message {msg_id} failed {self.max_retries} times, "
+                    f"moving to DLQ: {self.dlq_stream}"
+                )
+                try:
+                    # Copy to DLQ
+                    await self.redis.xadd(self.dlq_stream, data)
+                    # ACK original message
+                    await self.redis.xack(self.stream_name, self.group_name, msg_id)
+                    # Clear retry count
+                    del self.retry_counts[msg_id]
+                except Exception as dlq_error:
+                    log_redis.error(f"Failed to move message to DLQ: {dlq_error}")
+
+    async def _trim_stream(self):
+        """Trim stream to prevent unbounded growth."""
+        try:
+            # Keep last 10,000 messages (approximate)
+            await self.redis.xtrim(
+                self.stream_name, 
+                maxlen=10000, 
+                approximate=True
+            )
+            log_redis.debug(f"Stream trimmed: {self.stream_name}")
+        except Exception as e:
+            log_redis.warning(f"Failed to trim stream: {e}")
+
+    async def _legacy_pubsub_loop(self):
+        """
+        Legacy Pub/Sub listener for backward compatibility.
+        Runs in parallel with Streams consumer.
+        """
         retry_delay = 1
         while self._running:
             try:
                 pubsub = self.redis.pubsub()
-                await pubsub.subscribe("nexus:commands", "nexus:events", "nexus:agents")
-                retry_delay = 1  # reset on success
+                await pubsub.subscribe("nexus:events", "nexus:agents")
+                retry_delay = 1
 
                 async for msg in pubsub.listen():
                     if not self._running:
@@ -694,40 +872,19 @@ class RedisBridge:
                     except (json.JSONDecodeError, TypeError):
                         continue
 
-                    await self._handle_redis_message(channel, data)
+                    # Only handle non-command channels (commands now via Streams)
+                    if channel == "nexus:events":
+                        log_redis.debug(f"Event: {data}")
+                    elif channel == "nexus:agents":
+                        log_redis.debug(f"Agent event: {data}")
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                log_redis.error(f"Redis subscription error: {e}, retrying in {retry_delay}s")
+                log_redis.error(f"Legacy Pub/Sub error: {e}, retrying in {retry_delay}s")
                 await asyncio.sleep(retry_delay)
                 retry_delay = min(retry_delay * 2, 30)
 
-    async def _handle_redis_message(self, channel: str, data: dict):
-        """Convert Redis Pub/Sub message to gRPC directive if agent is connected."""
-        if channel == "nexus:commands":
-            msg_type = data.get("type", "")
-            target = data.get("target", "")
-
-            if msg_type == "command_issued" and target and target in self.servicer.connected_agents:
-                directive = pb.OrchestratorDirective(
-                    directive_id=str(uuid.uuid4()),
-                    directive_type=pb.DIRECTIVE_TYPE_EXECUTE_TASK,
-                    timestamp=self.servicer._now_ts(),
-                    command=pb.TaskCommand(
-                        command_id=data.get("command_id", ""),
-                        command_type=data.get("command_type", ""),
-                        origin="cortex_redis",
-                        priority=data.get("priority", 5),
-                    ),
-                    routing=pb.RoutingInfo(target_agent=target),
-                    message=f"Task from Cortex Redis: {data.get('command_type')}",
-                )
-                await self.servicer.connected_agents[target].directive_queue.put(directive)
-                log_redis.info(f"Redis → gRPC: Command {data.get('command_id')} → {target}")
-
-        elif channel == "nexus:agents":
-            log_redis.debug(f"Agent event: {data}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════

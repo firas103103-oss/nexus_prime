@@ -15,6 +15,7 @@ Adapt this for SHADOW-7, CLONE-HUB, X-BIO, or any future planet agent.
 import asyncio
 import logging
 import os
+import random
 import signal
 import sys
 import time
@@ -28,6 +29,13 @@ from google.protobuf import timestamp_pb2, struct_pb2
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "orchestrator"))
 import nexus_pulse_pb2 as pb
 import nexus_pulse_pb2_grpc as pb_grpc
+
+# Optional: System metrics (install with: pip install psutil)
+try:
+    import psutil
+    METRICS_AVAILABLE = True
+except ImportError:
+    METRICS_AVAILABLE = False
 
 # ── Configuration ────────────────────────────────────────────────────────────
 AGENT_ID       = os.getenv("AGENT_ID", "GENERIC-AGENT")

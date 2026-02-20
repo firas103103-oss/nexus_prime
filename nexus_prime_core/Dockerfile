@@ -1,8 +1,8 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# NEXUS PRIME CORE — Meta-Orchestrator Dockerfile
+# NEXUS PRIME CORE — Meta-Orchestrator Dockerfile v1.1.0
 # ═══════════════════════════════════════════════════════════════════════════════
-# Build stage: compile .proto → Python stubs
-# Runtime: async gRPC server on port 50051
+# Build stage: compile .proto → Python stubs + download grpc_health_probe
+# Runtime: async gRPC server on port 50051 with production-grade health checks
 # ═══════════════════════════════════════════════════════════════════════════════
 
 FROM python:3.12-slim AS builder
@@ -23,11 +23,26 @@ RUN mkdir -p ./compiled && python -m grpc_tools.protoc \
     ./shared_protos/nexus_pulse.proto
 
 # ─────────────────────────────────────────────────────────────────────────────
+# STAGE 2: Download grpc_health_probe
+# ─────────────────────────────────────────────────────────────────────────────
+
+FROM alpine:latest AS health-probe-downloader
+
+RUN apk add --no-cache curl && \
+    GRPC_HEALTH_PROBE_VERSION=v0.4.25 && \
+    curl -L https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 \
+    -o /grpc_health_probe && \
+    chmod +x /grpc_health_probe
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STAGE 3: Runtime
+# ─────────────────────────────────────────────────────────────────────────────
+
 FROM python:3.12-slim
 
 LABEL maintainer="MRF — NEXUS PRIME Sovereign AGI"
-LABEL version="1.0.0"
-LABEL description="Meta-Orchestrator gRPC Server — Multi-Agent Swarm Intelligence"
+LABEL version="1.1.0"
+LABEL description="Meta-Orchestrator gRPC Server — Multi-Agent Swarm Intelligence (Redis Streams)"
 
 WORKDIR /app
 
@@ -38,18 +53,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy compiled proto stubs
 COPY --from=builder /build/compiled/ ./
 
+# Copy grpc_health_probe
+COPY --from=health-probe-downloader /grpc_health_probe /bin/grpc_health_probe
+
 # Copy orchestrator code
 COPY orchestrator/ ./
 
-# Install grpcurl for healthcheck (lightweight)
-RUN apt-get update && apt-get install -y --no-install-recommends curl && \
-    rm -rf /var/lib/apt/lists/*
-
 EXPOSE 50051
 
-# Health check via gRPC reflection
+# Health check using grpc_health_probe (production-grade)
 HEALTHCHECK --interval=15s --timeout=5s --retries=3 --start-period=10s \
-    CMD python -c "import grpc; ch = grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(ch).result(timeout=3); print('OK')" || exit 1
+    CMD /bin/grpc_health_probe -addr=localhost:50051 || exit 1
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1

@@ -274,9 +274,7 @@ services:
 
   # ═══ META-ORCHESTRATOR — الدماغ المركزي gRPC ══════════════════
   nexus_orchestrator:
-    build:
-      context: ./nexus_prime_core
-      dockerfile: Dockerfile
+    image: nexus_orchestrator:v1.1.0
     container_name: nexus_orchestrator
     ports:
       - "50051:50051"
@@ -298,7 +296,7 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      test: ["CMD", "python", "-c", "import grpc; ch = grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(ch).result(timeout=3)"]
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=localhost:50051"]
       interval: 15s
       timeout: 5s
       retries: 3
