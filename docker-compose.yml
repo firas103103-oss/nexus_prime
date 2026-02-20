@@ -272,6 +272,38 @@ services:
       retries: 3
       start_period: 40s
 
+  # ═══ META-ORCHESTRATOR — الدماغ المركزي gRPC ══════════════════
+  nexus_orchestrator:
+    build:
+      context: ./nexus_prime_core
+      dockerfile: Dockerfile
+    container_name: nexus_orchestrator
+    ports:
+      - "50051:50051"
+    environment:
+      - CORTEX_URL=http://nexus_cortex:8090
+      - REDIS_URL=redis://nexus_redis:6379/0
+      - GRPC_PORT=50051
+      - MAX_WORKERS=10
+      - STALENESS_THRESHOLD=60
+      - PYTHONUNBUFFERED=1
+    networks:
+      - nexus_network
+    depends_on:
+      nexus_cortex:
+        condition: service_healthy
+      nexus_redis:
+        condition: service_started
+      nexus_db:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; ch = grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(ch).result(timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
 networks:
   nexus_network:
     driver: bridge
