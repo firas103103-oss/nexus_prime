@@ -1,0 +1,17 @@
+[Unit]
+Description=NEXUS Reflex Agents (32 Active Inference agents)
+After=network.target neural-spine.service
+Requires=neural-spine.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /root/NEXUS_PRIME_UNIFIED/neural_spine/agents/reflex_agent.py --serve
+Environment=REDIS_HOST=127.0.0.1
+Environment=REDIS_PORT=6379
+WorkingDirectory=/root/NEXUS_PRIME_UNIFIED/neural_spine
+Restart=always
+RestartSec=5
+CPUAffinity=4 5 6 7 8 9 10 11
+
+[Install]
+WantedBy=multi-user.target

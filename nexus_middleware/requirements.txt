@@ -1,0 +1,7 @@
+# NEXUS MIDDLEWARE REQUIREMENTS
+# The Neural Bridge Dependencies
+
+httpx>=0.24.0
+aiofiles>=23.0.0
+python-dotenv>=1.0.0
+rich>=13.0.0  # For better terminal output (optional)

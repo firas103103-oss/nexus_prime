@@ -1,0 +1,17 @@
+[Unit]
+Description=NEXUS Neural Spine Server
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+ExecStart=/root/NEXUS_PRIME_UNIFIED/neural_spine/target/release/spine-server
+Environment=REDIS_URL=redis://127.0.0.1:6379
+Environment=RUST_LOG=info
+WorkingDirectory=/root/NEXUS_PRIME_UNIFIED/neural_spine
+Restart=always
+RestartSec=3
+CPUAffinity=0 1 2
+
+[Install]
+WantedBy=multi-user.target

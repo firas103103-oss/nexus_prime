@@ -330,5 +330,205 @@
         }
       }
     ]
+  },
+  "AI-ARCH": {
+    "performance": 96,
+    "learning": 90,
+    "reliability": 91,
+    "evolution": 65,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:23.518928+00:00",
+    "evolution_history": []
+  },
+  "AS-SULTAN": {
+    "performance": 85,
+    "learning": 83,
+    "reliability": 92,
+    "evolution": 79,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:23.688862+00:00",
+    "evolution_history": []
+  },
+  "CLONE-HUB": {
+    "performance": 85,
+    "learning": 93,
+    "reliability": 92,
+    "evolution": 61,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:23.964953+00:00",
+    "evolution_history": []
+  },
+  "LEGAL-EAGLE": {
+    "performance": 91,
+    "learning": 70,
+    "reliability": 81,
+    "evolution": 65,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:24.134263+00:00",
+    "evolution_history": []
+  },
+  "NAV-ORACLE": {
+    "performance": 88,
+    "learning": 70,
+    "reliability": 95,
+    "evolution": 77,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:24.286000+00:00",
+    "evolution_history": []
+  },
+  "N-TARGET": {
+    "performance": 88,
+    "learning": 72,
+    "reliability": 99,
+    "evolution": 62,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:24.575605+00:00",
+    "evolution_history": []
+  },
+  "X-BIO": {
+    "performance": 88,
+    "learning": 71,
+    "reliability": 83,
+    "evolution": 94,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:25.445185+00:00",
+    "evolution_history": []
+  },
+  "l0-ops": {
+    "performance": 75,
+    "learning": 75,
+    "reliability": 84,
+    "evolution": 64,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:26.051439+00:00",
+    "evolution_history": []
+  },
+  "l0-comms": {
+    "performance": 82,
+    "learning": 76,
+    "reliability": 80,
+    "evolution": 85,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:26.234376+00:00",
+    "evolution_history": []
+  },
+  "l0-intel": {
+    "performance": 98,
+    "learning": 95,
+    "reliability": 91,
+    "evolution": 86,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:26.512620+00:00",
+    "evolution_history": []
+  },
+  "photographer": {
+    "performance": 84,
+    "learning": 79,
+    "reliability": 93,
+    "evolution": 68,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:26.721238+00:00",
+    "evolution_history": []
+  },
+  "grants": {
+    "performance": 84,
+    "learning": 88,
+    "reliability": 80,
+    "evolution": 93,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:26.913320+00:00",
+    "evolution_history": []
+  },
+  "legal": {
+    "performance": 92,
+    "learning": 93,
+    "reliability": 85,
+    "evolution": 76,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:27.111083+00:00",
+    "evolution_history": []
+  },
+  "finance": {
+    "performance": 79,
+    "learning": 75,
+    "reliability": 84,
+    "evolution": 66,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:27.281534+00:00",
+    "evolution_history": []
+  },
+  "creative": {
+    "performance": 98,
+    "learning": 87,
+    "reliability": 85,
+    "evolution": 68,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:27.442821+00:00",
+    "evolution_history": []
+  },
+  "research": {
+    "performance": 76,
+    "learning": 94,
+    "reliability": 92,
+    "evolution": 69,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:27.636987+00:00",
+    "evolution_history": []
+  },
+  "ARCH_01": {
+    "performance": 79,
+    "learning": 87,
+    "reliability": 94,
+    "evolution": 71,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:27.806765+00:00",
+    "evolution_history": []
+  },
+  "ART_04": {
+    "performance": 88,
+    "learning": 98,
+    "reliability": 99,
+    "evolution": 61,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:28.271711+00:00",
+    "evolution_history": []
+  },
+  "CINE_05": {
+    "performance": 90,
+    "learning": 99,
+    "reliability": 90,
+    "evolution": 67,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:28.442946+00:00",
+    "evolution_history": []
+  },
+  "STRAT_06": {
+    "performance": 83,
+    "learning": 77,
+    "reliability": 97,
+    "evolution": 76,
+    "tasks_completed": 0,
+    "commands_received": 0,
+    "last_active": "2026-02-21T00:58:28.629986+00:00",
+    "evolution_history": []
   }
 }

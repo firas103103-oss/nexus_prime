@@ -23,3 +23,92 @@ services:
       - nexus_db
       - nexus_ollama
     restart: always
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Neural Spine — Cognitive Backbone Services
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  neural_spine:
+    build:
+      context: .
+      dockerfile: Dockerfile.spine
+    container_name: neural_spine
+    ports:
+      - "8300:8300"
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - REDIS_HOST=nexus_redis
+      - REDIS_PORT=6379
+      - SPINE_SHM_NAME=/nexus_spine
+      - SPINE_HUGEPAGES=0
+      - RUST_LOG=info
+    cpuset: "0-2"
+    mem_limit: 2g
+    depends_on:
+      - nexus_redis
+    networks:
+      - nexus_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8300/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  reflex_agents:
+    build:
+      context: .
+      dockerfile: Dockerfile.agents
+    container_name: reflex_agents
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - REDIS_HOST=nexus_redis
+      - REDIS_PORT=6379
+      - SPINE_SHM_NAME=/nexus_spine
+      - NUM_AGENTS=32
+      - CYCLE_HZ=20
+    cpuset: "4-11"
+    mem_limit: 4g
+    depends_on:
+      neural_spine:
+        condition: service_healthy
+      nexus_redis:
+        condition: service_started
+    networks:
+      - nexus_network
+    restart: unless-stopped
+  # ═══════════════════════════════════════════════════════════════════════════
+  # العرش — The Throne — Invisible Control System
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  throne:
+    build:
+      context: .
+      dockerfile: Dockerfile.throne
+    container_name: nexus_throne
+    ports:
+      - "127.0.0.1:7777:7777"    # LOCALHOST ONLY — SSH tunnel access
+    environment:
+      - THRONE_DB_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES_DB}
+      - THRONE_TOTP_SECRET=${THRONE_TOTP_SECRET:-}
+      - THRONE_MASTER_HASH=${THRONE_MASTER_HASH:-}
+      - TZ=${TZ}
+    depends_on:
+      - nexus_db
+    networks:
+      - throne_network
+      - nexus_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+
+networks:
+  throne_network:
+    driver: bridge
+    internal: true    # No external access

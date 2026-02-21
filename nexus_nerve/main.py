@@ -21,6 +21,19 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 bridge = BoardroomBridge()
 
 # ═══════════════════════════════════════════════════════════════
+# HEALTH CHECK ENDPOINT
+# ═══════════════════════════════════════════════════════════════
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring"""
+    return {
+        "status": "healthy",
+        "service": "nexus_nerve",
+        "version": "2.0.0",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+# ═══════════════════════════════════════════════════════════════
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
 REGISTRY_PATH = Path("/root/NEXUS_PRIME_UNIFIED/AI_HR_REGISTRY")
@@ -51,6 +64,7 @@ SERVICES = [
     {"name": "Redis", "port": 6379, "host": "localhost", "check": "tcp"},
     {"name": "LiteLLM", "port": 4000, "host": "localhost", "check": "http", "path": "/health"},
     {"name": "Alertmanager", "port": 9093, "host": "localhost", "check": "http", "path": "/-/healthy"},
+    {"name": "Neural Spine", "port": 8300, "host": "localhost", "check": "http", "path": "/health"},
 ]
 
 # ═══════════════════════════════════════════════════════════════
@@ -347,6 +361,119 @@ async def trigger_autopilot(manuscript_title: str = "Untitled"):
         "triggered_at": datetime.now(timezone.utc).isoformat()
     }
 
+# ═══════════════════════════════════════════════════════════════
+# EMAIL SERVICE API
+# ═══════════════════════════════════════════════════════════════
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# SMTP Configuration
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", "")
+SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "NEXUS PRIME")
+
+def send_smtp_email(to: str, subject: str, body: str, html: Optional[str] = None) -> dict:
+    """Send email via SMTP"""
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
+        msg["To"] = to
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+        if html:
+            msg.attach(MIMEText(html, "html", "utf-8"))
+        
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_FROM_EMAIL, [to], msg.as_string())
+        
+        return {"success": True, "message": f"Email sent to {to}", "subject": subject}
+    except smtplib.SMTPAuthenticationError as e:
+        return {"success": False, "error": "Authentication failed", "details": str(e)}
+    except Exception as e:
+        return {"success": False, "error": str(e), "type": type(e).__name__}
+
+class EmailRequest(BaseModel):
+    to: str
+    subject: str
+    body: str
+    html: Optional[str] = None
+
+class AlertEmailRequest(BaseModel):
+    to: str
+    alert_type: str
+    message: str
+
+class ReportEmailRequest(BaseModel):
+    to: str
+    report_name: str
+    report_content: str
+    attachment_path: Optional[str] = None
+
+@app.post("/api/email/send")
+def send_email(req: EmailRequest):
+    """Send a custom email"""
+    return send_smtp_email(to=req.to, subject=req.subject, body=req.body, html=req.html)
+
+@app.post("/api/email/alert")
+def send_alert(req: AlertEmailRequest):
+    """Send a system alert email"""
+    subject = f"🚨 NEXUS ALERT: {req.alert_type}"
+    html = f"""
+    <html>
+    <body style="font-family: Arial; background: #1a1a2e; color: #eee; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #16213e; border-radius: 10px; padding: 30px;">
+            <h1 style="color: #e94560;">🚨 SYSTEM ALERT</h1>
+            <p>Alert Type: <strong style="color: #e74c3c;">{req.alert_type}</strong></p>
+            <div style="background: #0f3460; padding: 20px; border-radius: 8px;">
+                <pre style="white-space: pre-wrap;">{req.message}</pre>
+            </div>
+            <p style="color: #7f8c8d; font-size: 12px; margin-top: 20px;">NEXUS PRIME AI System</p>
+        </div>
+    </body>
+    </html>
+    """
+    return send_smtp_email(to=req.to, subject=subject, body=req.message, html=html)
+
+@app.post("/api/email/report")
+def send_report(req: ReportEmailRequest):
+    """Send a system report email"""
+    subject = f"📊 NEXUS REPORT: {req.report_name}"
+    html = f"""
+    <html>
+    <body style="font-family: Arial; background: #1a1a2e; color: #eee; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: #16213e; border-radius: 10px; padding: 30px;">
+            <h1 style="color: #00d9ff;">📊 SYSTEM REPORT</h1>
+            <h2>{req.report_name}</h2>
+            <div style="background: #0f3460; padding: 20px; border-radius: 8px;">
+                <pre style="white-space: pre-wrap; font-family: monospace;">{req.report_content}</pre>
+            </div>
+            <p style="color: #7f8c8d; font-size: 12px; margin-top: 20px;">Generated by NEXUS PRIME</p>
+        </div>
+    </body>
+    </html>
+    """
+    return send_smtp_email(to=req.to, subject=subject, body=req.report_content, html=html)
+
+@app.get("/api/email/test")
+def test_email():
+    """Test email configuration"""
+    return {
+        "smtp_host": SMTP_HOST,
+        "smtp_port": SMTP_PORT,
+        "smtp_user": SMTP_USER,
+        "from_email": SMTP_FROM_EMAIL,
+        "from_name": SMTP_FROM_NAME,
+        "status": "configured" if SMTP_USER else "not_configured"
+    }
+
 # --- SYSTEM OVERVIEW ---
 @app.get("/api/overview")
 async def system_overview():
@@ -443,6 +570,88 @@ async def boardroom_chat(req: BoardroomChat):
         "genome": get_agent_genome(req.agent_id),
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
+
+# ═══════════════════════════════════════════════════════════════
+# NEURAL SPINE INTEGRATION
+# ═══════════════════════════════════════════════════════════════
+
+SPINE_URL = os.getenv("SPINE_URL", "http://neural_spine:8300")
+
+class SpineInterruptRequest(BaseModel):
+    source_agent: int = 0
+    target_agent: int = 0
+    interrupt_type: int = 0
+    priority: int = 5
+    payload: str = ""
+
+@app.get("/api/spine/phi")
+async def get_spine_phi():
+    """Get Phi* consciousness metric — integrated information of the 32-agent collective"""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(f"{SPINE_URL}/status")
+            data = resp.json()
+            agents = data.get("agents", {})
+            return {
+                "phi_star": data.get("headroom_pct"),
+                "phi_status": "healthy" if agents.get("active", 0) > 0 else "offline",
+                "active_agents": agents.get("active", 0),
+                "cognitive_cycles": data.get("cognitive_cycles", 0),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+    except Exception as e:
+        return {"status": "spine_offline", "error": str(e)}
+
+@app.get("/api/spine/cycle")
+async def get_spine_cycle():
+    """Get current cognitive cycle stats — latency, throughput, GWT broadcasts"""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(f"{SPINE_URL}/status")
+            data = resp.json()
+            gwt = data.get("gwt", {})
+            ring = data.get("ring_buffer", {})
+            agents = data.get("agents", {})
+            return {
+                "cycles_total": data.get("cognitive_cycles"),
+                "cycle_avg_us": data.get("avg_cycle_us"),
+                "headroom_pct": data.get("headroom_pct"),
+                "gwt_broadcasts": gwt.get("broadcast_count"),
+                "gwt_avg_us": gwt.get("avg_broadcast_us"),
+                "ring_buffer_len": ring.get("current_len"),
+                "ring_buffer_capacity": ring.get("capacity"),
+                "active_agents": agents.get("active"),
+                "total_agents": agents.get("total"),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+    except Exception as e:
+        return {"status": "spine_offline", "error": str(e)}
+
+@app.post("/api/spine/interrupt")
+async def inject_spine_interrupt(req: SpineInterruptRequest):
+    """Inject a priority interrupt into the Neural Spine ring buffer"""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.post(f"{SPINE_URL}/interrupt", json={
+                "source_agent": req.source_agent,
+                "target_agent": req.target_agent,
+                "interrupt_type": req.interrupt_type,
+                "priority": req.priority,
+                "payload": req.payload
+            })
+            return resp.json()
+    except Exception as e:
+        return {"status": "spine_offline", "error": str(e)}
+
+@app.get("/api/spine/health")
+async def spine_health():
+    """Check Neural Spine server health"""
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            resp = await client.get(f"{SPINE_URL}/health")
+            return resp.json()
+    except Exception as e:
+        return {"status": "offline", "error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

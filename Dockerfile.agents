@@ -1,0 +1,31 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Reflex Agents — Dockerfile
+# ═══════════════════════════════════════════════════════════════════════════════
+# Runs 32 Active Inference agents connected to spine shared memory
+# ═══════════════════════════════════════════════════════════════════════════════
+
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir numpy redis
+
+WORKDIR /app
+
+# Copy shared library (from spine build)
+COPY --from=nexus_spine /usr/local/lib/libspine_core.so /usr/local/lib/libspine_core.so
+RUN ldconfig
+
+# Copy Python code
+COPY neural_spine/agents/ /app/agents/
+COPY neural_spine/monitoring/ /app/monitoring/
+
+# Health check on metrics port
+HEALTHCHECK --interval=15s --timeout=5s --retries=3 --start-period=15s \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8302/health')" || exit 1
+
+EXPOSE 8302
+
+CMD ["python3", "agents/reflex_agent.py", "--serve"]

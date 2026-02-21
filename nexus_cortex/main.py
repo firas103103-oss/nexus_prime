@@ -109,12 +109,20 @@ async def redis_subscriber():
     """Subscribe to Redis channels and broadcast to WebSocket clients"""
     try:
         pubsub = redis_pool.pubsub()
-        await pubsub.subscribe("nexus:commands", "nexus:events", "nexus:agents")
-        print(f"[CORTEX] 📡 Redis subscriber active on 3 channels")
+        await pubsub.subscribe(
+            "nexus:commands", "nexus:events", "nexus:agents",
+            "nexus:spine:status", "nexus:spine:phi", "nexus:spine:broadcast"
+        )
+        print(f"[CORTEX] 📡 Redis subscriber active on 6 channels (incl. spine)")
         async for message in pubsub.listen():
             if message["type"] == "message":
                 try:
+                    channel = message.get("channel", "")
                     data = json.loads(message["data"])
+                    # Tag spine messages for frontend filtering
+                    if channel.startswith("nexus:spine:"):
+                        spine_type = channel.split(":")[-1]  # status, phi, broadcast
+                        data = {"type": f"spine_{spine_type}", "data": data}
                     await ws_manager.broadcast(data)
                 except Exception as e:
                     print(f"[CORTEX] ⚠️ Broadcast error: {e}")
@@ -456,6 +464,44 @@ async def websocket_endpoint(websocket: WebSocket):
                 pass
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
+
+
+# ─── Neural Spine Integration ───────────────────────────────────
+
+import httpx
+
+SPINE_URL = os.getenv("SPINE_URL", "http://neural_spine:8300")
+
+@app.get("/spine/status", tags=["Neural Spine"])
+async def spine_status():
+    """Proxy to Neural Spine server for cognitive backbone status"""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(f"{SPINE_URL}/status")
+            return resp.json()
+    except Exception as e:
+        return {"status": "offline", "error": str(e)}
+
+@app.get("/spine/metrics", tags=["Neural Spine"])
+async def spine_metrics():
+    """Proxy to Neural Spine Prometheus metrics"""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(f"{SPINE_URL}/metrics")
+            return {"metrics": resp.text}
+    except Exception as e:
+        return {"status": "offline", "error": str(e)}
+
+@app.get("/spine/phi", tags=["Neural Spine"])
+async def spine_phi():
+    """Get latest Phi* consciousness metric from Redis"""
+    try:
+        phi_data = await redis_pool.get("nexus:spine:phi:latest")
+        if phi_data:
+            return json.loads(phi_data)
+        return {"phi_star": None, "status": "no_data"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 if __name__ == "__main__":

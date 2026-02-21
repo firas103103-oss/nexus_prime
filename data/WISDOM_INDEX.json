@@ -1,0 +1,92 @@
+{
+  "last_sync": "2026-02-21T19:00:01.912475",
+  "agents": [
+    "socialMediaAgent",
+    "marketingAgent",
+    "coverDesignAgent",
+    "mediaScriptAgent",
+    "ART_04",
+    "STRAT_06",
+    "ARCH_01",
+    "SENT_03",
+    "EDIT_02",
+    "CINE_05",
+    "mrf",
+    "creative",
+    "finance",
+    "legal",
+    "photographer",
+    "l0-intel",
+    "grants",
+    "l0-comms",
+    "l0-ops",
+    "research",
+    "LEGAL-EAGLE",
+    "AS-SULTAN",
+    "NEXUS-ANALYST",
+    "NAV-ORACLE",
+    "RAG-CORE",
+    "CLONE-HUB",
+    "AI-ARCH",
+    "OPS-CTRL",
+    "SEC-GUARD",
+    "N-TARGET",
+    "X-BIO",
+    "SHADOW-7-PLANET"
+  ],
+  "categories": {
+    "general": 32
+  },
+  "divisions": {
+    "04_SHADOW_7_SPECIALISTS": 4,
+    "03_IMPERIAL_AGENCY": 6,
+    "02_ARC_EXECUTIVE_BOARD": 10,
+    "01_SOLAR_SYSTEM_PLANETS": 12
+  },
+  "quick_stats": {
+    "total_entries": 32,
+    "agent_count": 32,
+    "top_contributors": [
+      [
+        "socialMediaAgent",
+        1
+      ],
+      [
+        "marketingAgent",
+        1
+      ],
+      [
+        "coverDesignAgent",
+        1
+      ],
+      [
+        "mediaScriptAgent",
+        1
+      ],
+      [
+        "ART_04",
+        1
+      ],
+      [
+        "STRAT_06",
+        1
+      ],
+      [
+        "ARCH_01",
+        1
+      ],
+      [
+        "SENT_03",
+        1
+      ],
+      [
+        "EDIT_02",
+        1
+      ],
+      [
+        "CINE_05",
+        1
+      ]
+    ]
+  }
+}

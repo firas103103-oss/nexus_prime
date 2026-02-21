@@ -1,0 +1,60 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Neural Spine — Multi-stage Dockerfile
+# ═══════════════════════════════════════════════════════════════════════════════
+# Stage 1: Rust build (spine-core lib + spine-server binary)
+# Stage 2: Python runtime (agents + monitoring + shared library)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Stage 1: Rust Builder ─────────────────────────────────────────────────────
+FROM rust:1.82-slim-bookworm AS rust-builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Cargo workspace
+COPY neural_spine/Cargo.toml ./Cargo.toml
+COPY neural_spine/spine-core/ ./spine-core/
+COPY neural_spine/spine-server/ ./spine-server/
+
+# Build release
+RUN cargo build --release && \
+    cargo test --release && \
+    strip target/release/spine-server && \
+    strip target/release/libspine_core.so
+
+# ── Stage 2: Python Runtime ──────────────────────────────────────────────────
+FROM python:3.11-slim-bookworm AS runtime
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python deps
+RUN pip install --no-cache-dir numpy redis
+
+WORKDIR /app
+
+# Copy Rust binaries
+COPY --from=rust-builder /build/target/release/spine-server /app/bin/spine-server
+COPY --from=rust-builder /build/target/release/libspine_core.so /usr/local/lib/libspine_core.so
+RUN ldconfig
+
+# Copy Python agents & monitoring
+COPY neural_spine/agents/ /app/agents/
+COPY neural_spine/monitoring/ /app/monitoring/
+COPY neural_spine/scripts/ /app/scripts/
+
+# Health check
+HEALTHCHECK --interval=15s --timeout=5s --retries=3 --start-period=10s \
+    CMD curl -f http://localhost:8300/health || exit 1
+
+# Expose spine server HTTP port
+EXPOSE 8300
+
+# Default: run spine-server
+CMD ["/app/bin/spine-server"]

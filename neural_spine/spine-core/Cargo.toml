@@ -1,0 +1,15 @@
+[package]
+name = "spine-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Core data structures: lock-free ring buffer, seqlock agent buffers, GWT engine"
+
+[lib]
+name = "spine_core"
+crate-type = ["lib", "cdylib"]
+
+[dependencies]
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

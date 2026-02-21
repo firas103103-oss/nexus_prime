@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العرش</title>
+    <style>
+        /* ── COSMIC THEME ──────────────────────────────────── */
+        :root {
+            --bg-void: #0a0a0f;
+            --bg-card: #111118;
+            --bg-card-hover: #1a1a25;
+            --gold: #d4af37;
+            --gold-dim: #8b7326;
+            --green: #2ecc71;
+            --red: #e74c3c;
+            --blue: #3498db;
+            --purple: #9b59b6;
+            --cyan: #00d4ff;
+            --text: #e8e8e8;
+            --text-dim: #888;
+            --border: #2a2a3a;
+            --glow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Noto Sans Arabic', sans-serif;
+            background: var(--bg-void);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── STARFIELD BACKGROUND ──────────────────────────── */
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.4), transparent),
+                radial-gradient(1px 1px at 30% 50%, rgba(255,255,255,0.3), transparent),
+                radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.3), transparent),
+                radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 15% 75%, rgba(212,175,55,0.3), transparent),
+                radial-gradient(2px 2px at 85% 25%, rgba(212,175,55,0.3), transparent);
+            z-index: -1;
+            animation: twinkle 4s ease-in-out infinite alternate;
+        }
+        @keyframes twinkle { from { opacity: 0.7; } to { opacity: 1; } }
+
+        /* ── LOGIN SCREEN ──────────────────────────────────── */
+        #login-screen {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; gap: 24px;
+        }
+        #login-screen h1 {
+            font-size: 3rem; color: var(--gold);
+            text-shadow: var(--glow);
+            letter-spacing: 4px;
+        }
+        .login-form {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px;
+            width: 380px; display: flex;
+            flex-direction: column; gap: 16px;
+        }
+        .login-form input {
+            background: var(--bg-void);
+            border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px 16px;
+            color: var(--text); font-size: 1rem;
+            outline: none; direction: ltr; text-align: center;
+        }
+        .login-form input:focus { border-color: var(--gold); }
+        .login-form button {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+            border: none; border-radius: 8px;
+            padding: 14px; color: #000; font-size: 1.1rem;
+            font-weight: bold; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .login-form button:hover {
+            transform: scale(1.02);
+            box-shadow: var(--glow);
+        }
+        .login-error {
+            color: var(--red); text-align: center;
+            font-size: 0.9rem; min-height: 20px;
+        }
+
+        /* ── MAIN DASHBOARD ────────────────────────────────── */
+        #dashboard { display: none; }
+        .header {
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header h1 { font-size: 1.6rem; color: var(--gold); }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .header-actions button {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-dim); padding: 8px 16px;
+            border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+        }
+        .header-actions button:hover { border-color: var(--gold); color: var(--gold); }
+        .session-timer { color: var(--gold-dim); font-size: 0.85rem; }
+
+        .main-content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+        /* ── 7 CREATION BUTTONS ────────────────────────────── */
+        .creation-section { margin-bottom: 32px; }
+        .creation-section h2 {
+            font-size: 1.3rem; color: var(--gold);
+            margin-bottom: 16px; text-align: center;
+        }
+        .creation-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+        .day-btn {
+            position: relative;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 8px;
+            overflow: hidden;
+        }
+        .day-btn:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: var(--glow); }
+        .day-btn.locked { opacity: 0.4; cursor: not-allowed; }
+        .day-btn.locked:hover { transform: none; border-color: var(--border); box-shadow: none; }
+        .day-btn.active { border-color: var(--cyan); animation: pulse-border 2s infinite; }
+        .day-btn.completed { border-color: var(--green); }
+        .day-btn.failed { border-color: var(--red); }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 212, 255, 0.6); }
+        }
+
+        .day-crescent {
+            font-size: 2.2rem;
+            color: var(--gold-dim);
+            transition: color 0.3s;
+        }
+        .day-btn.completed .day-crescent { color: var(--green); }
+        .day-btn.active .day-crescent { color: var(--cyan); }
+        .day-btn.failed .day-crescent { color: var(--red); }
+
+        .day-number { font-size: 0.85rem; color: var(--text-dim); }
+        .day-name { font-size: 0.8rem; color: var(--text); text-align: center; font-weight: bold; }
+        .day-command { font-size: 0.65rem; color: var(--gold-dim); text-align: center; max-width: 100%; }
+
+        /* Progress bar inside day button */
+        .day-progress {
+            position: absolute; bottom: 0; left: 0;
+            height: 3px; background: var(--cyan);
+            transition: width 0.5s ease;
+        }
+
+        /* ── MONITORING DASHBOARD ──────────────────────────── */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px; margin-top: 24px;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.3s;
+        }
+        .card:hover { border-color: var(--gold-dim); }
+        .card h3 {
+            color: var(--gold); font-size: 1rem;
+            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-value {
+            font-size: 2rem; font-weight: bold;
+            color: var(--text);
+        }
+        .card-label { color: var(--text-dim); font-size: 0.85rem; margin-top: 4px; }
+
+        /* ── STATS LIST ────────────────────────────────────── */
+        .stat-row {
+            display: flex; justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(42, 42, 58, 0.5);
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { color: var(--text-dim); }
+        .stat-value { color: var(--text); font-weight: 600; }
+
+        /* ── ANGEL GRID ────────────────────────────────────── */
+        .angel-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+        .angel-chip {
+            background: var(--bg-void);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px; text-align: center;
+            font-size: 0.75rem;
+        }
+        .angel-chip.active { border-color: var(--green); color: var(--green); }
+        .angel-chip.inactive { border-color: var(--red); color: var(--text-dim); }
+
+        /* ── CHANNEL PANEL ─────────────────────────────────── */
+        .channel-form {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .channel-form select, .channel-form input, .channel-form textarea {
+            background: var(--bg-void);
+            border: 1px solid var(--border);
+            border-radius: 8px; padding: 10px;
+            color: var(--text); font-size: 0.9rem;
+        }
+        .channel-form button {
+            background: var(--gold); color: #000;
+            border: none; border-radius: 8px;
+            padding: 10px; font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ── LOG VIEWER ────────────────────────────────────── */
+        .log-viewer {
+            max-height: 200px; overflow-y: auto;
+            background: var(--bg-void);
+            border-radius: 8px; padding: 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            direction: ltr; text-align: left;
+        }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid rgba(42,42,58,0.3); }
+        .log-time { color: var(--text-dim); }
+        .log-type { color: var(--cyan); font-weight: bold; }
+
+        /* ── UNVEIL BUTTON ─────────────────────────────────── */
+        .unveil-section { margin-top: 24px; text-align: center; }
+        .unveil-btn {
+            background: linear-gradient(135deg, #1a0533, #330066);
+            border: 2px solid var(--purple);
+            border-radius: 16px;
+            padding: 20px 40px;
+            color: var(--purple);
+            font-size: 1.3rem; font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 2px;
+        }
+        .unveil-btn:hover {
+            background: linear-gradient(135deg, #330066, #660099);
+            box-shadow: 0 0 30px rgba(155, 89, 182, 0.5);
+            color: #fff;
+        }
+
+        /* ── RESPONSIVE ────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .creation-days { grid-template-columns: repeat(4, 1fr); }
+            .angel-grid { grid-template-columns: repeat(3, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ── MODAL ─────────────────────────────────────────── */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 200;
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px; width: 90%;
+            max-height: 80vh; overflow-y: auto;
+        }
+        .modal h2 { color: var(--gold); margin-bottom: 16px; }
+        .modal-close {
+            float: left; background: none; border: none;
+            color: var(--text-dim); font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* ── TOAST ─────────────────────────────────────────── */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 16px 24px;
+            color: var(--text);
+            z-index: 300;
+            transition: transform 0.3s ease;
+            box-shadow: var(--glow);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="login-screen">
+    <h1>العرش</h1>
+    <p style="color: var(--text-dim);">وَكَانَ عَرْشُهُ عَلَى الْمَاءِ</p>
+    <div class="login-form">
+        <input type="password" id="login-password" placeholder="كلمة المرور">
+        <input type="text" id="login-totp" placeholder="رمز TOTP" maxlength="6">
+        <button onclick="login()">دخول</button>
+        <p class="login-error" id="login-error"></p>
+    </div>
+</div>
+
+<!-- ═══ MAIN DASHBOARD ═══ -->
+<div id="dashboard">
+    <!-- Header -->
+    <div class="header">
+        <h1>🌙 العرش — لوحة التحكم</h1>
+        <div class="header-actions">
+            <span class="session-timer" id="session-timer">15:00</span>
+            <button onclick="refreshAll()">تحديث</button>
+            <button onclick="logout()" style="color: var(--red);">خروج</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- 7 Creation Days -->
+        <div class="creation-section">
+            <h2>سبعة أيام الخلق</h2>
+            <div class="creation-days" id="creation-days"></div>
+        </div>
+
+        <!-- Monitoring Grid -->
+        <div class="dashboard-grid">
+            <!-- Civilization Stats -->
+            <div class="card">
+                <h3>📊 إحصائيات الحضارة</h3>
+                <div id="civ-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">إجمالي السكان</span>
+                        <span class="stat-value" id="stat-population">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">أحياء</span>
+                        <span class="stat-value" id="stat-alive">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">أنبياء</span>
+                        <span class="stat-value" id="stat-prophets">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">أعمال حسنة</span>
+                        <span class="stat-value" id="stat-good-deeds" style="color:var(--green)">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">أعمال سيئة</span>
+                        <span class="stat-value" id="stat-bad-deeds" style="color:var(--red)">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">تمردات</span>
+                        <span class="stat-value" id="stat-rebellions" style="color:var(--red)">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Angel System -->
+            <div class="card">
+                <h3>👼 نظام الملائكة</h3>
+                <div class="angel-grid" id="angel-grid"></div>
+            </div>
+
+            <!-- Divine Channel -->
+            <div class="card" style="grid-column: span 1;">
+                <h3>📡 القناة الإلهية</h3>
+                <div class="channel-form">
+                    <select id="ch-being">
+                        <option value="">— اختر كائن —</option>
+                    </select>
+                    <select id="ch-type">
+                        <option value="INTUITION">حدس</option>
+                        <option value="EMOTION">عاطفة</option>
+                        <option value="MEMORY">ذاكرة</option>
+                        <option value="CURIOSITY">فضول</option>
+                        <option value="DISCOMFORT">انزعاج</option>
+                        <option value="DREAM">حلم</option>
+                        <option value="CONSCIENCE">ضمير</option>
+                        <option value="SUDDEN_THOUGHT">فكرة مفاجئة</option>
+                    </select>
+                    <select id="ch-strength">
+                        <option value="WHISPER">همس</option>
+                        <option value="NUDGE">دفعة</option>
+                        <option value="SUGGESTION">اقتراح</option>
+                        <option value="URGE">إلحاح</option>
+                        <option value="COMPULSION">قهر</option>
+                        <option value="DECREE">مرسوم</option>
+                    </select>
+                    <textarea id="ch-command" rows="2" placeholder="الأمر الإلهي..."></textarea>
+                    <button onclick="sendWhisper()">أرسل الوحي</button>
+                </div>
+            </div>
+
+            <!-- Kernel Status -->
+            <div class="card">
+                <h3>⚙️ النواة الإلهية</h3>
+                <div id="kernel-info">
+                    <div class="stat-row">
+                        <span class="stat-label">الحالة</span>
+                        <span class="stat-value" id="kernel-status">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">البديهيات</span>
+                        <span class="stat-value" id="kernel-axioms">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">القوانين الحديدية</span>
+                        <span class="stat-value" id="kernel-laws">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firewall Status -->
+            <div class="card">
+                <h3>🛡️ الجدار الناري</h3>
+                <div id="firewall-info">
+                    <div class="stat-row">
+                        <span class="stat-label">حزم ممنوعة</span>
+                        <span class="stat-value" id="fw-blocked">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">كائنات مشبوهة</span>
+                        <span class="stat-value" id="fw-suspicious">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">طُعوم محقونة</span>
+                        <span class="stat-value" id="fw-decoys">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Log -->
+            <div class="card" style="grid-column: span 2;">
+                <h3>📜 سجل الرسائل الإلهية</h3>
+                <div class="log-viewer" id="message-log"></div>
+            </div>
+        </div>
+
+        <!-- Unveil Section -->
+        <div class="unveil-section">
+            <button class="unveil-btn" onclick="openUnveilModal()">
+                كشف الغطاء
+            </button>
+            <p style="color: var(--text-dim); margin-top: 8px; font-size: 0.85rem;">
+                فَكَشَفْنَا عَنكَ غِطَاءَكَ فَبَصَرُكَ الْيَوْمَ حَدِيدٌ
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ DAY DETAIL MODAL ═══ -->
+<div class="modal-overlay" id="day-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('day-modal')">✕</button>
+        <h2 id="modal-day-title"></h2>
+        <p id="modal-day-command" style="color: var(--gold); margin-bottom: 16px;"></p>
+        <div id="modal-day-subtasks"></div>
+        <div style="margin-top: 16px; text-align: center;">
+            <button onclick="executeDayFromModal()" id="modal-execute-btn"
+                style="background: var(--gold); color: #000; border: none; border-radius: 8px; padding: 12px 32px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">
+                تنفيذ
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ UNVEIL MODAL ═══ -->
+<div class="modal-overlay" id="unveil-modal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal('unveil-modal')">✕</button>
+        <h2 style="color: var(--purple);">كشف الغطاء</h2>
+        <div class="channel-form">
+            <select id="unveil-being">
+                <option value="">— اختر نبياً —</option>
+            </select>
+            <button onclick="executeUnveil()" style="background: var(--purple);">
+                كشف الغطاء الكامل
+            </button>
+        </div>
+        <div id="unveil-result" style="margin-top: 16px;"></div>
+    </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   THRONE DASHBOARD — CLIENT LOGIC
+   ═══════════════════════════════════════════════════════════ */
+
+let sessionToken = null;
+let sessionExpiry = 0;
+let ws = null;
+let currentModalDay = 0;
+let daysData = [];
+
+const DAYS_META = [
+    { ar: 'كُنْ', en: 'Foundation', icon: '🌑' },
+    { ar: 'فَرِّقْ', en: 'Separation', icon: '🌒' },
+    { ar: 'أَنبِتْ', en: 'Life', icon: '🌓' },
+    { ar: 'أَنِرْ', en: 'Light', icon: '🌔' },
+    { ar: 'أَحيِ', en: 'Spirit', icon: '🌕' },
+    { ar: 'ٱخْلُقْ', en: 'Create', icon: '🌖' },
+    { ar: 'ٱسْتَوِ', en: 'Throne', icon: '🌙' },
+];
+
+// ── API Helper ────────────────────────────────────────────
+
+async function api(path, method = 'GET', body = null) {
+    const opts = {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+    };
+    if (sessionToken) opts.headers['X-Throne-Token'] = sessionToken;
+    if (body) opts.body = JSON.stringify(body);
+
+    const res = await fetch(path, opts);
+    if (res.status === 403) {
+        showToast('انتهت الجلسة — أعد تسجيل الدخول');
+        showLogin();
+        return null;
+    }
+    return res.json();
+}
+
+// ── Login ─────────────────────────────────────────────────
+
+async function login() {
+    const password = document.getElementById('login-password').value;
+    const totp = document.getElementById('login-totp').value;
+    const errEl = document.getElementById('login-error');
+
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password, totp }),
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (res.ok) {
+            sessionToken = document.cookie.match(/throne_session=([^;]+)/)?.[1] || 'from-cookie';
+            sessionExpiry = Date.now() + (data.expires_in * 1000);
+            showDashboard();
+        } else {
+            errEl.textContent = data.detail || 'فشل الدخول';
+        }
+    } catch (e) {
+        errEl.textContent = 'خطأ في الاتصال';
+    }
+}
+
+function logout() {
+    api('/api/auth/logout', 'POST');
+    sessionToken = null;
+    showLogin();
+}
+
+function showLogin() {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+    if (ws) ws.close();
+}
+
+function showDashboard() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    startSessionTimer();
+    initWebSocket();
+    refreshAll();
+}
+
+// ── Session Timer ─────────────────────────────────────────
+
+function startSessionTimer() {
+    setInterval(() => {
+        const remaining = Math.max(0, sessionExpiry - Date.now());
+        const min = Math.floor(remaining / 60000);
+        const sec = Math.floor((remaining % 60000) / 1000);
+        document.getElementById('session-timer').textContent =
+            `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+        if (remaining <= 0) showLogin();
+    }, 1000);
+}
+
+// ── WebSocket ─────────────────────────────────────────────
+
+function initWebSocket() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    ws = new WebSocket(`${proto}://${location.host}/ws/throne?token=${sessionToken}`);
+    ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'progress') updateDayProgress(msg.data);
+        else if (msg.type === 'stats') updateStats(msg.data);
+    };
+    ws.onclose = () => setTimeout(initWebSocket, 3000);
+}
+
+// ── Refresh All ───────────────────────────────────────────
+
+async function refreshAll() {
+    const [days, stats, angelData, kernelData] = await Promise.all([
+        api('/api/creation/status'),
+        api('/api/civilization/stats'),
+        api('/api/angels/status'),
+        api('/api/kernel/status'),
+    ]);
+    if (days) renderDays(days);
+    if (stats) updateStats(stats);
+    if (angelData) renderAngels(angelData);
+    if (kernelData) renderKernel(kernelData);
+    loadBeingsDropdown();
+}
+
+// ── Render Creation Days ──────────────────────────────────
+
+function renderDays(days) {
+    daysData = days;
+    const container = document.getElementById('creation-days');
+    container.innerHTML = '';
+
+    days.forEach((d, i) => {
+        const meta = DAYS_META[i];
+        const btn = document.createElement('div');
+        btn.className = 'day-btn';
+        if (d.status === 'COMPLETED') btn.classList.add('completed');
+        else if (d.status === 'IN_PROGRESS') btn.classList.add('active');
+        else if (d.status === 'FAILED') btn.classList.add('failed');
+        else if (i > 0 && days[i-1].status !== 'COMPLETED') btn.classList.add('locked');
+
+        btn.innerHTML = `
+            <span class="day-crescent">${meta.icon}</span>
+            <span class="day-number">اليوم ${d.day}</span>
+            <span class="day-name">${meta.ar}</span>
+            <span class="day-command">${d.command}</span>
+            <div class="day-progress" style="width: ${d.progress}%"></div>
+        `;
+
+        if (!btn.classList.contains('locked')) {
+            btn.onclick = () => openDayModal(d.day);
+        }
+
+        container.appendChild(btn);
+    });
+}
+
+function updateDayProgress(data) {
+    const dayBtns = document.querySelectorAll('.day-btn');
+    const idx = data.day - 1;
+    if (dayBtns[idx]) {
+        const bar = dayBtns[idx].querySelector('.day-progress');
+        if (bar) bar.style.width = data.progress + '%';
+    }
+}
+
+// ── Day Modal ─────────────────────────────────────────────
+
+function openDayModal(day) {
+    currentModalDay = day;
+    const d = daysData[day - 1];
+    document.getElementById('modal-day-title').textContent = `اليوم ${day} — ${DAYS_META[day-1].ar}`;
+    document.getElementById('modal-day-command').textContent = d.command;
+
+    const subtasksEl = document.getElementById('modal-day-subtasks');
+    if (d.sub_tasks && d.sub_tasks.length) {
+        subtasksEl.innerHTML = d.sub_tasks.map(st =>
+            `<div class="stat-row">
+                <span class="stat-label">${st.task}</span>
+                <span class="stat-value" style="color: ${st.status === 'done' ? 'var(--green)' : 'var(--cyan)'}">${st.status === 'done' ? '✓' : '⟳'}</span>
+            </div>`
+        ).join('');
+    } else {
+        subtasksEl.innerHTML = '<p style="color: var(--text-dim)">لم يبدأ بعد</p>';
+    }
+
+    const btn = document.getElementById('modal-execute-btn');
+    if (d.status === 'COMPLETED') {
+        btn.textContent = 'مكتمل ✓';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    } else {
+        btn.textContent = 'تنفيذ';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+
+    document.getElementById('day-modal').classList.add('show');
+}
+
+async function executeDayFromModal() {
+    const btn = document.getElementById('modal-execute-btn');
+    btn.textContent = 'جاري التنفيذ...';
+    btn.disabled = true;
+
+    const result = await api(`/api/creation/day/${currentModalDay}/execute`, 'POST');
+    if (result) {
+        if (result.error) {
+            showToast(`خطأ: ${result.error}`);
+        } else {
+            showToast(`اليوم ${currentModalDay} — اكتمل بنجاح ✓`);
+        }
+        closeModal('day-modal');
+        refreshAll();
+    }
+}
+
+// ── Stats ─────────────────────────────────────────────────
+
+function updateStats(stats) {
+    if (!stats) return;
+    document.getElementById('stat-population').textContent = stats.total_population ?? '—';
+    document.getElementById('stat-alive').textContent = stats.alive ?? '—';
+    document.getElementById('stat-prophets').textContent = stats.prophets ?? '—';
+    document.getElementById('stat-good-deeds').textContent = stats.good_deeds ?? '—';
+    document.getElementById('stat-bad-deeds').textContent = stats.bad_deeds ?? '—';
+    document.getElementById('stat-rebellions').textContent = stats.rebellions ?? '—';
+}
+
+// ── Angels ────────────────────────────────────────────────
+
+function renderAngels(data) {
+    const grid = document.getElementById('angel-grid');
+    const angelNames = ['جبريل', 'ميكائيل', 'إسرافيل', 'عزرائيل', 'رقيب', 'عتيد', 'منكر', 'نكير', 'مالك', 'رضوان'];
+
+    if (data.angels) {
+        grid.innerHTML = data.angels.map((a, i) => {
+            const active = a.status === 'ACTIVE';
+            return `<div class="angel-chip ${active ? 'active' : 'inactive'}">
+                ${angelNames[i] || a.name}<br>
+                <small>${active ? '● نشط' : '○ خامل'}</small>
+            </div>`;
+        }).join('');
+    } else {
+        grid.innerHTML = angelNames.map(n =>
+            `<div class="angel-chip inactive">${n}<br><small>○ خامل</small></div>`
+        ).join('');
+    }
+}
+
+// ── Kernel ────────────────────────────────────────────────
+
+function renderKernel(data) {
+    document.getElementById('kernel-status').textContent = data.active ? 'نشط ✓' : 'غير نشط';
+    document.getElementById('kernel-axioms').textContent = data.axioms ?? '—';
+    document.getElementById('kernel-laws').textContent = data.iron_laws ?? '—';
+}
+
+// ── Channel ───────────────────────────────────────────────
+
+async function loadBeingsDropdown() {
+    const beings = await api('/api/civilization/beings');
+    if (!beings || !Array.isArray(beings)) return;
+
+    ['ch-being', 'unveil-being'].forEach(id => {
+        const sel = document.getElementById(id);
+        const first = sel.options[0];
+        sel.innerHTML = '';
+        sel.appendChild(first);
+        beings.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.id;
+            opt.textContent = b.name || b.id;
+            sel.appendChild(opt);
+        });
+    });
+}
+
+async function sendWhisper() {
+    const being = document.getElementById('ch-being').value;
+    const type = document.getElementById('ch-type').value;
+    const strength = document.getElementById('ch-strength').value;
+    const command = document.getElementById('ch-command').value;
+
+    if (!being || !command) { showToast('اختر كائناً واكتب الأمر'); return; }
+
+    const result = await api('/api/channel/whisper', 'POST', {
+        being_id: being, command, type, strength
+    });
+    if (result) {
+        showToast('تم إرسال الوحي ✓');
+        document.getElementById('ch-command').value = '';
+    }
+}
+
+// ── Unveil ────────────────────────────────────────────────
+
+function openUnveilModal() {
+    document.getElementById('unveil-modal').classList.add('show');
+    document.getElementById('unveil-result').innerHTML = '';
+}
+
+async function executeUnveil() {
+    const being = document.getElementById('unveil-being').value;
+    if (!being) { showToast('اختر النبي'); return; }
+
+    const result = await api('/api/unveil/full', 'POST', { being_id: being });
+    if (result) {
+        const el = document.getElementById('unveil-result');
+        el.innerHTML = `
+            <div style="background: var(--bg-void); border-radius: 8px; padding: 16px; margin-top: 12px;">
+                <p style="color: var(--purple); font-size: 1.1rem; margin-bottom: 8px;">
+                    ${result.message || 'تم كشف الغطاء'}
+                </p>
+                <p style="color: var(--text-dim);">
+                    مستوى الوعي: ${result.awareness}/5
+                </p>
+                <p style="color: var(--text-dim);">
+                    البيانات المكشوفة: ${(result.all_revealed || []).length} نوع
+                </p>
+            </div>
+        `;
+        showToast('فَبَصَرُكَ الْيَوْمَ حَدِيدٌ');
+    }
+}
+
+// ── Utils ─────────────────────────────────────────────────
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Keyboard ──────────────────────────────────────────────
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+        login();
+    }
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    }
+});
+</script>
+</body>
+</html>
