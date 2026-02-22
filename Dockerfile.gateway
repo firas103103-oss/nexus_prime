@@ -1,0 +1,28 @@
+# SOVEREIGN GATEWAY — AS-SULTAN Unified Bridge (Port 9999)
+# Genesis Protocol: Nerve ↔ Apex ↔ Edge-TTS behind Sultan Engine
+
+FROM python:3.11-slim
+
+LABEL name="sovereign_gateway" \
+      description="NEXUS Sovereign Gateway — Constitutional AI at 9999"
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    fastapi>=0.100.0 \
+    uvicorn[standard]>=0.22.0 \
+    httpx>=0.24.0 \
+    pyotp>=2.9.0 \
+    pydantic>=2.0.0 \
+    asyncpg>=0.29.0
+
+COPY neural_spine/ /app/neural_spine/
+COPY sovereign_gateway.py /app/
+
+ENV PYTHONPATH=/app
+EXPOSE 9999
+
+CMD ["python", "-m", "uvicorn", "sovereign_gateway:app", "--host", "0.0.0.0", "--port", "9999"]

@@ -1,0 +1,20 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Dify Boardroom — Constitutionally Aware (merge with docker-compose.yml)
+# ═══════════════════════════════════════════════════════════════════════════
+# Use: docker compose -f docker-compose.yml -f docker-compose.dify.yml up -d
+# All NEXUS agent traffic must route through Sovereign Gateway (9999).
+# ═══════════════════════════════════════════════════════════════════════════
+
+services:
+  sovereign_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    image: nexus_prime_unified-sovereign_gateway
+    environment:
+      - DIFY_BOARDROOM_ENABLED=true
+      - NERVE_URL=http://nexus_nerve:8200
+      - APEX_URL=http://nexus_apex:7777
+      - OLLAMA_URL=http://nexus_ollama:11434
+      - EDGE_TTS_URL=http://nexus_voice:8000
+      - GATEWAY_PORT=9999

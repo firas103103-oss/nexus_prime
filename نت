@@ -457,7 +457,7 @@ class SultanSystem:
 # ------------------------------- Example Entrypoint -----------------------------
 
 if __name__ == "__main__":
-   nSystem()
+    system = SultanSystem()
     system.bootstrap()
     demo_payload = [{"integrity": 1.0, "proportional_justice": 1, "essence": "TRUTH_01"}]
     out = system.pipeline(demo_payload)

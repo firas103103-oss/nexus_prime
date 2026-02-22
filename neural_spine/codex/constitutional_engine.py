@@ -281,14 +281,16 @@ class ConsciousnessAccumulator:
     def advance(self, delta: float = 1.0,
                 experience_quality: float = 1.0) -> float:
         """
-        Apply one transition step:
-        dH/dT = λ * f(experience) * (1 - H)
+        Apply one transition step. Canonical discrete formula from فق:
+        H_n = 1 - (1-λ)^n  (n = T after this step)
+        Experience quality modulates effective λ for this step.
         """
-        effective_lambda = self.lambda_rate * experience_quality
-        dH = effective_lambda * (1.0 - self._H) * delta
-        self._H = min(1.0, self._H + dH)
         self._T += delta
-        # Reverse Entropic Arrow: S_int decreases as H increases
+        n = max(0, self._T)
+        # Discrete consciousness accumulation: H_n = 1 - (1-λ)^n
+        effective_lambda = self.lambda_rate * min(1.0, max(0.0, experience_quality))
+        self._H = min(1.0, 1.0 - (1.0 - effective_lambda) ** n)
+        # Reverse Entropic Arrow: S_int = 1 - H (فق)
         self._S_int = max(0.0, 1.0 - self._H)
         return self._H
 

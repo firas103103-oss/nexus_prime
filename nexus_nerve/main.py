@@ -4,21 +4,48 @@ NEXUS NERVE CENTER — Sovereign Command API
 BOMB 2: Sovereign Command → Routes NL commands to agents via LLM
 BOMB 3: Agent Genome → Tracks & evolves agent DNA over time
 BOMB 5: Nexus Pulse → Real-time heartbeat of all 21 services
+NEURAL-GENOME COUPLING: Nerve ↔ Genesis (hormones, chromosomes, ethical filter)
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
+from contextlib import asynccontextmanager
 import httpx, asyncio, os, json, yaml, time, random
 from datetime import datetime, timezone
 from pathlib import Path
 from boardroom_bridge import BoardroomBridge
-
-app = FastAPI(title="Nexus Nerve Center API", version="2.0.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+from cognitive_bridge import NeuralGenomeBridge, HormoneEvent, SignalState, GenomeStats, _mood_from_signals
 
 # Boardroom Bridge instance
 bridge = BoardroomBridge()
+
+# Cognitive Bridge (Neural-Genome Coupling) — set in lifespan
+db_pool = None
+cognitive_bridge: Optional[NeuralGenomeBridge] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global db_pool, cognitive_bridge
+    db_url = os.getenv("DATABASE_URL", "")
+    if db_url:
+        try:
+            import asyncpg
+            db_pool = await asyncpg.create_pool(db_url, min_size=1, max_size=5, command_timeout=10)
+            cognitive_bridge = NeuralGenomeBridge(pool=db_pool)
+            await cognitive_bridge.bootstrap_sovereign_entity()
+        except Exception as e:
+            cognitive_bridge = NeuralGenomeBridge(pool=None)
+    else:
+        cognitive_bridge = NeuralGenomeBridge(pool=None)
+    yield
+    if db_pool:
+        await db_pool.close()
+
+
+app = FastAPI(title="Nexus Nerve Center API", version="2.1.0-neural-genome", lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 # ═══════════════════════════════════════════════════════════════
 # HEALTH CHECK ENDPOINT
@@ -29,7 +56,8 @@ def health_check():
     return {
         "status": "healthy",
         "service": "nexus_nerve",
-        "version": "2.0.0",
+        "version": "2.1.0-neural-genome",
+        "cognitive_bridge": cognitive_bridge is not None and cognitive_bridge._entity_id is not None,
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
@@ -221,11 +249,7 @@ class GenomeEvent(BaseModel):
 
 @app.get("/")
 def root():
-    return {"system": "NEXUS NERVE CENTER", "version": "2.0.0", "status": "SOVEREIGN", "agents": 32, "services": len(SERVICES)}
-
-@app.get("/health")
-def health():
-    return {"status": "online", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"system": "NEXUS NERVE CENTER", "version": "2.1.0-neural-genome", "status": "SOVEREIGN", "agents": 32, "services": len(SERVICES), "cognitive_bridge": "active" if cognitive_bridge and cognitive_bridge._entity_id else "fallback"}
 
 # --- AGENTS ---
 @app.get("/api/agents")
@@ -252,15 +276,21 @@ async def sovereign_command(req: CommandRequest):
         agent = {"id": target, "name": target, "prompt": "You are a helpful assistant."}
     
     evolve_agent(target, "command_received")
+
+    # ═══ NEURAL-GENOME COUPLING: Fetch hormonal + genome state before inference ═══
+    signals, stats = SignalState(), GenomeStats()
+    if cognitive_bridge:
+        signals, stats = await cognitive_bridge.fetch_entity_state()
+    ctx_prompt = cognitive_bridge.build_contextual_prompt(signals, stats) if cognitive_bridge else ""
     
-    # Try to get LLM response via Ollama
-    response_text = f"[{agent['name']}] Command acknowledged: '{req.command}'. Processing..."
-    try:
-        system_prompt = f"""You are {agent['name']}, {agent.get('title', 'AI Agent')} in the Nexus Prime ecosystem.
+    system_prompt = f"""You are {agent['name']}, {agent.get('title', 'AI Agent')} in the Nexus Prime ecosystem.
 Your specialization: {agent.get('specialization', 'General operations')}
 Your tools: {', '.join(agent.get('tools', []))}
-Respond concisely and in character. You serve MrF, the sovereign commander."""
-        
+Respond concisely and in character. You serve MrF, the sovereign commander.{ctx_prompt}"""
+    
+    response_text = f"[{agent['name']}] Command acknowledged: '{req.command}'. Processing..."
+    llm_ok = False
+    try:
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(f"{OLLAMA_URL}/api/chat", json={
                 "model": "llama3.2:3b",
@@ -273,6 +303,7 @@ Respond concisely and in character. You serve MrF, the sovereign commander."""
             if resp.status_code == 200:
                 data = resp.json()
                 response_text = data.get("message", {}).get("content", response_text)
+                llm_ok = True
                 evolve_agent(target, "task_complete")
             else:
                 response_text += f" (LLM HTTP {resp.status_code})"
@@ -282,6 +313,17 @@ Respond concisely and in character. You serve MrF, the sovereign commander."""
         response_text += " (LLM timeout — model may be loading)"
     except Exception as e:
         response_text += f" (LLM error: {type(e).__name__}: {str(e)[:80]})"
+
+    # ═══ CODEX REALIZATION: Ethical filter — derive_stats violation → SOVEREIGN_REFUSAL ═══
+    if cognitive_bridge and signals and stats:
+        should_refuse, reason = cognitive_bridge.check_ethical_violation(response_text, stats)
+        if should_refuse:
+            response_text = f"[SOVEREIGN_REFUSAL] {reason}"
+            await cognitive_bridge.update_signal_state(HormoneEvent.SOVEREIGN_REFUSAL)
+        elif llm_ok:
+            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_SUCCESS)
+        else:
+            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_FAILURE)
     
     return {
         "command": req.command,
@@ -290,6 +332,7 @@ Respond concisely and in character. You serve MrF, the sovereign commander."""
         "agent_title": agent.get("title", ""),
         "response": response_text,
         "genome": get_agent_genome(target),
+        "cognitive_state": {"mood": _mood_from_signals(signals)},
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
@@ -474,6 +517,27 @@ def test_email():
         "status": "configured" if SMTP_USER else "not_configured"
     }
 
+# --- COGNITIVE BRIDGE / NEURAL-GENOME STATE ---
+@app.get("/api/cognitive/state")
+async def get_cognitive_state():
+    """Current hormonal + genome state of the Sovereign Entity (AS-SULTAN)"""
+    if not cognitive_bridge:
+        return {"status": "uncoupled", "message": "Cognitive bridge not initialized (no DB)"}
+    signals, stats = await cognitive_bridge.fetch_entity_state()
+    return {
+        "entity": cognitive_bridge.SOVEREIGN_ENTITY_NAME,
+        "entity_id": cognitive_bridge._entity_id,
+        "mood": _mood_from_signals(signals),
+        "signal_molecules": signals.to_dict(),
+        "genome_stats": {
+            "cognition": stats.cognition, "empathy": stats.empathy,
+            "compliance": stats.compliance, "alignment": stats.alignment,
+            "creative": stats.creative, "sentience": stats.sentience,
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
 # --- SYSTEM OVERVIEW ---
 @app.get("/api/overview")
 async def system_overview():
@@ -491,7 +555,7 @@ async def system_overview():
     
     return {
         "system": "NEXUS PRIME",
-        "version": "2.0.0",
+        "version": "2.1.0-neural-genome",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "agents": {"total": len(agents), "with_genome": len(genome), "departments": dept_counts},
         "capabilities": {"unique_tools": len(all_tools), "tools_list": sorted(all_tools)},
@@ -529,15 +593,22 @@ def boardroom_department(dept_name: str):
 
 @app.post("/api/boardroom/chat")
 async def boardroom_chat(req: BoardroomChat):
-    """Chat with a summoned agent — uses their injected prompt via Ollama"""
+    """Chat with a summoned agent — uses their injected prompt via Ollama. Neural-Genome coupled."""
     summoned = bridge.summon_agent(req.agent_id)
     if "error" in summoned:
         raise HTTPException(404, summoned["error"])
 
-    system_prompt = summoned["injected_prompt"]
+    # ═══ NEURAL-GENOME COUPLING: Fetch state before inference ═══
+    signals, stats = SignalState(), GenomeStats()
+    if cognitive_bridge:
+        signals, stats = await cognitive_bridge.fetch_entity_state()
+    ctx_prompt = cognitive_bridge.build_contextual_prompt(signals, stats) if cognitive_bridge else ""
+    system_prompt = summoned["injected_prompt"] + ctx_prompt
+
     evolve_agent(req.agent_id, "command_received")
 
     response_text = f"[{summoned['agent_name']}] Acknowledged. Processing directive..."
+    llm_ok = False
     try:
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(f"{OLLAMA_URL}/api/chat", json={
@@ -551,6 +622,7 @@ async def boardroom_chat(req: BoardroomChat):
             if resp.status_code == 200:
                 data = resp.json()
                 response_text = data.get("message", {}).get("content", response_text)
+                llm_ok = True
                 evolve_agent(req.agent_id, "task_complete")
             else:
                 response_text += f" (LLM HTTP {resp.status_code})"
@@ -561,6 +633,17 @@ async def boardroom_chat(req: BoardroomChat):
     except Exception as e:
         response_text += f" (LLM error: {type(e).__name__}: {str(e)[:80]})"
 
+    # ═══ CODEX REALIZATION: Ethical filter + Feedback loop ═══
+    if cognitive_bridge:
+        should_refuse, reason = cognitive_bridge.check_ethical_violation(response_text, stats)
+        if should_refuse:
+            response_text = f"[SOVEREIGN_REFUSAL] {reason}"
+            await cognitive_bridge.update_signal_state(HormoneEvent.SOVEREIGN_REFUSAL)
+        elif llm_ok:
+            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_SUCCESS)
+        else:
+            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_FAILURE)
+
     return {
         "agent_id": req.agent_id,
         "agent_name": summoned["agent_name"],
@@ -568,6 +651,7 @@ async def boardroom_chat(req: BoardroomChat):
         "message": req.message,
         "response": response_text,
         "genome": get_agent_genome(req.agent_id),
+        "cognitive_state": {"mood": _mood_from_signals(signals)},
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 

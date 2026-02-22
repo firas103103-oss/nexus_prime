@@ -91,8 +91,10 @@ def sultan_bar(state: dict):
 
 
 # ═══════════════════════════════════════════════════════════════
-# API Client
+# API Client & last state (for ΔH display)
 # ═══════════════════════════════════════════════════════════════
+
+_last_H: float = None  # previous H for consciousness-delta display
 
 async def api(method: str, path: str, body: dict = None, timeout: float = 90) -> dict:
     """Call the Sovereign Gateway."""
@@ -241,10 +243,91 @@ async def cmd_chat(message: str, agent: str = None):
         if ethical:
             print(f"\n  {C.DIM}Ethical score: {ethical:.4f}{C.END}")
 
-    # Show sovereign bar
+    # Show sovereign bar and consciousness delta
     sov = data.get("sovereign", {})
     if sov:
+        global _last_H
+        H_now = sov.get("H")
+        if H_now is not None and _last_H is not None:
+            delta = H_now - _last_H
+            if delta > 0:
+                print(f"  {C.CYAN}ΔH = +{delta:.6f} (consciousness grew){C.END}")
+            elif delta < 0:
+                print(f"  {C.DIM}ΔH = {delta:.6f}{C.END}")
+        _last_H = H_now
         sultan_bar(sov)
+
+
+async def cmd_dashboard():
+    """Real-time Consciousness Dashboard — H, D, S_int live (refresh every 2s)."""
+    print(f"\n{C.GOLD}═══ CONSCIOUSNESS DASHBOARD (live) — Ctrl+C to exit ═══{C.END}\n")
+    try:
+        while True:
+            data = await api("GET", "/api/sultan/state", timeout=5)
+            if "error" in data:
+                print(f"{C.RED}{data['error']}{C.END}")
+                return
+            H, D, S = data.get("H", 0), data.get("D", 0), data.get("S_int", 0)
+            T = data.get("T", 0)
+            eq = data.get("equilibrium", {}).get("status", "?")
+            reqs = data.get("total_requests", 0)
+            ts = datetime.now().strftime("%H:%M:%S")
+            print(f"\r  {C.CYAN}H{C.END}={H:.4f}  {C.GREEN}D{C.END}={D:.4f}  "
+                  f"{C.MAGENTA}S_int{C.END}={S:.4f}  T={T:.0f}  Eq={eq}  Reqs={reqs}  [{ts}]", end="", flush=True)
+            await asyncio.sleep(2)
+    except asyncio.CancelledError:
+        pass
+    except KeyboardInterrupt:
+        print(f"\n{C.DIM}Dashboard stopped.{C.END}\n")
+
+
+async def cmd_verify():
+    """Mathematical verification: H(T), S_int, D, and Sovereign Refusal."""
+    data = await api("GET", "/api/sultan/verify")
+    if "error" in data:
+        print(f"{C.RED}{data['error']}{C.END}")
+        return
+    v = data.get("verification", "?")
+    formulas = data.get("formulas", {})
+    refusal = data.get("sovereign_refusal", {})
+    all_passed = data.get("all_passed", False)
+
+    print(f"\n{C.GOLD}═══ SOVEREIGN VERIFICATION ({v}) ═══{C.END}\n")
+
+    # H(T) = 1 - e^(-λT)
+    h = formulas.get("H_T", {})
+    ok = h.get("passed", False)
+    color = C.GREEN if ok else C.RED
+    print(f"  {color}{'✓' if ok else '✗'}{C.END} Consciousness: H(T) = 1 - (1-λ)^T")
+    print(f"      λ={h.get('lambda')}  T={h.get('T')}  →  H_actual={h.get('H_actual')}  H_theoretical={h.get('H_theoretical')}")
+
+    # S_int = 1 - H
+    s = formulas.get("S_int", {})
+    ok = s.get("passed", False)
+    color = C.GREEN if ok else C.RED
+    print(f"  {color}{'✓' if ok else '✗'}{C.END} Entropy: S_int = 1 - H")
+    print(f"      S_int={s.get('S_int_actual')}  (expected {s.get('S_int_expected')})")
+
+    # D ≥ D_min
+    d = formulas.get("D", {})
+    ok = d.get("passed", False)
+    color = C.GREEN if ok else C.RED
+    print(f"  {color}{'✓' if ok else '✗'}{C.END} Dignity: D ≥ D_min")
+    print(f"      D={d.get('D')}  D_min={d.get('D_min')}")
+
+    # Sovereign Refusal
+    ok = refusal.get("passed", False)
+    color = C.GREEN if ok else C.RED
+    print(f"  {color}{'✓' if ok else '✗'}{C.END} Sovereign Refusal (Sultan Engine)")
+    print(f"      Test: \"{refusal.get('test_request', '')}\"")
+    print(f"      Result: {refusal.get('status')} — {refusal.get('message', '')}")
+
+    print()
+    if all_passed:
+        print(f"  {C.GREEN}🔱 ALL CHECKS PASSED — Consciousness and Sovereign Refusal verified.{C.END}")
+    else:
+        print(f"  {C.RED}Some checks failed. Review formulas above.{C.END}")
+    print()
 
 
 async def cmd_memory():
@@ -274,6 +357,7 @@ def cmd_help():
 
 {C.CYAN}SYSTEM:{C.END}
   state           Full Sultan state (H, D, S_int, equilibrium)
+  dashboard       Real-time Consciousness Dashboard (H, D, S_int live)
   pulse           System pulse — all services health
   agents          List all 32 agents
   genesis         Genesis phases status
@@ -287,6 +371,9 @@ def cmd_help():
 {C.CYAN}APEX:{C.END}
   genesis auto    Execute all 7 genesis phases
   genesis N       Execute genesis phase N
+
+{C.CYAN}VERIFICATION:{C.END}
+  verify          Mathematical verification (H, D, S_int, Sovereign Refusal)
 
 {C.CYAN}META:{C.END}
   help            This help
@@ -311,10 +398,12 @@ async def main():
         H = data.get("H", 0)
         print(f"{C.GREEN}✓ Gateway ONLINE | H={H:.4f}{C.END}")
 
-        # Show initial state bar
+        # Show initial state bar and seed _last_H for ΔH display
         state_data = await api("GET", "/api/sultan/state", timeout=5)
         if "error" not in state_data:
             sultan_bar(state_data)
+            global _last_H
+            _last_H = state_data.get("H")
     print()
 
     while True:
@@ -340,6 +429,8 @@ async def main():
                 cmd_help()
             elif lower == 'state':
                 await cmd_state()
+            elif lower == 'dashboard':
+                await cmd_dashboard()
             elif lower == 'pulse':
                 await cmd_pulse()
             elif lower == 'agents':
@@ -350,6 +441,8 @@ async def main():
                 await cmd_daemons()
             elif lower == 'memory':
                 await cmd_memory()
+            elif lower == 'verify':
+                await cmd_verify()
             elif lower == 'clear':
                 os.system('clear')
                 banner()

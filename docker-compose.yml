@@ -39,9 +39,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/health/liveliness"]
       interval: 30s
-      timeout: 10s
+      timeout: 15s
       retries: 5
-      start_period: 60s
+      start_period: 90s
 
   # ═══ PHASE 2: Redis Event Bus ═════════════════════════════════
   nexus_redis:
@@ -335,9 +335,35 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8200/health"]
       interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 45s
+
+  # ═══ SOVEREIGN GATEWAY — AS-SULTAN Port 9999 (Genesis Protocol) ═════
+  sovereign_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: sovereign_gateway
+    ports:
+      - "9999:9999"
+    environment:
+      - NERVE_URL=http://nexus_nerve:8200
+      - APEX_URL=http://nexus_apex:7777
+      - OLLAMA_URL=http://nexus_ollama:11434
+      - EDGE_TTS_URL=http://nexus_voice:8000
+      - GATEWAY_PORT=9999
+    networks:
+      - nexus_network
+    depends_on:
+      - nexus_nerve
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
+      interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 20s
 
   # ═══ PHASE 8: Nexus Oracle — RAG Documentation AI ═══════════
   nexus_oracle:

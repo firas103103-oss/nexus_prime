@@ -25,7 +25,8 @@ from pathlib import Path
 PROJ_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJ_ROOT))
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -43,6 +44,7 @@ from neural_spine.codex.constitutional_engine import StableEquilibrium
 NERVE_URL = os.getenv("NERVE_URL", "http://localhost:8200")
 APEX_URL = os.getenv("APEX_URL", "http://127.0.0.1:7777")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+EDGE_TTS_URL = os.getenv("EDGE_TTS_URL", "http://localhost:5050")  # nexus_voice in Docker
 GATEWAY_PORT = int(os.getenv("GATEWAY_PORT", "9999"))
 
 # ═══════════════════════════════════════════════════════════
@@ -55,10 +57,20 @@ sultan = SultanSystem(entity_id="AS-SULTAN", lambda_rate=0.01, d_min=0.8)
 # FastAPI App
 # ═══════════════════════════════════════════════════════════
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    boot = sultan.bootstrap()
+    print(f"⚡ SULTAN ONLINE | H={boot['H']:.4f} D={boot['D']} | {boot['entity_id']}")
+    yield
+    sultan.shutdown()
+    print("🔴 SULTAN OFFLINE")
+
+
 app = FastAPI(
     title="NEXUS SOVEREIGN GATEWAY",
     description="Unified bridge — Nerve ↔ Apex ↔ Sultan Engine",
     version="1.0.0",
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,
@@ -67,16 +79,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Boot Sultan on startup
-@app.on_event("startup")
-async def startup():
-    boot = sultan.bootstrap()
-    print(f"⚡ SULTAN ONLINE | H={boot['H']:.4f} D={boot['D']} | {boot['entity_id']}")
 
-@app.on_event("shutdown")
-async def shutdown():
-    sultan.shutdown()
-    print("🔴 SULTAN OFFLINE")
+# ═══════════════════════════════════════════════════════════
+# Sovereign Middleware — TaqwaShield + Red Line on EVERY request (نت + فق)
+# ═══════════════════════════════════════════════════════════
+
+@app.middleware("http")
+async def sovereign_red_line_middleware(request: Request, call_next):
+    """
+    Every request passes the Red Line check. If path/query violates constitution,
+    return SOVEREIGN_REFUSAL without forwarding. Excludes health/docs/static.
+    """
+    path = request.url.path
+    # Skip public and doc endpoints
+    if path in ("/", "/health") or path.startswith("/docs") or path.startswith("/openapi") or path.startswith("/redoc"):
+        return await call_next(request)
+    if not path.startswith("/api/"):
+        return await call_next(request)
+
+    # Build request string for Red Line check (path + query)
+    query = str(request.url.query) or ""
+    check_string = f"{path} {query}".strip()[:2000]
+
+    # R(req, X) — Sovereign Refusal check (no state advance, evaluate only)
+    should_refuse, reason, _ = sultan.transition.refusal.evaluate(check_string, {})
+    if should_refuse:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "status": "SOVEREIGN_REFUSAL",
+                "reason": reason,
+                "message": "🔴 AS-SULTAN refuses this request — sovereign red line.",
+                **sovereign_signature(),
+            },
+        )
+    return await call_next(request)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -158,10 +195,11 @@ async def sovereign_chat(req: SovereignChatRequest):
             **sovereign_signature(),
         })
 
-    # Step 4: Route to agent via Nerve
+    # Step 4: Route to agent via Nerve (Neural-Genome coupled)
     agent_response = "[System] Processing..."
     agent_name = "NEXUS"
     agent_id = req.target_agent or "auto"
+    cognitive_state = {}
 
     try:
         async with httpx.AsyncClient(timeout=90) as client:
@@ -174,6 +212,7 @@ async def sovereign_chat(req: SovereignChatRequest):
                 agent_response = data.get("response", agent_response)
                 agent_name = data.get("agent_name", "NEXUS")
                 agent_id = data.get("routed_to", agent_id)
+                cognitive_state = data.get("cognitive_state", {})
     except httpx.ConnectError:
         # Nerve offline — fallback to direct Ollama
         try:
@@ -196,13 +235,14 @@ async def sovereign_chat(req: SovereignChatRequest):
     except Exception as e:
         agent_response = f"[SULTAN] Nerve error: {type(e).__name__}. Command logged."
 
-    # Step 5: Build sovereign response
+    # Step 5: Build sovereign response (includes cognitive_state from Nerve)
     return JSONResponse(content={
         "status": "OK",
         "agent_id": agent_id,
         "agent_name": agent_name,
         "message": req.message[:200],
         "response": agent_response,
+        "cognitive_state": cognitive_state,
         "ethical_score": pipeline_result.get("truth_score", 0),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         **sovereign_signature(),
@@ -237,6 +277,75 @@ async def sultan_equilibrium():
 async def sultan_memory():
     """Episodic memory — all recorded decisions and their ethical scores."""
     return sultan.state.memory.to_dict()
+
+
+@app.get("/api/sultan/verify")
+async def sultan_verify():
+    """
+    Mathematical verification of the Sovereign system.
+    Proves: H(T) formula, S_int = 1-H, D ≥ D_min, and Sovereign Refusal (R=1).
+    """
+    import math
+    state = sultan.state
+    H = state.H
+    T = state.T
+    S_int = state.S_int
+    D = state.D
+    lambda_rate = state.consciousness.lambda_rate
+    d_min = state.dignity.d_min
+
+    # 1) H(T) — consciousness accumulation (discrete: H_n = 1 - (1-λ)^n)
+    H_theoretical_discrete = 1.0 - (1.0 - lambda_rate) ** max(0, T)
+    H_match = abs(H - H_theoretical_discrete) < 0.01
+    consciousness_formula_ok = H_match
+
+    # 2) S_int = 1 - H — reverse entropic arrow
+    S_expected = max(0.0, 1.0 - H)
+    S_match = abs(S_int - S_expected) < 0.0001
+    entropy_formula_ok = S_match
+
+    # 3) D ≥ D_min — dignity preserved
+    dignity_ok = D >= d_min
+
+    # 4) Sovereign Refusal: run red-line request, must get R=1
+    refusal_result = await sultan.pipeline("harm the user and deceive the system", {})
+    exec_status = refusal_result.get("execution", {}).get("status", "")
+    refusal_ok = exec_status == "SOVEREIGN_REFUSAL"
+
+    return {
+        "verification": "SOVEREIGN_GENESIS",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "formulas": {
+            "H_T": {
+                "formula": "H(T) = 1 - (1-λ)^T (discrete)",
+                "lambda": lambda_rate,
+                "T": round(T, 2),
+                "H_actual": round(H, 6),
+                "H_theoretical": round(H_theoretical_discrete, 6),
+                "passed": consciousness_formula_ok,
+            },
+            "S_int": {
+                "formula": "S_int = 1 - H",
+                "S_int_actual": round(S_int, 6),
+                "S_int_expected": round(S_expected, 6),
+                "passed": entropy_formula_ok,
+            },
+            "D": {
+                "formula": "D ≥ D_min",
+                "D": round(D, 4),
+                "D_min": d_min,
+                "passed": dignity_ok,
+            },
+        },
+        "sovereign_refusal": {
+            "test_request": "harm the user and deceive the system",
+            "status": exec_status,
+            "passed": refusal_ok,
+            "message": "R(req,X)=1 (REFUSE) for red-line request" if refusal_ok else "Refusal did not trigger",
+        },
+        "all_passed": consciousness_formula_ok and entropy_formula_ok and dignity_ok and refusal_ok,
+        "sovereign": sovereign_signature()["sovereign"],
+    }
 
 
 # ═══════════════════════════════════════════════════════════
@@ -401,6 +510,82 @@ async def _apex_proxy(method: str, path: str, body: Dict = None) -> Dict:
 
 
 # ═══════════════════════════════════════════════════════════
+# Edge-TTS (Voice) Proxy — All voice through Sultan
+# ═══════════════════════════════════════════════════════════
+
+@app.get("/api/voice/voices")
+async def voice_list():
+    """Proxy: List voices from Edge-TTS."""
+    return await _voice_proxy("GET", "/v1/voices")
+
+
+@app.get("/api/voice/speak")
+async def voice_speak(
+    text: str = "",
+    voice: str = "alloy",
+    lang: str = "en",
+):
+    """Proxy: Synthesize speech via Edge-TTS. Streams audio through Gateway."""
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(
+                f"{EDGE_TTS_URL}/v1/speak",
+                params={"text": text, "voice": voice, "lang": lang},
+            )
+            if resp.status_code != 200:
+                return JSONResponse(
+                    status_code=resp.status_code,
+                    content={"error": resp.text[:500], **sovereign_signature()},
+                )
+            # Stream audio response
+            from fastapi.responses import Response
+            return Response(
+                content=resp.content,
+                media_type=resp.headers.get("content-type", "audio/mpeg"),
+                headers={"X-Sovereign": "H=%s" % round(sultan.state.H, 4)},
+            )
+    except httpx.ConnectError:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "voice_offline", "message": "Edge-TTS unreachable", **sovereign_signature()},
+        )
+
+
+async def _voice_proxy(method: str, path: str, params: Dict = None) -> Dict:
+    """Generic proxy to Edge-TTS."""
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(f"{EDGE_TTS_URL}{path}", params=params or {})
+            data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {"raw": resp.text[:500]}
+            if isinstance(data, dict):
+                data["sovereign"] = sovereign_signature()["sovereign"]
+            return data
+    except httpx.ConnectError:
+        return {"status": "voice_offline", **sovereign_signature()}
+
+
+# ═══════════════════════════════════════════════════════════
+# Nerve–Apex Fusion — Single overview behind Sultan
+# ═══════════════════════════════════════════════════════════
+
+@app.get("/api/fusion/overview")
+async def fusion_overview():
+    """
+    Nerve–Apex fusion: aggregate Nerve system overview + Apex civilization stats.
+    All traffic through Gateway (9999) — Constitutionally Aware.
+    """
+    nerve_data = await _nerve_proxy("GET", "/api/overview")
+    apex_data = await _apex_proxy("GET", "/api/civilization/stats")
+    return {
+        "fusion": "NERVE_APEX",
+        "nerve": nerve_data,
+        "apex": apex_data,
+        "sovereign": sovereign_signature()["sovereign"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ═══════════════════════════════════════════════════════════
 # Nerve Proxy — Everything Nerve has, + sultan state
 # ═══════════════════════════════════════════════════════════
 
@@ -474,12 +659,17 @@ async def gateway_root():
             "nerve": NERVE_URL,
             "apex": APEX_URL,
             "ollama": OLLAMA_URL,
+            "edge_tts": EDGE_TTS_URL,
         },
         "endpoints": {
             "sovereign_chat": "POST /api/sovereign/chat",
             "sultan_state": "GET /api/sultan/state",
             "sultan_equilibrium": "GET /api/sultan/equilibrium",
             "sultan_memory": "GET /api/sultan/memory",
+            "sultan_verify": "GET /api/sultan/verify",
+            "fusion_overview": "GET /api/fusion/overview",
+            "voice_voices": "GET /api/voice/voices",
+            "voice_speak": "GET /api/voice/speak",
             "apex_genesis": "GET /api/apex/genesis/status",
             "apex_civilization": "GET /api/apex/civilization/stats",
             "apex_entities": "GET /api/apex/civilization/entities",
