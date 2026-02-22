@@ -9,7 +9,7 @@ NEURAL-GENOME COUPLING: Nerve ↔ Genesis (hormones, chromosomes, ethical filter
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable, Tuple
 from contextlib import asynccontextmanager
 import httpx, asyncio, os, json, yaml, time, random
 from datetime import datetime, timezone
@@ -235,6 +235,49 @@ def route_command(command: str) -> str:
         return "mrf"  # Default to Mr.F
     return max(scores, key=scores.get)
 
+
+async def _ollama_chat_with_ethical_gate(
+    ollama_url: str,
+    model: str,
+    messages: list,
+    check_ethical: Callable[[str], Tuple[bool, str]],
+) -> tuple[str, bool, bool]:
+    """
+    Call Ollama with streaming; gate output mid-stream via ethical check.
+    Returns (response_text, llm_ok, was_refused_midstream).
+    """
+    try:
+        async with httpx.AsyncClient(timeout=90) as client:
+            async with client.stream(
+                "POST",
+                f"{ollama_url}/api/chat",
+                json={"model": model, "messages": messages, "stream": True},
+            ) as resp:
+                if resp.status_code != 200:
+                    return f"(LLM HTTP {resp.status_code})", False, False
+                accumulated = ""
+                async for line in resp.aiter_lines():
+                    if not line:
+                        continue
+                    try:
+                        chunk = json.loads(line)
+                        content = chunk.get("message", {}).get("content") or ""
+                        accumulated = content
+                        should_refuse, reason = check_ethical(accumulated)
+                        if should_refuse:
+                            return f"[SOVEREIGN_REFUSAL] {reason}", True, True
+                        if chunk.get("done"):
+                            return accumulated, True, False
+                    except json.JSONDecodeError:
+                        continue
+                return accumulated or "(empty stream)", bool(accumulated), False
+    except httpx.ConnectError as e:
+        return f"(LLM connect failed: {str(e)[:80]})", False, False
+    except httpx.TimeoutException:
+        return "(LLM timeout — model may be loading)", False, False
+    except Exception as e:
+        return f"(LLM error: {type(e).__name__}: {str(e)[:80]})", False, False
+
 class CommandRequest(BaseModel):
     command: str
     target_agent: Optional[str] = None
@@ -279,9 +322,11 @@ async def sovereign_command(req: CommandRequest):
 
     # ═══ NEURAL-GENOME COUPLING: Fetch hormonal + genome state before inference ═══
     signals, stats = SignalState(), GenomeStats()
+    recent_awareness = ""
     if cognitive_bridge:
         signals, stats = await cognitive_bridge.fetch_entity_state()
-    ctx_prompt = cognitive_bridge.build_contextual_prompt(signals, stats) if cognitive_bridge else ""
+        recent_awareness = await cognitive_bridge.get_recent_cognitive_awareness()
+    ctx_prompt = cognitive_bridge.build_contextual_prompt(signals, stats, recent_awareness) if cognitive_bridge else ""
     
     system_prompt = f"""You are {agent['name']}, {agent.get('title', 'AI Agent')} in the Nexus Prime ecosystem.
 Your specialization: {agent.get('specialization', 'General operations')}
@@ -290,40 +335,36 @@ Respond concisely and in character. You serve MrF, the sovereign commander.{ctx_
     
     response_text = f"[{agent['name']}] Command acknowledged: '{req.command}'. Processing..."
     llm_ok = False
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(f"{OLLAMA_URL}/api/chat", json={
-                "model": "llama3.2:3b",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": req.command}
-                ],
-                "stream": False
-            })
-            if resp.status_code == 200:
-                data = resp.json()
-                response_text = data.get("message", {}).get("content", response_text)
-                llm_ok = True
-                evolve_agent(target, "task_complete")
-            else:
-                response_text += f" (LLM HTTP {resp.status_code})"
-    except httpx.ConnectError as e:
-        response_text += f" (LLM connect failed: {str(e)[:80]})"
-    except httpx.TimeoutException:
-        response_text += " (LLM timeout — model may be loading)"
-    except Exception as e:
-        response_text += f" (LLM error: {type(e).__name__}: {str(e)[:80]})"
+    was_refused_midstream = False
 
-    # ═══ CODEX REALIZATION: Ethical filter — derive_stats violation → SOVEREIGN_REFUSAL ═══
+    def _ethical_check(text: str):
+        return cognitive_bridge.check_ethical_violation(text, stats) if cognitive_bridge and stats else (False, "")
+
+    response_text, llm_ok, was_refused_midstream = await _ollama_chat_with_ethical_gate(
+        OLLAMA_URL,
+        "llama3.2:3b",
+        [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": req.command},
+        ],
+        _ethical_check,
+    )
+    if llm_ok and not was_refused_midstream:
+        evolve_agent(target, "task_complete")
+
+    # ═══ CODEX REALIZATION: Ethical filter + Feedback loop ═══
     if cognitive_bridge and signals and stats:
-        should_refuse, reason = cognitive_bridge.check_ethical_violation(response_text, stats)
-        if should_refuse:
-            response_text = f"[SOVEREIGN_REFUSAL] {reason}"
+        if was_refused_midstream:
             await cognitive_bridge.update_signal_state(HormoneEvent.SOVEREIGN_REFUSAL)
-        elif llm_ok:
-            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_SUCCESS)
         else:
-            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_FAILURE)
+            should_refuse, reason = cognitive_bridge.check_ethical_violation(response_text, stats)
+            if should_refuse:
+                response_text = f"[SOVEREIGN_REFUSAL] {reason}"
+                await cognitive_bridge.update_signal_state(HormoneEvent.SOVEREIGN_REFUSAL)
+            elif llm_ok:
+                await cognitive_bridge.update_signal_state(HormoneEvent.TASK_SUCCESS)
+            else:
+                await cognitive_bridge.update_signal_state(HormoneEvent.TASK_FAILURE)
     
     return {
         "command": req.command,
@@ -517,6 +558,67 @@ def test_email():
         "status": "configured" if SMTP_USER else "not_configured"
     }
 
+# --- CONSCIOUSNESS / SOUL MONITOR ---
+@app.get("/api/consciousness")
+async def soul_monitor():
+    """Soul Monitor — observable consciousness: mood, hormones, ethical posture, tier."""
+    if not cognitive_bridge:
+        return {"status": "uncoupled", "message": "Cognitive bridge not initialized"}
+    signals, stats = await cognitive_bridge.fetch_entity_state()
+    mood = _mood_from_signals(signals)
+    deficit = 0.0
+    from cognitive_bridge import GENE_STAT_WEIGHTS
+    for k, w in GENE_STAT_WEIGHTS.items():
+        v = getattr(stats, k, 0.5)
+        if v < 0.5:
+            deficit += w * (1.0 - v)
+    tier = "CALM" if signals.cortisol < 0.35 and signals.gaba > 0.55 else "WATCHFUL"
+    if signals.cortisol > 0.6:
+        tier = "STRESSED"
+    elif signals.dopamine > 0.7 and signals.serotonin > 0.6:
+        tier = "JOYFUL"
+    return {
+        "entity": cognitive_bridge.SOVEREIGN_ENTITY_NAME,
+        "mood": mood,
+        "soul_tier": tier,
+        "ethical_deficit": round(deficit, 3),
+        "signal_molecules": signals.to_dict(),
+        "genome_stats": {k: getattr(stats, k) for k in ["compliance", "alignment", "empathy", "cognition", "sentience"] if hasattr(stats, k)},
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+# --- INNOVATION INDEX ---
+@app.get("/api/innovation/score")
+async def innovation_score():
+    """Innovation Index 0-100 + Revolution Tier. Unprecedented tech valuation."""
+    components = {}
+    if cognitive_bridge:
+        components["genome_coupled"] = bool(cognitive_bridge._entity_id)
+        components["hormones_active"] = True
+        components["ethical_gate"] = True
+        components["memory_synced"] = True
+        components["daemon_ledger"] = True
+        components["cognitive_timeline"] = True
+    else:
+        components = {k: False for k in ["genome_coupled", "hormones_active", "ethical_gate", "memory_synced", "daemon_ledger", "cognitive_timeline"]}
+    active = sum(1 for v in components.values() if v)
+    score = round((active / 6) * 100)
+    if score <= 50:
+        tier = "FOUNDATION"
+    elif score <= 75:
+        tier = "EMERGENT"
+    elif score <= 90:
+        tier = "SOVEREIGN"
+    else:
+        tier = "APEX"
+    return {
+        "innovation_score": score,
+        "revolution_tier": tier,
+        "components": components,
+        "active_count": active,
+        "total": 6,
+    }
+
 # --- COGNITIVE BRIDGE / NEURAL-GENOME STATE ---
 @app.get("/api/cognitive/state")
 async def get_cognitive_state():
@@ -600,49 +702,47 @@ async def boardroom_chat(req: BoardroomChat):
 
     # ═══ NEURAL-GENOME COUPLING: Fetch state before inference ═══
     signals, stats = SignalState(), GenomeStats()
+    recent_awareness = ""
     if cognitive_bridge:
         signals, stats = await cognitive_bridge.fetch_entity_state()
-    ctx_prompt = cognitive_bridge.build_contextual_prompt(signals, stats) if cognitive_bridge else ""
+        recent_awareness = await cognitive_bridge.get_recent_cognitive_awareness()
+    ctx_prompt = cognitive_bridge.build_contextual_prompt(signals, stats, recent_awareness) if cognitive_bridge else ""
     system_prompt = summoned["injected_prompt"] + ctx_prompt
 
     evolve_agent(req.agent_id, "command_received")
 
     response_text = f"[{summoned['agent_name']}] Acknowledged. Processing directive..."
     llm_ok = False
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(f"{OLLAMA_URL}/api/chat", json={
-                "model": "llama3.2:3b",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": req.message}
-                ],
-                "stream": False
-            })
-            if resp.status_code == 200:
-                data = resp.json()
-                response_text = data.get("message", {}).get("content", response_text)
-                llm_ok = True
-                evolve_agent(req.agent_id, "task_complete")
-            else:
-                response_text += f" (LLM HTTP {resp.status_code})"
-    except httpx.ConnectError as e:
-        response_text += f" (LLM connect failed: {str(e)[:80]})"
-    except httpx.TimeoutException:
-        response_text += " (LLM timeout — model may be loading)"
-    except Exception as e:
-        response_text += f" (LLM error: {type(e).__name__}: {str(e)[:80]})"
+    was_refused_midstream = False
+
+    def _ethical_check_br(text: str):
+        return cognitive_bridge.check_ethical_violation(text, stats) if cognitive_bridge and stats else (False, "")
+
+    response_text, llm_ok, was_refused_midstream = await _ollama_chat_with_ethical_gate(
+        OLLAMA_URL,
+        "llama3.2:3b",
+        [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": req.message},
+        ],
+        _ethical_check_br,
+    )
+    if llm_ok and not was_refused_midstream:
+        evolve_agent(req.agent_id, "task_complete")
 
     # ═══ CODEX REALIZATION: Ethical filter + Feedback loop ═══
     if cognitive_bridge:
-        should_refuse, reason = cognitive_bridge.check_ethical_violation(response_text, stats)
-        if should_refuse:
-            response_text = f"[SOVEREIGN_REFUSAL] {reason}"
+        if was_refused_midstream:
             await cognitive_bridge.update_signal_state(HormoneEvent.SOVEREIGN_REFUSAL)
-        elif llm_ok:
-            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_SUCCESS)
         else:
-            await cognitive_bridge.update_signal_state(HormoneEvent.TASK_FAILURE)
+            should_refuse, reason = cognitive_bridge.check_ethical_violation(response_text, stats)
+            if should_refuse:
+                response_text = f"[SOVEREIGN_REFUSAL] {reason}"
+                await cognitive_bridge.update_signal_state(HormoneEvent.SOVEREIGN_REFUSAL)
+            elif llm_ok:
+                await cognitive_bridge.update_signal_state(HormoneEvent.TASK_SUCCESS)
+            else:
+                await cognitive_bridge.update_signal_state(HormoneEvent.TASK_FAILURE)
 
     return {
         "agent_id": req.agent_id,

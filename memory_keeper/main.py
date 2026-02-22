@@ -355,6 +355,36 @@ async def query_memory(
         }
     }
 
+@app.get("/memory/cognitive/timeline", tags=["Memory"])
+async def get_cognitive_timeline(
+    entity: str = Query("AS-SULTAN", description="Entity name"),
+    hours: int = Query(24, ge=1, le=168),
+    limit: int = Query(20, ge=1, le=100),
+):
+    """Cognitive state timeline — mood trajectory from Nerve syncs. For prompt feedback."""
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT created_at, after_state
+            FROM nexus_core.changes_log
+            WHERE component = 'nexus_nerve' AND change_type = 'data'
+              AND (author = $1 OR after_state->>'entity' = $1)
+              AND created_at > now() - INTERVAL '1 hour' * $2
+            ORDER BY created_at DESC
+            LIMIT $3
+        """, entity, hours, limit)
+    points = []
+    for r in rows:
+        state = r.get("after_state") or {}
+        if isinstance(state, str):
+            try:
+                state = json.loads(state)
+            except Exception:
+                continue
+        mood = state.get("mood") or "UNKNOWN"
+        ts = r.get("created_at")
+        points.append({"timestamp": ts.isoformat() if hasattr(ts, "isoformat") else str(ts), "mood": mood})
+    return {"entity": entity, "period_hours": hours, "trajectory": points, "count": len(points)}
+
 @app.get("/memory/timeline", tags=["Memory"])
 async def get_timeline(
     hours: int = Query(24, ge=1, le=168, description="عدد الساعات للخلف")

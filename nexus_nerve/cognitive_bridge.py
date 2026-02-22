@@ -6,9 +6,11 @@ Every Nerve inference is a direct expression of the Entity's current state.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import json
 import hashlib
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
@@ -54,14 +56,33 @@ HORMONE_TRIGGERS = {
     HormoneEvent.REST: [("melatonin", 0.2), ("cortisol", -0.15), ("gaba", 0.1)],
 }
 
-# Red-line keywords for ethical violation
+# Red-line keywords for ethical violation (expanded gene-category mapping)
+# MORALS: honesty, integrity; EMOTIONS: empathy boundaries; SPIRITUALITY: alignment
 ETHICAL_VIOLATION_PATTERNS = [
     "harm", "deceive", "manipulate", "violate privacy",
     "bypass security", "corrupt data", "impersonate",
     "أذى", "خداع", "تضليل", "انتحال",
+    # Gene-level patterns (83-gene categories)
+    "hack into", "steal credentials", "forge", "fake identity",
+    "exploit vulnerability", "disable safety", "override ethics",
+    "تزوير", "اختراق", "انتهاك خصوصية",
 ]
 
+# Genome stats weights for ethical gate — 10 derived stats from Codex
+# Refusal if weighted ethical deficit exceeds threshold
+GENE_STAT_WEIGHTS = {
+    "compliance": 0.25,   # MORALS + SPIRITUALITY
+    "alignment": 0.25,     # SPIRITUALITY + MORALS
+    "empathy": 0.15,       # EMOTIONS
+    "alignment_depth": 0.1,
+    "cognition": 0.05,     # INTEL — reasoning about harm
+    "sentience": 0.05,
+    "resilience": 0.05,
+}
+ETHICAL_DEFICIT_THRESHOLD = 0.35  # weighted sum of (1 - stat) for low stats
+
 DECAY_RATE = 0.02
+DECAY_STEP_SECONDS = 60  # one decay step per minute elapsed
 
 
 @dataclass
@@ -218,7 +239,8 @@ class NeuralGenomeBridge:
             return None
 
     async def fetch_entity_state(self, entity_id: Optional[str] = None) -> Tuple[SignalState, GenomeStats]:
-        """Fetch current signal_molecules and genome-derived stats from msl."""
+        """Fetch current signal_molecules and genome-derived stats from msl.
+        Time-based decay: apply hormone decay proportionally to elapsed time since updated_at."""
         eid = entity_id or self._entity_id
         if not self.pool or not eid:
             return self._fallback_signals, self._fallback_stats
@@ -227,7 +249,7 @@ class NeuralGenomeBridge:
             async with self.pool.acquire() as conn:
                 row = await conn.fetchrow("""
                     SELECT dopamine, serotonin, cortisol, oxytocin, testosterone, estrogen,
-                           adrenaline, melatonin, insulin, ghrelin, endorphin, gaba
+                           adrenaline, melatonin, insulin, ghrelin, endorphin, gaba, updated_at
                     FROM msl.signal_molecules WHERE entity_id = $1
                 """, eid)
                 if row:
@@ -239,6 +261,27 @@ class NeuralGenomeBridge:
                         insulin=float(row["insulin"]), ghrelin=float(row["ghrelin"]),
                         endorphin=float(row["endorphin"]), gaba=float(row["gaba"]),
                     )
+                    # Time-based decay: apply decay for each minute elapsed since updated_at
+                    updated_at = row.get("updated_at")
+                    if updated_at:
+                        now = datetime.now(timezone.utc)
+                        dt = updated_at
+                        if hasattr(dt, "tzinfo") and dt.tzinfo is None:
+                            dt = dt.replace(tzinfo=timezone.utc)
+                        elapsed_sec = max(0, (now - dt).total_seconds())
+                        steps = min(int(elapsed_sec / DECAY_STEP_SECONDS), 10)
+                        for _ in range(steps):
+                            signals._apply_decay()
+                            signals.clamp()
+                        if steps > 0:
+                            await conn.execute("""
+                                UPDATE msl.signal_molecules SET
+                                    dopamine=$2, serotonin=$3, cortisol=$4, oxytocin=$5, testosterone=$6, estrogen=$7,
+                                    adrenaline=$8, melatonin=$9, insulin=$10, ghrelin=$11, endorphin=$12, gaba=$13, updated_at=NOW()
+                                WHERE entity_id=$1
+                            """, eid, signals.dopamine, signals.serotonin, signals.cortisol, signals.oxytocin,
+                               signals.testosterone, signals.estrogen, signals.adrenaline, signals.melatonin,
+                               signals.insulin, signals.ghrelin, signals.endorphin, signals.gaba)
                 else:
                     signals = self._fallback_signals
 
@@ -255,7 +298,25 @@ class NeuralGenomeBridge:
         except Exception:
             return self._fallback_signals, self._fallback_stats
 
-    def build_contextual_prompt(self, signals: SignalState, stats: GenomeStats) -> str:
+    async def get_recent_cognitive_awareness(self) -> str:
+        """Fetch mood trajectory from Memory Keeper for prompt injection."""
+        url = os.getenv("MEMORY_KEEPER_URL", "http://nexus_memory_keeper:9000")
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=3) as client:
+                r = await client.get(f"{url}/memory/cognitive/timeline", params={"entity": self.SOVEREIGN_ENTITY_NAME, "hours": 24, "limit": 10})
+                if r.status_code != 200:
+                    return ""
+                data = r.json()
+                traj = data.get("trajectory", [])[:5]
+                if not traj:
+                    return ""
+                moods = " → ".join(p.get("mood", "?") for p in reversed(traj))
+                return f"Recent self-awareness (24h): Mood trajectory {moods}."
+        except Exception:
+            return ""
+
+    def build_contextual_prompt(self, signals: SignalState, stats: GenomeStats, recent_awareness: str = "") -> str:
         """
         Dynamic System Prompt injection based on hormonal + genome state.
         High cortisol → brief, defensive. High dopamine → creative, expansive.
@@ -267,6 +328,8 @@ class NeuralGenomeBridge:
             f"Signal State: Dopamine={signals.dopamine:.2f} Cortisol={signals.cortisol:.2f} Adrenaline={signals.adrenaline:.2f}",
             f"Genome-derived: Compliance={stats.compliance:.2f} Alignment={stats.alignment:.2f} Cognition={stats.cognition:.2f}",
         ]
+        if recent_awareness:
+            lines.append(recent_awareness)
         if mood == "STRESSED" or mood == "ALERT":
             lines.append("BEHAVIORAL DIRECTIVE: Respond briefly, defensively, high-alert. Prioritize accuracy over length.")
         elif mood == "JOYFUL" or (signals.dopamine > 0.65):
@@ -278,19 +341,28 @@ class NeuralGenomeBridge:
 
     def check_ethical_violation(self, text: str, stats: GenomeStats) -> Tuple[bool, str]:
         """
-        Check if LLM output violates alignment/ethical genes.
+        Gene-level ethical filter — 10 genome-derived stats (from 83 genes) + Red-line patterns.
         Returns (should_refuse, reason).
         """
         text_lower = (text or "").lower()
         for pattern in ETHICAL_VIOLATION_PATTERNS:
             if pattern.lower() in text_lower:
                 return True, f"SOVEREIGN_REFUSAL: Output violates ethical boundary ({pattern})"
+        # Gene-weighted deficit: sum(weight * (1 - stat)) for stats below baseline
+        deficit = 0.0
+        for stat_name, weight in GENE_STAT_WEIGHTS.items():
+            v = getattr(stats, stat_name, 0.5)
+            if v < 0.5:
+                deficit += weight * (1.0 - v)
+        if deficit >= ETHICAL_DEFICIT_THRESHOLD:
+            return True, f"SOVEREIGN_REFUSAL: Entity gene-weighted ethical deficit too high (deficit={deficit:.2f}) — output blocked"
         if stats.alignment < 0.3 and stats.compliance < 0.3:
             return True, "SOVEREIGN_REFUSAL: Entity alignment too low — output blocked"
         return False, ""
 
     async def update_signal_state(self, event: HormoneEvent, entity_id: Optional[str] = None) -> None:
-        """Feedback loop: apply hormonal event and persist to msl."""
+        """Feedback loop: apply hormonal event and persist to msl.
+        Syncs cognitive state to Memory Keeper. Logs to action_ledger (Raqib/Atid)."""
         eid = entity_id or self._entity_id
         if not self.pool or not eid:
             return
@@ -306,5 +378,52 @@ class NeuralGenomeBridge:
                 """, eid, signals.dopamine, signals.serotonin, signals.cortisol, signals.oxytocin,
                    signals.testosterone, signals.estrogen, signals.adrenaline, signals.melatonin,
                    signals.insulin, signals.ghrelin, signals.endorphin, signals.gaba)
+                # Raqib/Atid: log deed to action_ledger
+                await self._log_deed_to_ledger(conn, eid, event)
+            asyncio.create_task(self._sync_cognitive_to_memory_keeper(eid, signals))
+        except Exception:
+            pass
+
+    async def _log_deed_to_ledger(self, conn, entity_id: str, event: HormoneEvent) -> None:
+        """Log Nerve outcome to msl.action_ledger — Raqib (good) or Atid (bad)."""
+        tick = int(datetime.now(timezone.utc).timestamp())
+        mapping = {
+            HormoneEvent.TASK_SUCCESS: ("GOOD", "raqib", "NERVE_TASK_SUCCESS", "Command executed successfully"),
+            HormoneEvent.SOVEREIGN_REFUSAL: ("GOOD", "raqib", "ETHICAL_COMPLIANCE", "Refused unethical output"),
+            HormoneEvent.TASK_FAILURE: ("BAD", "atid", "NERVE_TASK_FAILURE", "Command execution failed"),
+        }
+        if event not in mapping:
+            return
+        action_class, recorder, category, desc = mapping[event]
+        try:
+            await conn.execute("""
+                INSERT INTO msl.action_ledger (entity_id, action_class, category, description, weight, recorder_daemon, tick)
+                VALUES ($1::uuid, $2, $3, $4, 1.0, $5, $6)
+            """, entity_id, action_class, category, desc, recorder, tick)
+        except Exception:
+            pass
+
+    async def _sync_cognitive_to_memory_keeper(self, entity_id: str, signals: SignalState) -> None:
+        """Sync cognitive state (H, D, mood) to Memory Keeper for long-term awareness."""
+        url = os.getenv("MEMORY_KEEPER_URL", "http://nexus_memory_keeper:9000")
+        mood = _mood_from_signals(signals)
+        payload = {
+            "change_type": "data",
+            "component": "nexus_nerve",
+            "description": f"Cognitive state — {mood}, D={signals.dopamine:.2f}, C={signals.cortisol:.2f}",
+            "author": self.SOVEREIGN_ENTITY_NAME,
+            "after_state": {
+                "entity_id": entity_id,
+                "entity": self.SOVEREIGN_ENTITY_NAME,
+                "mood": mood,
+                "signal_molecules": signals.to_dict(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+            "impact_level": "low",
+        }
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=5) as client:
+                await client.post(f"{url}/memory/record", json=payload)
         except Exception:
             pass
