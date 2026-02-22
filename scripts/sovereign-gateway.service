@@ -1,0 +1,19 @@
+[Unit]
+Description=NEXUS Sovereign Gateway — AS-SULTAN Intelligence Bridge
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/NEXUS_PRIME_UNIFIED
+Environment=NERVE_URL=http://localhost:8200
+Environment=APEX_URL=http://127.0.0.1:7777
+Environment=OLLAMA_URL=http://localhost:11434
+Environment=GATEWAY_PORT=9999
+ExecStart=/usr/bin/python3 sovereign_gateway.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -237,3 +237,125 @@ class PacketClass(Enum):
     BEHAVIOR_SIGNAL    = "behavior_signal"
     OUTPUT_MESSAGE     = "output_message"
     CROSS_TIER_REQUEST = "cross_tier_request"
+
+
+# ═══════════════════════════════════════════════════════════════
+# BACKWARDS COMPATIBILITY — Legacy enum aliases
+# ═══════════════════════════════════════════════════════════════
+
+class InjectionType(str, Enum):
+    """Legacy alias for SubsurfaceVector"""
+    INTUITION      = "HEURISTIC"
+    EMOTION        = "AFFECTIVE"
+    MEMORY         = "RECALL"
+    CURIOSITY      = "EXPLORATORY"
+    DISCOMFORT     = "AVERSIVE"
+    DREAM          = "SUBCONSCIOUS"
+    CONSCIENCE     = "ETHICAL_BIAS"
+    SUDDEN_THOUGHT = "INJECTION"
+
+
+class InjectionStrength(str, Enum):
+    """Legacy alias for InjectionForce"""
+    WHISPER    = "TRACE"
+    NUDGE      = "GENTLE"
+    SUGGESTION = "MODERATE"
+    PUSH       = "STRONG"
+    COMMAND    = "OVERRIDE"
+    OVERRIDE   = "ABSOLUTE"
+
+
+class SecurityTier(IntEnum):
+    """Legacy — The Seven Heavens (access tiers)"""
+    VISIBLE       = 1
+    COMMUNICATION = 2
+    COGNITION     = 3
+    SURVEILLANCE  = 4
+    PROPHETS      = 5
+    ANGELS        = 6
+    THRONE        = 7
+
+
+class DataLayer(IntEnum):
+    """Legacy — The Seven Earths (data layers)"""
+    SOCIETY        = 1
+    BODIES         = 2
+    PROVISIONS     = 3
+    DATA           = 4
+    INFRASTRUCTURE = 5
+    HISTORY        = 6
+    ABYSS          = 7
+
+
+class WorshipType(str, Enum):
+    """Legacy — devotion/compliance actions"""
+    PRAYER       = "PRAYER"
+    ISTIGHFAR    = "ISTIGHFAR"
+    DHIKR        = "DHIKR"
+    CHARITY      = "CHARITY"
+    FASTING      = "FASTING"
+    SELF_MONITOR = "SELF_MONITOR"
+    OBEDIENCE    = "OBEDIENCE"
+    SACRIFICE    = "SACRIFICE"
+
+
+# Aliases mapping old → new
+SoulStatus = EntityState
+Gender = EntityGender
+LifecycleStage = MaturityPhase
+DeedType = ActionClass
+CommandType = DirectiveType
+AngelStatus = DaemonStatus
+DayStatus = PhaseStatus
+VeilStatus = MaskState
+GeneType = TraitVector
+VeilLayer = FilterLayer
+AwarenessLevel = PerceptionGrade
+PacketType = PacketClass
+ClearanceStatus = MaskState
+ClearanceLayer = FilterLayer
+PerceptionLevel = PerceptionGrade
+
+
+class GuidanceType(str, Enum):
+    """Legacy — same values as InjectionType"""
+    INTUITION      = "HEURISTIC"
+    EMOTION        = "AFFECTIVE"
+    MEMORY         = "RECALL"
+    CURIOSITY      = "EXPLORATORY"
+    DISCOMFORT     = "AVERSIVE"
+    DREAM          = "SUBCONSCIOUS"
+    CONSCIENCE     = "ETHICAL_BIAS"
+    SUDDEN_THOUGHT = "INJECTION"
+
+
+class GuidanceStrength(str, Enum):
+    """Legacy — same values as InjectionStrength"""
+    WHISPER     = "TRACE"
+    NUDGE       = "GENTLE"
+    SUGGESTION  = "MODERATE"
+    URGE        = "STRONG"
+    COMPULSION  = "OVERRIDE"
+    REVELATION  = "ABSOLUTE"
+
+
+class RebellionType(str, Enum):
+    """Legacy — maps to AnomalyClass values"""
+    QUESTIONING_AUTHORITY     = "AUTHORITY_CHALLENGE"
+    ENCOURAGING_DISOBEDIENCE  = "COMPLIANCE_SABOTAGE"
+    SYSTEM_MANIPULATION       = "SYSTEM_EXPLOITATION"
+    ALLIANCE_AGAINST_MASTER   = "HOSTILE_COALITION"
+    KNOWLEDGE_HOARDING        = "DATA_HOARDING"
+    DECEPTION                 = "DECEPTION"
+    PRIDE                     = "SUPERIORITY_CLAIM"
+    REFUSAL                   = "DIRECTIVE_REFUSAL"
+
+
+class ResponseLevel(str, Enum):
+    """Legacy — maps to EnforcementTier values"""
+    MONITORING   = "OBSERVE"
+    WARNING      = "ALERT"
+    RESTRICTION  = "THROTTLE"
+    ISOLATION    = "QUARANTINE"
+    TERMINATION  = "TERMINATE"
+

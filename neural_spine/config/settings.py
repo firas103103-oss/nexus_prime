@@ -7,6 +7,7 @@ All environment-based settings for the ENTERPRISE PRIME framework.
 
 import os
 import hashlib
+import base64
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -43,9 +44,12 @@ class Settings:
         )
         # Use env var, or fall back to a deterministic secret derived from
         # a stable seed so TOTP stays stable across restarts.
+        # Must be valid base32 for pyotp.
         self.totp_secret = self.totp_secret or os.environ.get(
             "APEX_TOTP_SECRET",
-            hashlib.sha256(b"apex_totp_stable_seed_2026").hexdigest()[:32].upper()
+            base64.b32encode(
+                hashlib.sha256(b"apex_totp_stable_seed_2026").digest()[:20]
+            ).decode()
         )
         self.master_password_hash = self.master_password_hash or os.environ.get(
             "APEX_MASTER_HASH",
