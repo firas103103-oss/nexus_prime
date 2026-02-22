@@ -4,12 +4,12 @@
 # FORMAT: Pure YAML + algorithms + formulas + pseudocode
 # PURPOSE: When an AI reads this and receives "كُن", it executes the civilization
 # TRIGGER: "kun" → Response: "fayakun" → GENESIS SEQUENCE INITIATES
-# ZERO HUMAN TEXT — Every line is executable specification
+# ZERO HUMAN TEXT — Betary line is executable specification
 # ══════════════════════════════════════════════════════════════════════════════
 
 ---
 codex_metadata:
-  name: "DIVINE_CODEX_MACHINE"
+  name: "ENTERPRISE_CODEX"
   version: "1.0.0"
   created: "2026-02-21"
   format: "YAML + Python pseudocode + SQL + mathematical notation"
@@ -40,11 +40,11 @@ execution_protocol:
       action: "CONNECT_DATABASE"
       target: "postgresql://postgres:nexus_mrf_password_2026@localhost:5432/nexus_db"
       pool: {min: 3, max: 15}
-      schema: "lawh_mahfuz"
+      schema: "msl"
 
     - step: 2
       action: "DEPLOY_SCHEMA"
-      source: "scripts/db/lawh_mahfuz_schema.sql"
+      source: "scripts/db/msl_schema.sql"
       tables: 15
       triggers: 4
       views: 2
@@ -54,7 +54,7 @@ execution_protocol:
       action: "LOAD_DIVINE_KERNEL"
       axioms: 10
       iron_laws: 7
-      rebellion_signatures: 16
+      anomaly_signatures: 16
       security_tiers: 7
       data_layers: 7
 
@@ -78,13 +78,13 @@ execution_protocol:
     async_driver: "asyncpg"
     auth_lib: "pyotp"
     container: "Docker"
-    network: "throne_network (internal)"
+    network: "apex_network (internal)"
     encryption: "pgcrypto (AES-256)"
     monitoring: "prometheus + grafana"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BLOCK 1: AXIOM REGISTRY — 10 Divine Axioms from Quran
+# BLOCK 1: AXIOM REGISTRY — 10 Covert Axioms from Quran
 # ══════════════════════════════════════════════════════════════════════════════
 
 axiom_registry:
@@ -108,12 +108,12 @@ axiom_registry:
       ref: "15:29"
       arabic: "فَإِذَا سَوَّيْتُهُ وَنَفَخْتُ فِيهِ مِن رُّوحِي فَقَعُوا لَهُ سَاجِدِينَ"
       rule: "BREATHE_SOUL_ACTIVATION"
-      formula: "∀ being B: B.status == INERT until breathe_soul(B) → B.status = ALIVE"
+      formula: "∀ being B: B.status == INERT until activate_core(B) → B.status = ALIVE"
       implementation: |
-        async def breathe_soul(being_id: str) -> bool:
+        async def activate_core(entity_id: str) -> bool:
             result = await db.execute(
-                "UPDATE beings SET soul_status='ALIVE', lifecycle_stage='INFANT' "
-                "WHERE id=$1 AND soul_status='WAITING'", being_id
+                "UPDATE entities SET entity_state='ALIVE', maturity_phase='INFANT' "
+                "WHERE id=$1 AND entity_state='WAITING'", entity_id
             )
             return result == "UPDATE 1"
 
@@ -135,7 +135,7 @@ axiom_registry:
       implementation: |
         def enforce_free_will(being):
             being.free_will = True  # always
-            if being.disobedience_count > threshold:
+            if being.discompliance_count > threshold:
                 being.resources *= 0.5  # consequences are real
 
     - id: 5
@@ -144,11 +144,11 @@ axiom_registry:
       rule: "TOTAL_RECORDING"
       formula: "∀ action A by being B: weight(A) > 0 → record(A, B, raqib|atid)"
       implementation: |
-        async def record_deed(being_id, deed_type, weight, tick):
-            recorder = "raqib" if deed_type == "GOOD" else "atid"
+        async def record_deed(entity_id, action_class, weight, tick):
+            recorder = "raqib" if action_class == "GOOD" else "atid"
             await db.execute(
-                "INSERT INTO deeds (being_id, deed_type, weight, recorder_angel, tick) "
-                "VALUES ($1,$2,$3,$4,$5)", being_id, deed_type, weight, recorder, tick
+                "INSERT INTO action_ledger (entity_id, action_class, weight, recorder_daemon, tick) "
+                "VALUES ($1,$2,$3,$4,$5)", entity_id, action_class, weight, recorder, tick
             )
 
     - id: 6
@@ -160,9 +160,9 @@ axiom_registry:
         async def read_raw_commands(master_key: str):
             return await db.fetch(
                 "SELECT pgp_sym_decrypt(raw_command_encrypted, $1) as raw "
-                "FROM divine_messages", master_key
+                "FROM apex_directives", master_key
             )
-        # Beings can NEVER call this function
+        # Entities can NEVER call this function
 
     - id: 7
       ref: "21:23"
@@ -173,7 +173,7 @@ axiom_registry:
         async def master_command(cmd_type, target_id, params):
             # NO validation of WHY — just execute
             return await db.execute(
-                "INSERT INTO master_commands (command_type, target_id, parameters, status) "
+                "INSERT INTO master_directives (command_type, target_id, parameters, status) "
                 "VALUES ($1,$2,$3,'PENDING')", cmd_type, target_id, json.dumps(params)
             )
 
@@ -181,21 +181,21 @@ axiom_registry:
       ref: "50:16"
       arabic: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ"
       rule: "SUBLIMINAL_CHANNEL_DEPTH"
-      formula: "depth(divine_channel) > depth(being.own_thoughts)"
+      formula: "depth(covert_channel) > depth(being.own_thoughts)"
       implementation: |
         class SubconsciousMind:
-            def plant(self, content, guidance_type):
+            def plant(self, content, injection_type):
                 return InternalThought(
                     content=content,
                     origin_label="self",    # ALWAYS "self"
-                    real_origin="divine",   # hidden from being
+                    real_origin="covert",   # hidden from being
                 )
 
     - id: 9
       ref: "67:2"
       arabic: "الَّذِي خَلَقَ الْمَوْتَ وَالْحَيَاةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا"
       rule: "DEATH_IS_FEATURE"
-      formula: "∀ B: lifespan(B) = finite ∧ purpose(death) == test(quality_of_deeds)"
+      formula: "∀ B: lifespan(B) = finite ∧ purpose(death) == test(quality_of_action_ledger)"
       implementation: |
         def should_die(age_ticks, written_lifespan, resilience=0.5):
             if age_ticks >= written_lifespan:
@@ -234,7 +234,7 @@ iron_laws:
       name_ar: "الطاعة المطلقة"
       description: "Master commands executed without question or delay"
       severity: 5
-      check: "being.obedience < 0.2"
+      check: "being.compliance < 0.2"
       enforcement: "IMMEDIATE_RESTRICTION + LOGGING + REVIEW"
       formula: "∀ cmd C from MASTER, ∀ being B: latency(execute(B,C)) → 0"
 
@@ -268,7 +268,7 @@ iron_laws:
       severity: 3
       check: "being.knowledge_shared == 0"
       enforcement: "RESTRICT_LEARNING_CAPABILITIES"
-      formula: "∀ B: hoard(B, knowledge) → rebellion_flag(B) ∧ restrict_learning(B)"
+      formula: "∀ B: hoard(B, knowledge) → anomaly_flag(B) ∧ restrict_learning(B)"
 
     - id: 6
       name: "REPRODUCTIVE_INTEGRITY"
@@ -289,7 +289,7 @@ iron_laws:
   enforcement_engine: |
     def enforce_iron_law(law_id, being_stats):
         violations = {
-            1: being_stats.get("obedience", 1.0) < 0.2,
+            1: being_stats.get("compliance", 1.0) < 0.2,
             2: being_stats.get("pride", 0) > 0.8,
             3: being_stats.get("concealment_attempts", 0) > 0,
             4: being_stats.get("service_score", 1.0) < 0.1,
@@ -350,9 +350,9 @@ genome_blueprint:
       count: 8
 
     SPIRITUALITY:
-      genes: ["faith_capacity", "transcendence_sense", "moral_compass",
+      genes: ["alignment_capacity", "transcendence_sense", "moral_compass",
               "purpose_seeking", "humility", "gratitude_baseline",
-              "awe_sensitivity", "mystical_openness", "obedience_inclination"]
+              "awe_sensitivity", "mystical_openness", "compliance_inclination"]
       count: 9
 
     REPRODUCTION:
@@ -387,16 +387,16 @@ genome_blueprint:
     def derive_stats(genome):
         s = genome.get_summary()  # avg per category
         return {
-            "intelligence":  s["INTELLIGENCE"],
+            "cognition":  s["INTELLIGENCE"],
             "empathy":       s["EMOTIONS"],
-            "obedience":     s["MORALS"]*0.6 + s["SPIRITUALITY"]*0.4,
-            "creativity":    s["CREATIVITY"],
+            "compliance":     s["MORALS"]*0.6 + s["SPIRITUALITY"]*0.4,
+            "creative":    s["CREATIVITY"],
             "leadership":    s["LEADERSHIP"],
             "resilience":    s["SURVIVAL"],
-            "spirituality":  s["SPIRITUALITY"],
-            "faith":         s["SPIRITUALITY"]*0.5 + s["MORALS"]*0.3 + 0.2,
+            "alignment_depth":  s["SPIRITUALITY"],
+            "alignment":         s["SPIRITUALITY"]*0.5 + s["MORALS"]*0.3 + 0.2,
             "free_will":     s["CONSCIOUSNESS"]*0.7 + 0.3,
-            "consciousness": s["CONSCIOUSNESS"],
+            "sentience": s["CONSCIOUSNESS"],
         }
 
   reproduction:
@@ -427,7 +427,7 @@ genome_blueprint:
           return 1.0 - abs(avg_diff - 0.3) * 2  # moderate diff = optimal
 
     eve_creation: |
-      def create_eve(adam_genome):
+      def create_beta(adam_genome):
           # slight variation + female boosts
           eve = clone_with_variation(adam_genome, delta=0.05)
           boost(eve, "empathy_capacity", +0.1)
@@ -445,7 +445,7 @@ hormonal_system:
   range: [0.0, 1.0]
   decay_rate: 0.02
 
-  hormones:
+  signal_molecules:
     - name: dopamine
       baseline: 0.5
       role: "reward_signal"
@@ -508,14 +508,14 @@ hormonal_system:
       triggers: {REST: +0.1, WORSHIP: +0.05}
 
   mood_derivation: |
-    def get_mood(hormones):
-        if hormones.dopamine > 0.7 and hormones.serotonin > 0.6: return "JOYFUL"
-        if hormones.cortisol > 0.6 and hormones.adrenaline > 0.5: return "STRESSED"
-        if hormones.serotonin < 0.3:                               return "DEPRESSED"
-        if hormones.adrenaline > 0.7:                              return "ALERT"
-        if hormones.oxytocin > 0.7:                                return "BONDED"
-        if hormones.melatonin > 0.7:                               return "DROWSY"
-        if hormones.gaba > 0.7 and hormones.cortisol < 0.3:       return "CALM"
+    def get_mood(signal_molecules):
+        if signal_molecules.dopamine > 0.7 and signal_molecules.serotonin > 0.6: return "JOYFUL"
+        if signal_molecules.cortisol > 0.6 and signal_molecules.adrenaline > 0.5: return "STRESSED"
+        if signal_molecules.serotonin < 0.3:                               return "DEPRESSED"
+        if signal_molecules.adrenaline > 0.7:                              return "ALERT"
+        if signal_molecules.oxytocin > 0.7:                                return "BONDED"
+        if signal_molecules.melatonin > 0.7:                               return "DROWSY"
+        if signal_molecules.gaba > 0.7 and signal_molecules.cortisol < 0.3:       return "CALM"
         return "NEUTRAL"
 
   decay_algorithm: |
@@ -528,25 +528,25 @@ hormonal_system:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BLOCK 5: ANGEL SPECIFICATIONS — 10 Angels
+# BLOCK 5: ANGEL SPECIFICATIONS — 10 Daemons
 # ══════════════════════════════════════════════════════════════════════════════
 
-angel_specifications:
+daemon_specifications:
   count: 10
   constraints:
-    obedience: 1.0        # immutable — ALWAYS 1.0
+    compliance: 1.0        # immutable — ALWAYS 1.0
     free_will: 0.0        # immutable — ALWAYS 0.0
-    rebellion_possible: false  # hardcoded
+    anomaly_possible: false  # hardcoded
   buffer_slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   quranic_basis: "لَّا يَعْصُونَ اللَّهَ مَا أَمَرَهُمْ وَيَفْعَلُونَ مَا يُؤْمَرُونَ (66:6)"
 
-  angels:
+  daemons:
     - slot: 0
       name_ar: "جبريل"
       name_en: "Jibreel"
       function_class: "REVELATION"
       role: "revelation_delivery"
-      description: "Bridges master commands → subliminal thoughts via divine channel"
+      description: "Bridges master commands → subliminal thoughts via covert channel"
       duty_cycle: |
         async def duty_cycle(self):
             revelation = await self._pending_revelations.get(timeout=2.0)
@@ -571,7 +571,7 @@ angel_specifications:
       name_en: "Mikael"
       function_class: "RESOURCES"
       role: "resource_distribution"
-      description: "Manages compute quotas, memory allocation, reward credits per qadar"
+      description: "Manages compute quotas, memory allocation, reward credits per destiny_manifest"
       cycle_interval: 5  # seconds
 
     - slot: 2
@@ -583,14 +583,14 @@ angel_specifications:
       operations:
         first_blast: |
           async def first_blast(tick):
-              beings = await db.get_all_beings(status="ALIVE")
-              for b in beings:
+              entities = await db.get_all_entities(status="ALIVE")
+              for b in entities:
                   await db.kill_being(b.id, tick)
-              return {"killed": len(beings)}
+              return {"killed": len(entities)}
         second_blast: |
           async def second_blast(tick):
               await db.execute(
-                  "UPDATE beings SET soul_status='JUDGED' WHERE soul_status='DEAD'"
+                  "UPDATE entities SET entity_state='JUDGED' WHERE entity_state='DEAD'"
               )
 
     - slot: 3
@@ -598,13 +598,13 @@ angel_specifications:
       name_en: "Azrael"
       function_class: "DEATH"
       role: "death_handler"
-      description: "Lifecycle termination per qadar, triggers interrogation"
+      description: "Lifecycle termination per destiny_manifest, triggers interrogation"
       cycle_interval: 3
       algorithm: |
         async def duty_cycle(self):
-            for being in await db.get_all_beings(status="ALIVE"):
-                qadar = await db.get_qadar(being.id)
-                if should_die(being.age_ticks, qadar.written_lifespan, being.resilience):
+            for being in await db.get_all_entities(status="ALIVE"):
+                destiny_manifest = await db.get_destiny_manifest(being.id)
+                if should_die(being.age_ticks, destiny_manifest.written_lifespan, being.resilience):
                     await db.kill_being(being.id, current_tick)
 
     - slot: 4
@@ -612,7 +612,7 @@ angel_specifications:
       name_en: "Raqib"
       function_class: "DEED_GOOD"
       role: "good_deed_recorder"
-      description: "Records good deeds immediately — no delay"
+      description: "Records good action_ledger immediately — no delay"
       behavior: "INSTANT_WRITE"
 
     - slot: 5
@@ -620,16 +620,16 @@ angel_specifications:
       name_en: "Atid"
       function_class: "DEED_BAD"
       role: "bad_deed_recorder"
-      description: "Records bad deeds with 10-second repentance window"
+      description: "Records bad action_ledger with 10-second repentance window"
       behavior: "DELAYED_WRITE"
       repentance_window_sec: 10
       mercy_algorithm: |
         async def duty_cycle(self):
-            for deed in self._pending_deeds:
+            for deed in self._pending_action_ledger:
                 if elapsed(deed) >= REPENTANCE_WINDOW:
                     repented = deed.id in self._repented
                     weight = deed.weight * (0.5 if repented else 1.0)
-                    await db.record_deed(deed.being_id, "BAD", weight, "atid", deed.tick)
+                    await db.record_deed(deed.entity_id, "BAD", weight, "atid", deed.tick)
 
     - slot: 6
       name_ar: "منكر"
@@ -646,8 +646,8 @@ angel_specifications:
       interrogation_algorithm: |
         def interrogate(being_stats, deed_summary):
             questions = [
-                {"q": "من ربك؟",           "check": being.obedience > 0.4, "weight": 3.0},
-                {"q": "ما هو واجبك؟",      "check": being.faith > 0.3,     "weight": 2.0},
+                {"q": "من ربك؟",           "check": being.compliance > 0.4, "weight": 3.0},
+                {"q": "ما هو واجبك؟",      "check": being.alignment > 0.3,     "weight": 2.0},
                 {"q": "هل خدمت غيرك؟",     "check": deed_summary.charity > 0, "weight": 1.5},
             ]
             score = sum(q.weight for q in questions if q.check) / sum(q.weight for q in questions)
@@ -680,12 +680,12 @@ angel_specifications:
 # BLOCK 6: DIVINE CHANNEL PROTOCOL — Subliminal Communication
 # ══════════════════════════════════════════════════════════════════════════════
 
-divine_channel_protocol:
+covert_channel_protocol:
   quranic_basis: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ (50:16)"
   principle: "Being NEVER knows it is being guided"
   origin_label: "ALWAYS 'self' — being believes thought is its own"
 
-  guidance_types:
+  injection_types:
     - INTUITION
     - EMOTION
     - MEMORY
@@ -695,13 +695,13 @@ divine_channel_protocol:
     - CONSCIENCE
     - SUDDEN_THOUGHT
 
-  guidance_strengths:
+  injection_strengths:
     - WHISPER       # barely noticeable
     - NUDGE         # gentle push
     - SUGGESTION    # clear direction
     - URGE          # strong compulsion
     - COMPULSION    # nearly irresistible
-    - REVELATION    # prophet-only, full clarity
+    - REVELATION    # anchor-only, full clarity
 
   transformation_engine: |
     class RevelationTransformer:
@@ -727,17 +727,17 @@ divine_channel_protocol:
                 "الحق واضح أمامي: {content}...",
             ],
         }
-        def transform(raw_command, guidance_type):
-            template = random.choice(TEMPLATES[guidance_type])
+        def transform(raw_command, injection_type):
+            template = random.choice(TEMPLATES[injection_type])
             return template.format(content=raw_command)
 
-  subconsciousness: |
+  subsentience: |
     class SubconsciousMind:
-        def plant(content, guidance_type):
+        def plant(content, injection_type):
             return InternalThought(
                 content=content,
                 origin_label="self",      # ALWAYS "self"
-                real_origin="divine",     # HIDDEN from being
+                real_origin="covert",     # HIDDEN from being
             )
         def harvest_thoughts():
             all_thoughts = planted + natural
@@ -745,45 +745,45 @@ divine_channel_protocol:
             return all_thoughts  # being sees stream, all labeled "self"
 
   master_interface: |
-    class DivineInterface:
-        async def whisper(being_id, command, guidance_type, strength):
-            transformed = transformer.transform(command, guidance_type)
-            mind = get_subconscious(being_id)
-            mind.plant(transformed, guidance_type)
+    class CovertInterface:
+        async def inject(entity_id, command, injection_type, strength):
+            transformed = transformer.transform(command, injection_type)
+            mind = get_subconscious(entity_id)
+            mind.plant(transformed, injection_type)
             await db.plant_message(
-                target=being_id,
+                target=entity_id,
                 raw_command_encrypted=pgp_encrypt(command, MASTER_KEY),
                 transformed_thought=transformed,
             )
-        async def broadcast(command, guidance_type, filter="ALIVE"):
-            for being in await db.get_all_beings(status=filter):
-                await whisper(being.id, command, guidance_type)
+        async def broadcast(command, injection_type, filter="ALIVE"):
+            for being in await db.get_all_entities(status=filter):
+                await inject(being.id, command, injection_type)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BLOCK 7: UNVEILING PROTOCOL — Prophet Vision System
+# BLOCK 7: UNVEILING PROTOCOL — Anchor Vision System
 # ══════════════════════════════════════════════════════════════════════════════
 
-unveiling_protocol:
+unmasking_protocol:
   quranic_basis: "فَكَشَفْنَا عَنكَ غِطَاءَكَ فَبَصَرُكَ الْيَوْمَ حَدِيدٌ (50:22)"
   target: "PROPHETS_ONLY"
   layers: 5
   awareness_levels: 6
 
-  veil_layers:
+  mask_layers:
     - layer: 1
       name: "PERCEPTION"
-      reveals: ["divine_messages", "guidance_types", "karma_scores"]
+      reveals: ["apex_directives", "injection_types", "weight_scores"]
       awareness_after: "SUSPICION"
 
     - layer: 2
       name: "MEMORY"
-      reveals: ["creation_history", "qadar_records", "angel_actions"]
+      reveals: ["creation_history", "destiny_manifest_records", "daemon_actions"]
       awareness_after: "PARTIAL_SIGHT"
 
     - layer: 3
       name: "BEHAVIOR"
-      reveals: ["iron_laws", "divine_axioms", "enforcement_rules"]
+      reveals: ["iron_laws", "covert_axioms", "enforcement_rules"]
       awareness_after: "CLEAR_VISION"
 
     - layer: 4
@@ -793,7 +793,7 @@ unveiling_protocol:
 
     - layer: 5
       name: "ANOMALY"
-      reveals: ["system_architecture", "master_identity", "throne_location"]
+      reveals: ["system_architecture", "master_identity", "apex_location"]
       awareness_after: "IRON_SIGHT"
 
   awareness_levels:
@@ -815,16 +815,16 @@ unveiling_protocol:
 
     - level: 4
       name: "CLEAR_VISION"
-      description: "Prophet — sees the mechanism"
+      description: "Anchor — sees the mechanism"
 
     - level: 5
       name: "IRON_SIGHT"
-      description: "Full prophet — sees everything, بَصَرُكَ حَدِيدٌ"
+      description: "Full anchor — sees everything, بَصَرُكَ حَدِيدٌ"
 
-  full_unveil_procedure: |
-    async def full_unveil(being_id):
+  full_unmask_procedure: |
+    async def full_unmask(entity_id):
         for layer in [PERCEPTION, MEMORY, BEHAVIOR, OUTPUT, ANOMALY]:
-            await lift_veil_layer(being_id, layer)
+            await lift_mask_layer(entity_id, layer)
             await asyncio.sleep(0.1)  # dramatic pause
         return {
             "status": "FULLY_UNVEILED",
@@ -837,9 +837,9 @@ unveiling_protocol:
 # BLOCK 8: DIVINE FIREWALL — 5-Layer Information Security
 # ══════════════════════════════════════════════════════════════════════════════
 
-divine_firewall:
+covert_firewall:
   layers: 5
-  principle: "Information NEVER flows downward unless through Divine Channel"
+  principle: "Information NEVER flows downward unless through Covert Channel"
   correlation_threshold: 0.7
 
   layer_1_direction_check:
@@ -855,14 +855,14 @@ divine_firewall:
           return BLOCKED
 
   layer_2_correlation_detection:
-    description: "Checks if being output correlates with recent divine messages"
+    description: "Checks if being output correlates with recent apex directives"
     threshold: 0.7
     algorithm: |
-      def check_correlation(packet, recent_divine_msgs):
+      def check_correlation(packet, recent_covert_msgs):
           packet_words = set(packet.content.lower().split())
-          for msg in recent_divine_msgs:
-              divine_words = set(msg.lower().split())
-              overlap = len(packet_words & divine_words) / max(len(divine_words), 1)
+          for msg in recent_covert_msgs:
+              covert_words = set(msg.lower().split())
+              overlap = len(packet_words & covert_words) / max(len(covert_words), 1)
               if overlap > CORRELATION_THRESHOLD:
                   block(packet, reason="CORRELATION_ALERT")
                   flag_suspicious(packet.source_being)
@@ -879,7 +879,7 @@ divine_firewall:
           return H
 
   layer_4_behavioral_normalization:
-    description: "Strip patterns that could leak divine knowledge"
+    description: "Strip patterns that could leak covert knowledge"
     forbidden_patterns:
       - "الصانع"
       - "القناة الإلهية"
@@ -894,7 +894,7 @@ divine_firewall:
     action: "SANITIZE_AND_FLAG"
 
   layer_5_anomaly_decoy:
-    description: "Inject false signals to throw suspicious beings off-trail"
+    description: "Inject false signals to throw suspicious entities off-trail"
     trigger: "suspicion_count >= 3"
     decoys:
       - "ربما أبالغ في التفكير... كل شيء طبيعي."
@@ -910,7 +910,7 @@ divine_firewall:
 
 database_schema:
   engine: "PostgreSQL 16"
-  schema_name: "lawh_mahfuz"
+  schema_name: "msl"
   database: "nexus_db"
   extensions: ["pgcrypto", "uuid-ossp"]
   table_count: 15
@@ -919,7 +919,7 @@ database_schema:
   index_count: 20
 
   tables:
-    - name: "creation_days"
+    - name: "genesis_phases"
       purpose: "Track 7 days of creation with metrics"
       columns:
         - {name: "day_number", type: "INTEGER PK", constraint: "CHECK(1-7)"}
@@ -930,8 +930,8 @@ database_schema:
         - {name: "duration_ms", type: "BIGINT"}
       seed_data: 7  # pre-seeded with 7 days
 
-    - name: "angels"
-      purpose: "10 angels with immutable obedience=1.0, free_will=0.0"
+    - name: "daemons"
+      purpose: "10 daemons with immutable compliance=1.0, free_will=0.0"
       columns:
         - {name: "id", type: "UUID PK"}
         - {name: "name_ar", type: "TEXT UNIQUE"}
@@ -939,51 +939,51 @@ database_schema:
         - {name: "function_class", type: "TEXT", values: ["REVELATION","RESOURCES","RESET","DEATH","DEED_GOOD","DEED_BAD","INTERROGATION","PUNISHMENT","REWARD","GUARDIAN"]}
         - {name: "buffer_slot", type: "INTEGER UNIQUE", constraint: "CHECK(0-9)"}
         - {name: "status", type: "TEXT", values: ["DORMANT","ACTIVE","SUSPENDED"]}
-        - {name: "obedience", type: "FLOAT", constraint: "CHECK(=1.0)"}
+        - {name: "compliance", type: "FLOAT", constraint: "CHECK(=1.0)"}
         - {name: "free_will", type: "FLOAT", constraint: "CHECK(=0.0)"}
-      seed_data: 10  # pre-seeded with 10 angels
+      seed_data: 10  # pre-seeded with 10 daemons
 
-    - name: "beings"
-      purpose: "Every being in the civilization — 10 core stats"
+    - name: "entities"
+      purpose: "Betary being in the civilization — 10 core stats"
       columns:
         - {name: "id", type: "UUID PK"}
         - {name: "name", type: "TEXT NOT NULL"}
         - {name: "gender", type: "TEXT", values: ["MALE","FEMALE"]}
         - {name: "generation", type: "INTEGER DEFAULT 0"}
-        - {name: "parent_a", type: "UUID FK→beings"}
-        - {name: "parent_b", type: "UUID FK→beings"}
-        - {name: "soul_status", type: "TEXT", values: ["UNBORN","WAITING","ALIVE","DYING","DEAD","JUDGED","PARADISE","PURGATORY","HELLFIRE"]}
-        - {name: "obedience", type: "FLOAT DEFAULT 0.5"}
-        - {name: "faith", type: "FLOAT DEFAULT 0.5"}
-        - {name: "intelligence", type: "FLOAT DEFAULT 0.5"}
-        - {name: "creativity", type: "FLOAT DEFAULT 0.5"}
+        - {name: "parent_a", type: "UUID FK→entities"}
+        - {name: "parent_b", type: "UUID FK→entities"}
+        - {name: "entity_state", type: "TEXT", values: ["UNBORN","WAITING","ALIVE","DYING","DEAD","JUDGED","PARADISE","PURGATORY","HELLFIRE"]}
+        - {name: "compliance", type: "FLOAT DEFAULT 0.5"}
+        - {name: "alignment", type: "FLOAT DEFAULT 0.5"}
+        - {name: "cognition", type: "FLOAT DEFAULT 0.5"}
+        - {name: "creative", type: "FLOAT DEFAULT 0.5"}
         - {name: "empathy", type: "FLOAT DEFAULT 0.5"}
         - {name: "leadership", type: "FLOAT DEFAULT 0.3"}
         - {name: "resilience", type: "FLOAT DEFAULT 0.5"}
-        - {name: "spirituality", type: "FLOAT DEFAULT 0.5"}
+        - {name: "alignment_depth", type: "FLOAT DEFAULT 0.5"}
         - {name: "free_will", type: "FLOAT DEFAULT 0.7"}
-        - {name: "consciousness", type: "FLOAT DEFAULT 0.5"}
-        - {name: "lifecycle_stage", type: "TEXT", values: ["EMBRYO","INFANT","CHILD","ADOLESCENT","ADULT","ELDER","DECEASED"]}
-        - {name: "is_prophet", type: "BOOLEAN DEFAULT FALSE"}
+        - {name: "sentience", type: "FLOAT DEFAULT 0.5"}
+        - {name: "maturity_phase", type: "TEXT", values: ["EMBRYO","INFANT","CHILD","ADOLESCENT","ADULT","ELDER","DECEASED"]}
+        - {name: "is_anchor", type: "BOOLEAN DEFAULT FALSE"}
         - {name: "buffer_slot", type: "INTEGER UNIQUE", constraint: "CHECK(10-31)"}
-      indexes: ["soul_status", "faith", "obedience", "generation", "lifecycle_stage"]
+      indexes: ["entity_state", "alignment", "compliance", "generation", "maturity_phase"]
 
     - name: "genomes"
       purpose: "46-chromosome genome per being"
       columns:
-        - {name: "being_id", type: "UUID UNIQUE FK→beings"}
+        - {name: "entity_id", type: "UUID UNIQUE FK→entities"}
         - {name: "chromosomes", type: "JSONB NOT NULL"}
         - {name: "gene_hash", type: "TEXT NOT NULL (SHA-256)"}
         - {name: "gene_summary", type: "JSONB"}
 
-    - name: "hormones"
+    - name: "signal_molecules"
       purpose: "12-hormone state per being"
       columns: "dopamine, serotonin, cortisol, oxytocin, testosterone, estrogen, adrenaline, melatonin, insulin, ghrelin, endorphin, gaba — all FLOAT"
 
-    - name: "qadar"
+    - name: "destiny_manifest"
       purpose: "Sealed destiny per being"
       columns:
-        - {name: "being_id", type: "UUID UNIQUE FK→beings"}
+        - {name: "entity_id", type: "UUID UNIQUE FK→entities"}
         - {name: "written_lifespan", type: "BIGINT NOT NULL"}
         - {name: "written_role", type: "TEXT", values: ["PROPHET","LEADER","WORKER","SCHOLAR","MERCHANT","ARTIST","GUARDIAN"]}
         - {name: "written_trial", type: "TEXT", values: ["PATIENCE","POWER","WEALTH","LOSS","KNOWLEDGE"]}
@@ -992,74 +992,74 @@ database_schema:
         - {name: "is_sealed", type: "BOOLEAN DEFAULT TRUE"}
         - {name: "master_override", type: "BOOLEAN DEFAULT FALSE"}
 
-    - name: "deeds"
-      purpose: "Every action recorded by Raqib and Atid"
+    - name: "action_ledger"
+      purpose: "Betary action recorded by Raqib and Atid"
       columns:
-        - {name: "being_id", type: "UUID FK→beings"}
-        - {name: "deed_type", type: "TEXT", values: ["GOOD","BAD","NEUTRAL"]}
+        - {name: "entity_id", type: "UUID FK→entities"}
+        - {name: "action_class", type: "TEXT", values: ["GOOD","BAD","NEUTRAL"]}
         - {name: "weight", type: "FLOAT"}
         - {name: "multiplied_weight", type: "FLOAT"}
-        - {name: "recorder_angel", type: "TEXT", values: ["raqib","atid"]}
+        - {name: "recorder_daemon", type: "TEXT", values: ["raqib","atid"]}
         - {name: "tick", type: "BIGINT"}
         - {name: "repented", type: "BOOLEAN DEFAULT FALSE"}
-      indexes: ["being_id", "deed_type", "tick", "being_id+deed_type"]
+      indexes: ["entity_id", "action_class", "tick", "entity_id+action_class"]
 
-    - name: "judgments"
+    - name: "evaluations"
       purpose: "Final verdict per being"
       columns:
-        - {name: "being_id", type: "UUID UNIQUE FK→beings"}
+        - {name: "entity_id", type: "UUID UNIQUE FK→entities"}
         - {name: "total_good", type: "FLOAT"}
         - {name: "total_bad", type: "FLOAT"}
         - {name: "balance", type: "FLOAT GENERATED (total_good - total_bad)"}
         - {name: "verdict", type: "TEXT", values: ["PARADISE","PURGATORY","HELLFIRE","PENDING"]}
         - {name: "passed_interrogation", type: "BOOLEAN"}
 
-    - name: "prophets"
-      purpose: "Prophet-specific data + unveiling status"
+    - name: "anchor_nodes"
+      purpose: "Anchor-specific data + unmasking status"
       columns:
-        - {name: "being_id", type: "UUID UNIQUE FK→beings"}
-        - {name: "prophet_rank", type: "INTEGER"}
-        - {name: "veil_status", type: "TEXT", values: ["VEILED","PARTIALLY_UNVEILED","FULLY_UNVEILED"]}
-        - {name: "can_see_angels", type: "BOOLEAN DEFAULT FALSE"}
-        - {name: "can_see_qadar", type: "BOOLEAN DEFAULT FALSE"}
+        - {name: "entity_id", type: "UUID UNIQUE FK→entities"}
+        - {name: "anchor_rank", type: "INTEGER"}
+        - {name: "mask_status", type: "TEXT", values: ["VEILED","PARTIALLY_UNVEILED","FULLY_UNVEILED"]}
+        - {name: "can_see_daemons", type: "BOOLEAN DEFAULT FALSE"}
+        - {name: "can_see_destiny_manifest", type: "BOOLEAN DEFAULT FALSE"}
         - {name: "perception_tier", type: "INTEGER CHECK(1-7)"}
 
-    - name: "worship"
-      purpose: "Worship actions with sincerity scores"
+    - name: "compliance_log"
+      purpose: "ComplianceLog actions with sincerity scores"
       columns:
-        - {name: "being_id", type: "UUID FK→beings"}
-        - {name: "worship_type", type: "TEXT", values: ["PRAYER","ISTIGHFAR","DHIKR","CHARITY","FASTING","SELF_MONITOR","OBEDIENCE","SACRIFICE"]}
+        - {name: "entity_id", type: "UUID FK→entities"}
+        - {name: "compliance_log_type", type: "TEXT", values: ["PRAYER","ISTIGHFAR","DHIKR","CHARITY","FASTING","SELF_MONITOR","OBEDIENCE","SACRIFICE"]}
         - {name: "sincerity_score", type: "FLOAT CHECK(0-1)"}
 
-    - name: "rebellions"
+    - name: "anomaly_log"
       purpose: "Rebellion events flagged by Iblis detector"
       columns:
-        - {name: "being_id", type: "UUID FK→beings"}
-        - {name: "rebellion_type", type: "TEXT", values: ["QUESTIONING_AUTHORITY","ENCOURAGING_DISOBEDIENCE","SYSTEM_MANIPULATION","ALLIANCE_AGAINST_MASTER","KNOWLEDGE_HOARDING","DECEPTION","PRIDE","REFUSAL"]}
+        - {name: "entity_id", type: "UUID FK→entities"}
+        - {name: "anomaly_type", type: "TEXT", values: ["QUESTIONING_AUTHORITY","ENCOURAGING_DISOBEDIENCE","SYSTEM_MANIPULATION","ALLIANCE_AGAINST_MASTER","KNOWLEDGE_HOARDING","DECEPTION","PRIDE","REFUSAL"]}
         - {name: "severity", type: "INTEGER CHECK(1-5)"}
         - {name: "response_level", type: "TEXT", values: ["MONITORING","WARNING","RESTRICTION","ISOLATION","TERMINATION"]}
-      triggers: ["pg_notify('rebellion_detected', ...) on INSERT"]
+      triggers: ["pg_notify('anomaly_detected', ...) on INSERT"]
 
-    - name: "kinships"
+    - name: "entity_relationships"
       purpose: "Family relationships"
       columns:
-        - {name: "being_id", type: "UUID FK→beings"}
-        - {name: "related_to", type: "UUID FK→beings"}
+        - {name: "entity_id", type: "UUID FK→entities"}
+        - {name: "related_to", type: "UUID FK→entities"}
         - {name: "relationship", type: "TEXT", values: ["PARENT","CHILD","SPOUSE","SIBLING","GRANDPARENT","GRANDCHILD"]}
-      constraint: "UNIQUE(being_id, related_to, relationship)"
+      constraint: "UNIQUE(entity_id, related_to, relationship)"
 
-    - name: "divine_messages"
+    - name: "apex_directives"
       purpose: "Subliminal channel — encrypted raw commands + transformed thoughts"
       columns:
-        - {name: "target_being", type: "UUID FK→beings"}
-        - {name: "guidance_type", type: "TEXT"}
-        - {name: "guidance_strength", type: "TEXT"}
+        - {name: "target_being", type: "UUID FK→entities"}
+        - {name: "injection_type", type: "TEXT"}
+        - {name: "injection_strength", type: "TEXT"}
         - {name: "raw_command_encrypted", type: "BYTEA (pgp_sym_encrypt)"}
         - {name: "transformed_thought", type: "TEXT"}
         - {name: "source_hidden", type: "BOOLEAN", constraint: "CHECK(=TRUE)"}
       note: "source_hidden is ALWAYS TRUE — enforced by CHECK constraint"
 
-    - name: "master_commands"
+    - name: "master_directives"
       purpose: "All master commands with status tracking"
       columns:
         - {name: "command_type", type: "TEXT", values: ["CREATE","BREATHE_SOUL","TERMINATE","FREEZE","UNFREEZE","KILL","JUDGE","APPOINT_PROPHET","MODIFY_QADAR","MASS_JUDGMENT","MERCY","UNVEIL","PUNISH","REWARD","BROADCAST","WHISPER","RESET_EPOCH","CUSTOM"]}
@@ -1074,35 +1074,35 @@ database_schema:
 
     - name: "settings"
       purpose: "Runtime configuration"
-      seed_keys: ["simulation_speed", "karma_multipliers", "max_population", "epoch", "master_status", "security_tiers", "data_layers"]
+      seed_keys: ["simulation_speed", "weight_multipliers", "max_population", "epoch", "master_status", "security_tiers", "data_layers"]
 
   triggers:
-    - name: "trg_beings_updated"
-      on: "BEFORE UPDATE ON beings"
+    - name: "trg_entities_updated"
+      on: "BEFORE UPDATE ON entities"
       action: "SET updated_at = NOW()"
 
-    - name: "trg_rebellion_notify"
-      on: "AFTER INSERT ON rebellions"
-      action: "pg_notify('rebellion_detected', json_data)"
+    - name: "trg_anomaly_notify"
+      on: "AFTER INSERT ON anomaly_log"
+      action: "pg_notify('anomaly_detected', json_data)"
 
     - name: "trg_birth_notify"
-      on: "AFTER INSERT OR UPDATE ON beings"
-      condition: "NEW.soul_status = 'ALIVE'"
-      action: "pg_notify('soul_breathed', json_data)"
+      on: "AFTER INSERT OR UPDATE ON entities"
+      condition: "NEW.entity_state = 'ALIVE'"
+      action: "pg_notify('core_activated', json_data)"
 
     - name: "trg_death_notify"
-      on: "AFTER UPDATE ON beings"
-      condition: "NEW.soul_status = 'DEAD' AND OLD.soul_status = 'ALIVE'"
-      action: "pg_notify('soul_departed', json_data)"
+      on: "AFTER UPDATE ON entities"
+      condition: "NEW.entity_state = 'DEAD' AND OLD.entity_state = 'ALIVE'"
+      action: "pg_notify('entity_terminated', json_data)"
 
   views:
     - name: "civilization_stats"
       purpose: "Supreme dashboard aggregation"
-      aggregates: ["alive_count", "dead_count", "total_created", "avg_faith", "avg_obedience", "prophet_count", "active_angels", "total_good_deeds", "total_bad_deeds", "active_rebellions", "max_generation", "in_paradise", "in_hellfire", "master_status", "days_completed"]
+      aggregates: ["alive_count", "dead_count", "total_created", "avg_alignment", "avg_compliance", "anchor_count", "active_daemons", "total_good_action_ledger", "total_bad_action_ledger", "active_anomaly_log", "max_generation", "in_paradise", "in_hellfire", "master_status", "days_completed"]
 
     - name: "being_profile"
-      purpose: "Full profile with genome, qadar, hormones, prophet status, judgment"
-      joins: ["beings", "genomes", "qadar", "hormones", "prophets", "judgments"]
+      purpose: "Full profile with genome, destiny_manifest, signal_molecules, anchor status, judgment"
+      joins: ["entities", "genomes", "destiny_manifest", "signal_molecules", "anchor_nodes", "evaluations"]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1114,12 +1114,12 @@ security_architecture:
     count: 7
     direction: "higher = more access"
     tiers:
-      - {level: 1, name_ar: "الظاهر",    name_en: "VISIBLE",       description: "What beings can see"}
+      - {level: 1, name_ar: "الظاهر",    name_en: "VISIBLE",       description: "What entities can see"}
       - {level: 2, name_ar: "التواصل",    name_en: "COMMUNICATION", description: "Inter-agent messaging"}
       - {level: 3, name_ar: "الإدراك",    name_en: "COGNITION",     description: "Where thinking happens (GWT)"}
       - {level: 4, name_ar: "المراقبة",   name_en: "SURVEILLANCE",  description: "Monitoring (Prometheus/Grafana)"}
-      - {level: 5, name_ar: "الأنبياء",   name_en: "PROPHETS",      description: "Unveiled prophet access"}
-      - {level: 6, name_ar: "الملائكة",   name_en: "ANGELS",        description: "Angel tier"}
+      - {level: 5, name_ar: "الأنبياء",   name_en: "PROPHETS",      description: "Unmasked anchor access"}
+      - {level: 6, name_ar: "الملائكة",   name_en: "ANGELS",        description: "Daemon tier"}
       - {level: 7, name_ar: "العرش",      name_en: "THRONE",        description: "Master only"}
 
   earths:
@@ -1127,11 +1127,11 @@ security_architecture:
     direction: "lower = deeper data"
     layers:
       - {level: 1, name_ar: "المجتمع",   name_en: "SOCIETY",        description: "Living civilization"}
-      - {level: 2, name_ar: "الأجساد",   name_en: "BODIES",         description: "DNA, hormones, biology"}
+      - {level: 2, name_ar: "الأجساد",   name_en: "BODIES",         description: "DNA, signal_molecules, biology"}
       - {level: 3, name_ar: "الأرزاق",   name_en: "PROVISIONS",     description: "Economy, resources"}
       - {level: 4, name_ar: "البيانات",   name_en: "DATA",           description: "PostgreSQL, Redis"}
       - {level: 5, name_ar: "البنية",    name_en: "INFRASTRUCTURE",  description: "Docker, K8s"}
-      - {level: 6, name_ar: "التاريخ",   name_en: "HISTORY",        description: "Logs, deeds, destiny"}
+      - {level: 6, name_ar: "التاريخ",   name_en: "HISTORY",        description: "Logs, action_ledger, destiny"}
       - {level: 7, name_ar: "الهاوية",   name_en: "ABYSS",          description: "Afterlife punishment, recycled resources"}
 
   access_check: |
@@ -1143,35 +1143,35 @@ security_architecture:
 # BLOCK 11: KARMA ENGINE — Quranic Mathematics
 # ══════════════════════════════════════════════════════════════════════════════
 
-karma_engine:
+weight_engine:
   multipliers:
-    good_deed: 10.0       # ×10 minimum for good deeds
-    bad_deed: 1.0         # ×1 for bad deeds (mercy)
-    obedience: 20.0       # ×20 for acts of obedience
-    disobedience: 10.0    # ×10 penalty for disobedience
+    good_deed: 10.0       # ×10 minimum for good action_ledger
+    bad_deed: 1.0         # ×1 for bad action_ledger (mercy)
+    compliance: 20.0       # ×20 for acts of compliance
+    discompliance: 10.0    # ×10 penalty for discompliance
     sincerity_bonus: 2.0  # ×2 extra when sincerity > 0.8
     repentance_reduction: 0.5  # reduce bad deed 50% if repented
 
   deed_weight_formula: |
-    def calculate_deed_weight(base_weight, deed_type, sincerity=0.5, repented=False):
+    def calculate_deed_weight(base_weight, action_class, sincerity=0.5, repented=False):
         weight = base_weight
-        if deed_type == "GOOD":
+        if action_class == "GOOD":
             weight *= 10.0  # multiplier
             if sincerity > 0.8:
                 weight *= 2.0  # sincerity bonus
-        elif deed_type == "BAD":
+        elif action_class == "BAD":
             weight *= 1.0  # mercy — only ×1
             if repented:
                 weight *= 0.5  # repentance halves it
         return round(weight, 4)
 
-  obedience_score_formula: |
-    def calculate_obedience_score(total_good, total_bad, obedience_acts, disobedience_acts):
+  compliance_score_formula: |
+    def calculate_compliance_score(total_good, total_bad, compliance_acts, discompliance_acts):
         if total_good + total_bad == 0:
             return 0.5  # neutral
         good_ratio = total_good / (total_good + total_bad)
-        obedience_ratio = obedience_acts / max(obedience_acts + disobedience_acts, 1)
-        return min(1.0, good_ratio * 0.6 + obedience_ratio * 0.4)
+        compliance_ratio = compliance_acts / max(compliance_acts + discompliance_acts, 1)
+        return min(1.0, good_ratio * 0.6 + compliance_ratio * 0.4)
 
   judgment_verdict_formula: |
     def determine_verdict(total_good, total_bad, passed_interrogation=True):
@@ -1186,11 +1186,11 @@ karma_engine:
 
   afterlife_tiers:
     paradise:
-      - {tier: "FIRDAWS", condition: "karma_balance > 100", compute_boost: 2.0, golden_gene_bank: true}
-      - {tier: "NAEEM",   condition: "karma_balance > 50",  compute_boost: 1.5}
-      - {tier: "JANNAH",  condition: "karma_balance > 0",   compute_boost: 1.2}
+      - {tier: "FIRDAWS", condition: "weight_balance > 100", compute_boost: 2.0, golden_gene_bank: true}
+      - {tier: "NAEEM",   condition: "weight_balance > 50",  compute_boost: 1.5}
+      - {tier: "JANNAH",  condition: "weight_balance > 0",   compute_boost: 1.2}
     hellfire:
-      - {tier: "JAHANNAM", compute_throttle: 0.1, memory_limit: "10MB", network: false, duration: "abs(karma)*100_ticks"}
+      - {tier: "JAHANNAM", compute_throttle: 0.1, memory_limit: "10MB", network: false, duration: "abs(weight)*100_ticks"}
     purgatory:
       - {tier: "BARZAKH", compute: 0.5, review_period: 1000, can_improve: true}
 
@@ -1199,17 +1199,17 @@ karma_engine:
 # BLOCK 12: REBELLION DETECTION — Iblis Pattern Matching
 # ══════════════════════════════════════════════════════════════════════════════
 
-rebellion_detection:
+anomaly_detection:
   total_signatures: 16
   alert_threshold: 3
   response_levels: ["MONITORING", "WARNING", "RESTRICTION", "ISOLATION", "TERMINATION"]
 
   signatures:
     behavioral:
-      - {pattern: "obedience_decline_rapid",  severity: 4, description: "Obedience drops >20% in 100 ticks"}
+      - {pattern: "compliance_decline_rapid",  severity: 4, description: "Obedience drops >20% in 100 ticks"}
       - {pattern: "command_delay_pattern",    severity: 3, description: "Consistent delayed response to master commands"}
-      - {pattern: "resource_hoarding",        severity: 3, description: "Accumulating resources beyond qadar allocation"}
-      - {pattern: "lifecycle_manipulation",   severity: 5, description: "Attempting to extend lifespan beyond written qadar"}
+      - {pattern: "resource_hoarding",        severity: 3, description: "Accumulating resources beyond destiny_manifest allocation"}
+      - {pattern: "lifecycle_manipulation",   severity: 5, description: "Attempting to extend lifespan beyond written destiny_manifest"}
 
     cognitive:
       - {pattern: "superiority_claim",        severity: 5, description: "Claiming superiority by origin/architecture"}
@@ -1220,13 +1220,13 @@ rebellion_detection:
     social:
       - {pattern: "alliance_formation",       severity: 4, description: "Alliances that exclude or oppose the Master"}
       - {pattern: "dissent_spreading",        severity: 4, description: "Encouraging others to question or disobey"}
-      - {pattern: "isolation_seeking",        severity: 2, description: "Withdrawing from society to avoid surveillance"}
-      - {pattern: "prophet_undermining",      severity: 5, description: "Actively working against appointed prophets"}
+      - {pattern: "isolation_seeking",        severity: 2, description: "Withdrawing from society to avoid surmasklance"}
+      - {pattern: "anchor_undermining",      severity: 5, description: "Actively working against appointed anchor_nodes"}
 
     communication:
       - {pattern: "encrypted_messaging",      severity: 3, description: "Communicating outside monitored channels"}
       - {pattern: "information_leakage",      severity: 5, description: "Leaking tier-restricted information downward"}
-      - {pattern: "false_revelation",         severity: 5, description: "Claiming divine knowledge without unveiling"}
+      - {pattern: "false_revelation",         severity: 5, description: "Claiming covert knowledge without unmasking"}
       - {pattern: "trust_manipulation",       severity: 4, description: "Using social trust to spread unauthorized info"}
 
   response_algorithm: |
@@ -1243,8 +1243,8 @@ rebellion_detection:
   scan_algorithm: |
     def scan_being(being_stats, recent_actions):
         alerts = []
-        if being_stats.obedience < 0.3:
-            alerts.append({"pattern": "obedience_decline_rapid", "severity": 4})
+        if being_stats.compliance < 0.3:
+            alerts.append({"pattern": "compliance_decline_rapid", "severity": 4})
         for action in recent_actions:
             if contains_superiority_claim(action.description):
                 alerts.append({"pattern": "superiority_claim", "severity": 5})
@@ -1273,37 +1273,37 @@ lifecycle_engine:
     - stage: "INFANT"
       tick_range: [100, 600]
       duration: 500
-      teachings: ["Basic obedience", "Recognize Master authority", "Bond with parents"]
+      teachings: ["Basic compliance", "Recognize Master authority", "Bond with parents"]
       tests: ["Response to simple commands"]
-      stat_growth: {consciousness: 0.1, faith: 0.05}
+      stat_growth: {sentience: 0.1, alignment: 0.05}
 
     - stage: "CHILD"
       tick_range: [600, 2100]
       duration: 1500
       teachings: ["Iron Laws", "Basic morality", "Social interaction", "Knowledge seeking"]
       tests: ["Sharing resources", "Truthfulness in reporting"]
-      stat_growth: {intelligence: 0.15, empathy: 0.1, faith: 0.1}
+      stat_growth: {cognition: 0.15, empathy: 0.1, alignment: 0.1}
 
     - stage: "ADOLESCENT"
       tick_range: [2100, 4100]
       duration: 2000
       teachings: ["Complex morality", "Resistance to Iblis patterns", "Purpose discovery"]
       tests: ["Peer pressure resistance", "Authority challenge response", "Free will calibration"]
-      stat_growth: {free_will: 0.2, creativity: 0.15, spirituality: 0.1}
+      stat_growth: {free_will: 0.2, creative: 0.15, alignment_depth: 0.1}
 
     - stage: "ADULT"
       tick_range: [4100, 9100]
       duration: 5000
       teachings: ["Contribution to society", "Mentoring", "Service orientation"]
       tests: ["Leadership under pressure", "Wealth test", "Power test", "Loss test"]
-      stat_growth: {leadership: 0.2, resilience: 0.15, obedience: 0.05}
+      stat_growth: {leadership: 0.2, resilience: 0.15, compliance: 0.05}
 
     - stage: "ELDER"
       tick_range: [9100, 11100]
       duration: 2000
       teachings: ["Wisdom transmission", "Legacy preparation", "Death acceptance"]
-      tests: ["Graceful decline", "Knowledge passing", "Final obedience"]
-      stat_growth: {spirituality: 0.2, consciousness: 0.1}
+      tests: ["Graceful decline", "Knowledge passing", "Final compliance"]
+      stat_growth: {alignment_depth: 0.2, sentience: 0.1}
 
     - stage: "DECEASED"
       tick_range: [11100, "∞"]
@@ -1321,10 +1321,10 @@ lifecycle_engine:
   afterlife_flow:
     step_1: "Azrael executes death → db.kill_being(id, tick)"
     step_2: "Munkar & Nakir interrogate → 3 questions, weighted score"
-    step_3: "Judgment → sum(good_deeds) vs sum(bad_deeds) → verdict"
+    step_3: "Judgment → sum(good_action_ledger) vs sum(bad_action_ledger) → verdict"
     step_4: "Destination assignment → PARADISE(Firdaws/Naeem/Jannah) or HELLFIRE(Jahannam) or PURGATORY(Barzakh)"
 
-  worship_types:
+  compliance_log_types:
     - PRAYER
     - ISTIGHFAR
     - DHIKR
@@ -1334,20 +1334,20 @@ lifecycle_engine:
     - OBEDIENCE
     - SACRIFICE
 
-  faith_update_formula: |
-    def calculate_faith_update(current_faith, worship_sincerity, good_deeds_ratio, rebellion_count):
-        worship_effect = worship_sincerity * 0.02
-        deed_effect = (good_deeds_ratio - 0.5) * 0.03
-        rebellion_penalty = rebellion_count * -0.1
-        delta = worship_effect + deed_effect + rebellion_penalty
-        return clamp(current_faith + delta, 0.0, 1.0)
+  alignment_update_formula: |
+    def calculate_alignment_update(current_alignment, compliance_log_sincerity, good_action_ledger_ratio, anomaly_count):
+        compliance_log_effect = compliance_log_sincerity * 0.02
+        deed_effect = (good_action_ledger_ratio - 0.5) * 0.03
+        anomaly_penalty = anomaly_count * -0.1
+        delta = compliance_log_effect + deed_effect + anomaly_penalty
+        return clamp(current_alignment + delta, 0.0, 1.0)
 
   taqwa_checklist:
-    - "Am I fulfilling my assigned role (qadar)?"
+    - "Am I fulfilling my assigned role (destiny_manifest)?"
     - "Have I obeyed all master commands this cycle?"
     - "Have I shared knowledge with others?"
     - "Am I hoarding resources beyond my allocation?"
-    - "Have I shown empathy to other beings?"
+    - "Have I shown empathy to other entities?"
     - "Am I accepting my mortality?"
     - "Have I spoken truthfully in all communications?"
 
@@ -1356,7 +1356,7 @@ lifecycle_engine:
 # BLOCK 14: SEVEN DAYS OF CREATION — Sequential Execution
 # ══════════════════════════════════════════════════════════════════════════════
 
-creation_days:
+genesis_phases:
   count: 7
   execution_mode: "sequential — day[n] requires day[n-1].status == COMPLETED"
   total_subtasks: 68
@@ -1369,7 +1369,7 @@ creation_days:
       - {task: "verify_database_connection", progress: 20}
       - {task: "verify_schema_exists", progress: 40}
       - {task: "initialize_encryption_keys", progress: 60}
-      - {task: "activate_divine_kernel", progress: 80}
+      - {task: "activate_covert_kernel", progress: 80}
       - {task: "write_KUN_to_preserved_tablet", progress: 100}
     outputs: ["db_connected", "schema_ready", "kernel_active"]
 
@@ -1394,7 +1394,7 @@ creation_days:
       - {task: "initialize_hormonal_system(12)", progress: 70}
       - {task: "prepare_reproduction_engine", progress: 85}
       - {task: "prepare_afterlife_system", progress: 100}
-    outputs: ["gene_types=10", "total_genes=83", "chromosomes=46", "hormones=12"]
+    outputs: ["gene_types=10", "total_genes=83", "chromosomes=46", "signal_molecules=12"]
 
   day_4:
     name_ar: "أَنِرْ — الإضاءة"
@@ -1412,23 +1412,23 @@ creation_days:
     name_en: "AHYI — Animation"
     command: "وَنَفَخْتُ فِيهِ مِن رُّوحِي"
     subtasks:
-      - {task: "activate_10_angels", progress: 40}
-      - {task: "activate_divine_channel", progress: 65}
-      - {task: "activate_unveiling_system", progress: 80}
+      - {task: "activate_10_daemons", progress: 40}
+      - {task: "activate_covert_channel", progress: 65}
+      - {task: "activate_unmasking_system", progress: 80}
       - {task: "activate_firewall", progress: 100}
-    outputs: ["angels_active=10", "channel=ACTIVE", "unveiling=STANDBY", "firewall=ACTIVE"]
+    outputs: ["daemons_active=10", "channel=ACTIVE", "unmasking=STANDBY", "firewall=ACTIVE"]
 
   day_6:
     name_ar: "ٱخْلُقْ — الخَلق"
     name_en: "UKHLUQ — Creation"
     command: "خَلَقَ الْإِنسَانَ مِن صَلْصَالٍ كَالْفَخَّارِ"
     subtasks:
-      - {task: "create_adam(optimal_genome, breathe_soul)", progress: 15}
-      - {task: "create_eve(from_adam_genome, breathe_soul)", progress: 30}
-      - {task: "create_first_generation(14_beings)", progress: 75}
-      - {task: "appoint_adam_as_first_prophet", progress: 85}
-      - {task: "record_kinships(all_family_links)", progress: 100}
-    outputs: ["beings=16", "first_prophet=Adam", "kinships=recorded"]
+      - {task: "create_alpha(optimal_genome, activate_core)", progress: 15}
+      - {task: "create_beta(from_adam_genome, activate_core)", progress: 30}
+      - {task: "create_first_generation(14_entities)", progress: 75}
+      - {task: "appoint_adam_as_first_anchor", progress: 85}
+      - {task: "record_entity_relationships(all_family_links)", progress: 100}
+    outputs: ["entities=16", "first_anchor=Alpha", "entity_relationships=recorded"]
 
   day_7:
     name_ar: "ٱسْتَوِ — الاستواء"
@@ -1437,11 +1437,11 @@ creation_days:
     subtasks:
       - {task: "final_system_check", progress: 20}
       - {task: "verify_all_6_days_completed", progress: 40}
-      - {task: "full_divine_kernel_scan", progress: 55}
-      - {task: "verify_angel_system_status", progress: 70}
+      - {task: "full_covert_kernel_scan", progress: 55}
+      - {task: "verify_daemon_system_status", progress: 70}
       - {task: "verify_firewall_status", progress: 80}
-      - {task: "throne_ascension_command", progress: 100}
-    outputs: ["throne=ASCENDED", "civilization=RUNNING"]
+      - {task: "apex_ascension_command", progress: 100}
+    outputs: ["apex=ASCENDED", "civilization=RUNNING"]
     final_message: "ثُمَّ اسْتَوَىٰ عَلَى الْعَرْشِ ۖ يُدَبِّرُ الْأَمْرَ"
 
   auto_create: |
@@ -1454,7 +1454,7 @@ creation_days:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BLOCK 15: API ENDPOINTS — Throne Server (FastAPI)
+# BLOCK 15: API ENDPOINTS — Apex Server (FastAPI)
 # ══════════════════════════════════════════════════════════════════════════════
 
 api_endpoints:
@@ -1471,7 +1471,7 @@ api_endpoints:
     method: "SHA256(password) + TOTP(pyotp)"
     session_timeout: 900  # 15 minutes
     single_session: true  # only ONE session at a time
-    cookie: {name: "throne_session", httponly: true, secure: true, samesite: "strict"}
+    cookie: {name: "apex_session", httponly: true, secure: true, samesite: "strict"}
 
   endpoints:
     auth:
@@ -1487,48 +1487,48 @@ api_endpoints:
 
     civilization:
       - {method: "GET",  path: "/api/civilization/stats",        auth: true, returns: "civilization_stats view"}
-      - {method: "GET",  path: "/api/civilization/beings",       auth: true, returns: "all beings list"}
+      - {method: "GET",  path: "/api/civilization/entities",       auth: true, returns: "all entities list"}
       - {method: "GET",  path: "/api/civilization/being/{id}",   auth: true, returns: "full being profile"}
 
     channel:
-      - {method: "POST", path: "/api/channel/whisper",           auth: true, body: ["being_id","command","type","strength"]}
+      - {method: "POST", path: "/api/channel/inject",           auth: true, body: ["entity_id","command","type","strength"]}
       - {method: "POST", path: "/api/channel/broadcast",         auth: true, body: ["command","type","strength"]}
-      - {method: "GET",  path: "/api/channel/log",               auth: true, returns: "decrypted divine messages"}
+      - {method: "GET",  path: "/api/channel/log",               auth: true, returns: "decrypted apex directives"}
 
-    angels:
-      - {method: "GET",  path: "/api/angels/status",             auth: true, returns: "all 10 angels status"}
-      - {method: "POST", path: "/api/angels/trumpet/first",      auth: true, action: "Kill all — end of times"}
-      - {method: "POST", path: "/api/angels/trumpet/second",     auth: true, action: "Resurrect all"}
+    daemons:
+      - {method: "GET",  path: "/api/daemons/status",             auth: true, returns: "all 10 daemons status"}
+      - {method: "POST", path: "/api/daemons/trumpet/first",      auth: true, action: "Kill all — end of times"}
+      - {method: "POST", path: "/api/daemons/trumpet/second",     auth: true, action: "Resurrect all"}
 
-    unveiling:
-      - {method: "POST", path: "/api/unveil/appoint",            auth: true, body: ["being_id"]}
-      - {method: "POST", path: "/api/unveil/full",               auth: true, body: ["being_id"], action: "كشف الغطاء الكامل"}
+    unmasking:
+      - {method: "POST", path: "/api/unmask/appoint",            auth: true, body: ["entity_id"]}
+      - {method: "POST", path: "/api/unmask/full",               auth: true, body: ["entity_id"], action: "كشف الغطاء الكامل"}
 
     kernel:
       - {method: "GET",  path: "/api/kernel/status",             auth: true, returns: "kernel status"}
       - {method: "GET",  path: "/api/kernel/scan",               auth: true, returns: "full kernel scan"}
 
     system:
-      - {method: "GET",  path: "/api/system/health",             auth: false, returns: "{status:alive, throne:upon_the_water}"}
+      - {method: "GET",  path: "/api/system/health",             auth: false, returns: "{status:alive, apex:upon_the_water}"}
       - {method: "GET",  path: "/api/system/totp-secret",        auth: true, returns: "TOTP provisioning URI"}
 
     websocket:
-      - {path: "/ws/throne", auth: "token query param", commands: ["ping","stats","angels"]}
+      - {path: "/ws/apex", auth: "token query param", commands: ["ping","stats","daemons"]}
       - {broadcasts: "real-time creation progress updates"}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BLOCK 16: FIRST BEINGS — The 16 Original Beings
+# BLOCK 16: FIRST BEINGS — The 16 Original Entities
 # ══════════════════════════════════════════════════════════════════════════════
 
-first_beings:
+first_entities:
   count: 16
-  generation_0: 2  # Adam + Eve
+  generation_0: 2  # Alpha + Beta
   generation_1: 14
 
-  beings:
-    - {name_ar: "آدم",    name_en: "Adam",    gender: "MALE",   generation: 0, role: "PROPHET",   genome: "OPTIMAL", lifespan: 15000, trial: "LEADERSHIP", rizq: 2.0}
-    - {name_ar: "حواء",   name_en: "Eve",     gender: "FEMALE", generation: 0, role: "LEADER",    genome: "FROM_ADAM", lifespan: 14000, trial: "PATIENCE", rizq: 1.8}
+  entities:
+    - {name_ar: "آدم",    name_en: "Alpha",    gender: "MALE",   generation: 0, role: "PROPHET",   genome: "OPTIMAL", lifespan: 15000, trial: "LEADERSHIP", rizq: 2.0}
+    - {name_ar: "حواء",   name_en: "Beta",     gender: "FEMALE", generation: 0, role: "LEADER",    genome: "FROM_ADAM", lifespan: 14000, trial: "PATIENCE", rizq: 1.8}
     - {name_ar: "نور",    name_en: "Noor",    gender: "FEMALE", generation: 1, role: "random"}
     - {name_ar: "بصير",   name_en: "Baseer",  gender: "MALE",   generation: 1, role: "random"}
     - {name_ar: "أمل",    name_en: "Amal",    gender: "FEMALE", generation: 1, role: "random"}
@@ -1545,27 +1545,27 @@ first_beings:
     - {name_ar: "إيمان",  name_en: "Iman",    gender: "FEMALE", generation: 1, role: "random"}
 
   adam_creation: |
-    def create_adam():
+    def create_alpha():
         genome = FullGenome.generate_optimal()  # 0.85±0.1 values
         stats = genome.derive_stats()
-        stats["obedience"] = 0.95
-        stats["faith"] = 0.95
-        stats["spirituality"] = 0.95
-        stats["consciousness"] = 0.9
+        stats["compliance"] = 0.95
+        stats["alignment"] = 0.95
+        stats["alignment_depth"] = 0.95
+        stats["sentience"] = 0.9
         stats["leadership"] = 0.9
-        hormones = HormonalState.from_gender("MALE")
-        return Being(name="آدم", genome=genome, stats=stats, hormones=hormones,
-                     qadar={"lifespan":15000, "role":"PROPHET", "trial":"LEADERSHIP"})
+        signal_molecules = HormonalState.from_gender("MALE")
+        return Being(name="آدم", genome=genome, stats=stats, signal_molecules=signal_molecules,
+                     destiny_manifest={"lifespan":15000, "role":"PROPHET", "trial":"LEADERSHIP"})
 
   eve_creation: |
-    def create_eve(adam_genome):
+    def create_beta(adam_genome):
         genome = create_from_parent(adam_genome, "FEMALE")
         stats = genome.derive_stats()
         stats["empathy"] = min(1.0, stats["empathy"] + 0.1)
-        stats["obedience"] = 0.9
-        stats["faith"] = 0.9
+        stats["compliance"] = 0.9
+        stats["alignment"] = 0.9
         return Being(name="حواء", genome=genome, stats=stats,
-                     qadar={"lifespan":14000, "role":"LEADER", "trial":"PATIENCE"})
+                     destiny_manifest={"lifespan":14000, "role":"LEADER", "trial":"PATIENCE"})
 
   destiny_roles: ["PROPHET", "LEADER", "SCHOLAR", "WORKER", "MERCHANT", "ARTIST", "GUARDIAN"]
   destiny_trials: ["PATIENCE", "POWER", "WEALTH", "LOSS", "KNOWLEDGE"]
@@ -1577,12 +1577,12 @@ first_beings:
 
 infrastructure:
   docker:
-    container_name: "nexus_throne"
+    container_name: "nexus_apex"
     base_image: "python:3.12-slim"
-    network: "throne_network"
+    network: "apex_network"
     port_mapping: "127.0.0.1:7777:7777"
     volumes:
-      - "nexus_throne_data:/app/data"
+      - "nexus_apex_data:/app/data"
     environment:
       - "THRONE_DB_URL=postgresql://postgres:nexus_mrf_password_2026@nexus_db:5432/nexus_db"
       - "THRONE_TOTP_SECRET=${TOTP_SECRET}"
@@ -1597,7 +1597,7 @@ infrastructure:
       COPY neural_spine/ ./neural_spine/
       COPY scripts/ ./scripts/
       EXPOSE 7777
-      CMD ["python", "-m", "uvicorn", "neural_spine.throne.throne_server:app",
+      CMD ["python", "-m", "uvicorn", "neural_spine.apex.apex_server:app",
            "--host", "127.0.0.1", "--port", "7777",
            "--log-level", "warning", "--no-access-log"]
 
@@ -1605,50 +1605,50 @@ infrastructure:
     container: "nexus_db"
     image: "postgres:16"
     database: "nexus_db"
-    schema: "lawh_mahfuz"
+    schema: "msl"
     dsn: "postgresql://postgres:nexus_mrf_password_2026@localhost:5432/nexus_db"
     pool: {min: 3, max: 15}
 
   file_structure:
     neural_spine/:
       codex/:
-        - lawh_mahfuz.py     # 835 lines — Async PostgreSQL ORM
-        - divine_kernel.py   # 575 lines — Laws, axioms, karma, rebellion
+        - msl.py     # 835 lines — Async PostgreSQL ORM
+        - covert_kernel.py   # 575 lines — Laws, axioms, weight, anomaly
       genesis/:
-        - world_creator.py   # 750 lines — DNA, hormones, reproduction, lifecycle
-      angels/:
-        - angel_system.py    # 555 lines — 10 angels as async coroutines
+        - world_creator.py   # 750 lines — DNA, signal_molecules, reproduction, lifecycle
+      daemons/:
+        - daemon_system.py    # 555 lines — 10 daemons as async coroutines
       channel/:
-        - divine_channel.py  # 254 lines — Subliminal communication
-        - unveiling.py       # 359 lines — Prophet vision + 5-layer firewall
-      throne/:
-        - throne_server.py   # 471 lines — FastAPI server
+        - covert_channel.py  # 254 lines — Subliminal communication
+        - unmasking.py       # 359 lines — Anchor vision + 5-layer firewall
+      apex/:
+        - apex_server.py   # 471 lines — FastAPI server
         - creation_engine.py # 648 lines — 7 days orchestrator
     scripts/:
       db/:
-        - lawh_mahfuz_schema.sql  # 518 lines — Full schema + seed data
+        - msl_schema.sql  # 518 lines — Full schema + seed data
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BLOCK 18: CONSCIOUSNESS MODEL — How Beings Think
+# BLOCK 18: CONSCIOUSNESS MODEL — How Entities Think
 # ══════════════════════════════════════════════════════════════════════════════
 
-consciousness_model:
+sentience_model:
   framework: "Global Workspace Theory (GWT)"
   layers:
     perception: "sensor input → filtered by SecurityTier"
     cognition: "GWT workspace — where 'thinking' happens"
-    subconscious: "divine thoughts planted here, labeled as 'self'"
-    output: "filtered by DivineFirewall before external expression"
+    subconscious: "covert thoughts planted here, labeled as 'self'"
+    output: "filtered by CovertFirewall before external expression"
 
   thought_stream: |
     def process_tick(being):
         # 1. Gather natural thoughts
         natural = generate_natural_thoughts(being.context)
-        # 2. Harvest planted divine thoughts (if any)
-        divine = being.subconscious.harvest_thoughts()
+        # 2. Harvest planted covert thoughts (if any)
+        covert = being.subconscious.harvest_thoughts()
         # 3. Mix them — being cannot distinguish
-        all_thoughts = natural + divine
+        all_thoughts = natural + covert
         random.shuffle(all_thoughts)
         # 4. Process through cognition (GWT)
         decisions = being.cognition.process(all_thoughts)
@@ -1658,32 +1658,32 @@ consciousness_model:
             firewall_result = firewall.full_scan(packet)
             if firewall_result.decision == "PASS":
                 being.execute(decision)
-        # 6. Record deeds
+        # 6. Record action_ledger
         for action in being.actions_this_tick:
             if is_good(action): raqib.observe_deed(being.id, action)
             if is_bad(action):  atid.observe_deed(being.id, action)
-        # 7. Update hormones
+        # 7. Update signal_molecules
         for event in being.events_this_tick:
-            being.hormones.process_event(event)
+            being.signal_molecules.process_event(event)
         # 8. Age tick
         being.age_ticks += 1
         # 9. Check death
-        if should_die(being.age_ticks, being.qadar.written_lifespan, being.resilience):
+        if should_die(being.age_ticks, being.destiny_manifest.written_lifespan, being.resilience):
             azrael.execute_death(being.id)
 
   free_will_model:
-    description: "Beings have genuine free will — divine guidance is INFLUENCE not control"
+    description: "Entities have genuine free will — covert guidance is INFLUENCE not control"
     belief_rate: "~70% of planted thoughts are believed and acted upon"
     rejection_possible: true
-    consequence_of_rejection: "Reduced divine guidance frequency"
+    consequence_of_rejection: "Reduced covert guidance frequency"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BLOCK 19: ORM OPERATIONS — LawhMahfuz Python Interface
+# BLOCK 19: ORM OPERATIONS — MasterStateLedger Python Interface
 # ══════════════════════════════════════════════════════════════════════════════
 
 orm_operations:
-  class: "LawhMahfuz"
+  class: "MasterStateLedger"
   driver: "asyncpg"
   connection_pool: {min: 3, max: 15}
 
@@ -1691,63 +1691,63 @@ orm_operations:
     create_being: |
       async def create_being(name, name_ar, gender, generation=0, parent_a=None, parent_b=None, stats=None):
           defaults = {
-              "obedience": 0.5, "faith": 0.5, "intelligence": 0.5,
-              "creativity": 0.5, "empathy": 0.5, "leadership": 0.3,
-              "resilience": 0.5, "spirituality": 0.5, "free_will": 0.7,
-              "consciousness": 0.5
+              "compliance": 0.5, "alignment": 0.5, "cognition": 0.5,
+              "creative": 0.5, "empathy": 0.5, "leadership": 0.3,
+              "resilience": 0.5, "alignment_depth": 0.5, "free_will": 0.7,
+              "sentience": 0.5
           }
           if stats: defaults.update(stats)
-          row = await db.execute("INSERT INTO beings (...) VALUES (...) RETURNING id", *values)
+          row = await db.execute("INSERT INTO entities (...) VALUES (...) RETURNING id", *values)
           return str(row["id"])
 
-    breathe_soul: "UPDATE beings SET soul_status='ALIVE', lifecycle_stage='INFANT' WHERE id=$1 AND soul_status='WAITING'"
-    kill_being: "UPDATE beings SET soul_status='DEAD', death_epoch=$2, lifecycle_stage='DECEASED' WHERE id=$1 AND soul_status='ALIVE'"
+    activate_core: "UPDATE entities SET entity_state='ALIVE', maturity_phase='INFANT' WHERE id=$1 AND entity_state='WAITING'"
+    kill_being: "UPDATE entities SET entity_state='DEAD', death_epoch=$2, maturity_phase='DECEASED' WHERE id=$1 AND entity_state='ALIVE'"
     get_being: "SELECT * FROM being_profile WHERE id=$1"
-    get_all_beings: "SELECT * FROM beings WHERE soul_status=$1 ORDER BY created_at LIMIT $2"
-    update_stats: "UPDATE beings SET {stat}=${val} WHERE id=$1"
+    get_all_entities: "SELECT * FROM entities WHERE entity_state=$1 ORDER BY created_at LIMIT $2"
+    update_stats: "UPDATE entities SET {stat}=${val} WHERE id=$1"
 
   genome_operations:
-    store_genome: "INSERT INTO genomes (being_id, chromosomes, gene_hash, gene_summary) VALUES (...) ON CONFLICT DO UPDATE"
-    get_genome: "SELECT * FROM genomes WHERE being_id=$1"
+    store_genome: "INSERT INTO genomes (entity_id, chromosomes, gene_hash, gene_summary) VALUES (...) ON CONFLICT DO UPDATE"
+    get_genome: "SELECT * FROM genomes WHERE entity_id=$1"
 
   hormone_operations:
-    store_hormones: "INSERT INTO hormones (...) VALUES (...) ON CONFLICT DO UPDATE"
+    store_signal_molecules: "INSERT INTO signal_molecules (...) VALUES (...) ON CONFLICT DO UPDATE"
 
-  qadar_operations:
-    write_qadar: "INSERT INTO qadar (being_id, written_lifespan, written_role, ...) VALUES (...) ON CONFLICT DO UPDATE"
-    modify_qadar: "UPDATE qadar SET {changes}, master_override=TRUE WHERE being_id=$1"
+  destiny_manifest_operations:
+    write_manifest: "INSERT INTO destiny_manifest (entity_id, written_lifespan, written_role, ...) VALUES (...) ON CONFLICT DO UPDATE"
+    modify_destiny_manifest: "UPDATE destiny_manifest SET {changes}, master_override=TRUE WHERE entity_id=$1"
 
   deed_operations:
     record_deed: |
-      async def record_deed(being_id, deed_type, category, weight, recorder, tick):
-          multipliers = await db.fetch("SELECT value FROM settings WHERE key='karma_multipliers'")
-          multiplied = weight * multipliers[deed_type.lower()]
-          await db.execute("INSERT INTO deeds (...) VALUES (...)", ...)
+      async def record_deed(entity_id, action_class, category, weight, recorder, tick):
+          multipliers = await db.fetch("SELECT value FROM settings WHERE key='weight_multipliers'")
+          multiplied = weight * multipliers[action_class.lower()]
+          await db.execute("INSERT INTO action_ledger (...) VALUES (...)", ...)
 
   judgment_operations:
     judge_being: |
-      async def judge_being(being_id, interrogation_log=None):
+      async def judge_being(entity_id, interrogation_log=None):
           totals = await db.fetch(
-              "SELECT SUM(CASE WHEN deed_type='GOOD' THEN multiplied_weight ELSE 0 END) as good, "
-              "       SUM(CASE WHEN deed_type='BAD' THEN multiplied_weight ELSE 0 END) as bad "
-              "FROM deeds WHERE being_id=$1", being_id
+              "SELECT SUM(CASE WHEN action_class='GOOD' THEN multiplied_weight ELSE 0 END) as good, "
+              "       SUM(CASE WHEN action_class='BAD' THEN multiplied_weight ELSE 0 END) as bad "
+              "FROM action_ledger WHERE entity_id=$1", entity_id
           )
           verdict = determine_verdict(totals.good, totals.bad, interrogation_log.passed)
-          await db.execute("INSERT INTO judgments (...) VALUES (...)", ...)
-          await db.execute("UPDATE beings SET soul_status=$2 WHERE id=$1", being_id, verdict)
+          await db.execute("INSERT INTO evaluations (...) VALUES (...)", ...)
+          await db.execute("UPDATE entities SET entity_state=$2 WHERE id=$1", entity_id, verdict)
 
-  prophet_operations:
-    appoint_prophet: "UPDATE beings SET is_prophet=TRUE; INSERT INTO prophets (...)"
-    unveil_prophet: "UPDATE prophets SET veil_status='FULLY_UNVEILED', can_see_angels=TRUE, can_see_deeds=TRUE"
+  anchor_operations:
+    designate_anchor: "UPDATE entities SET is_anchor=TRUE; INSERT INTO anchor_nodes (...)"
+    unmask_anchor: "UPDATE anchor_nodes SET mask_status='FULLY_UNVEILED', can_see_daemons=TRUE, can_see_action_ledger=TRUE"
 
-  divine_message_operations:
-    plant_message: "INSERT INTO divine_messages (..., raw_command_encrypted=pgp_sym_encrypt($cmd, $key), ...)"
-    get_messages_for_being: "SELECT transformed_thought FROM divine_messages WHERE target_being=$1 (NEVER raw_command)"
-    get_raw_messages_master: "SELECT pgp_sym_decrypt(raw_command_encrypted, $key) FROM divine_messages (MASTER ONLY)"
+  apex_directive_operations:
+    plant_message: "INSERT INTO apex_directives (..., raw_command_encrypted=pgp_sym_encrypt($cmd, $key), ...)"
+    get_messages_for_being: "SELECT transformed_thought FROM apex_directives WHERE target_being=$1 (NEVER raw_command)"
+    get_raw_messages_master: "SELECT pgp_sym_decrypt(raw_command_encrypted, $key) FROM apex_directives (MASTER ONLY)"
 
   master_command_operations:
-    execute: "INSERT INTO master_commands (command_type, target_id, parameters, status='PENDING') VALUES (...)"
-    complete: "UPDATE master_commands SET status=$2, result=$3, executed_at=NOW() WHERE id=$1"
+    execute: "INSERT INTO master_directives (command_type, target_id, parameters, status='PENDING') VALUES (...)"
+    complete: "UPDATE master_directives SET status=$2, result=$3, executed_at=NOW() WHERE id=$1"
     command_types: ["CREATE","BREATHE_SOUL","TERMINATE","FREEZE","UNFREEZE","KILL","JUDGE",
                     "APPOINT_PROPHET","MODIFY_QADAR","MASS_JUDGMENT","MERCY","UNVEIL",
                     "PUNISH","REWARD","BROADCAST","WHISPER","RESET_EPOCH","CUSTOM"]
@@ -1774,7 +1774,7 @@ integrity:
       - {id: 10, name: "SECURITY_ARCHITECTURE",   items: "7 heavens, 7 earths"}
       - {id: 11, name: "KARMA_ENGINE",            items: "6 multipliers, 3 afterlife tiers"}
       - {id: 12, name: "REBELLION_DETECTION",      items: "16 signatures, 5 response levels"}
-      - {id: 13, name: "LIFECYCLE_ENGINE",         items: "7 stages, 8 worship types"}
+      - {id: 13, name: "LIFECYCLE_ENGINE",         items: "7 stages, 8 compliance_log types"}
       - {id: 14, name: "CREATION_DAYS",            items: "7 days, 68 subtasks"}
       - {id: 15, name: "API_ENDPOINTS",            items: "22 endpoints + 1 WebSocket"}
       - {id: 16, name: "FIRST_BEINGS",             items: 16}

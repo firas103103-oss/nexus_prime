@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
-LABEL name="throne" \
-      description="العرش — The Throne — Invisible Control System"
+LABEL name="apex" \
+      description="Apex — The Command Layer — Invisible Control System"
 
 WORKDIR /app
 
@@ -23,9 +23,9 @@ RUN pip install --no-cache-dir \
 COPY neural_spine/ /app/neural_spine/
 
 # Non-root user
-RUN useradd -m throne && chown -R throne:throne /app
-USER throne
+RUN useradd -m apex && chown -R apex:apex /app
+USER apex
 
 EXPOSE 7777
 
-CMD ["python", "-m", "neural_spine.throne.throne_server"]
+CMD ["python", "-m", "neural_spine.throne.apex_server"]

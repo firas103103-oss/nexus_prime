@@ -69,7 +69,7 @@ class MasterStateLedger:
     async def init_schema(self):
         """Deploy the msl schema from SQL file."""
         schema_path = os.path.join(
-            os.path.dirname(__file__), "..", "..", "scripts", "db", "master_state_schema.sql"
+            os.path.dirname(__file__), "..", "..", "scripts", "db", "msl_schema.sql"
         )
         if os.path.exists(schema_path):
             with open(schema_path, "r") as f:

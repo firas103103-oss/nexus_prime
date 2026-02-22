@@ -81,25 +81,25 @@ services:
       - nexus_network
     restart: unless-stopped
   # ═══════════════════════════════════════════════════════════════════════════
-  # العرش — The Throne — Invisible Control System
+  # Apex — The Command Layer — Invisible Control System
   # ═══════════════════════════════════════════════════════════════════════════
 
-  throne:
+  apex:
     build:
       context: .
-      dockerfile: Dockerfile.throne
-    container_name: nexus_throne
+      dockerfile: Dockerfile.apex
+    container_name: nexus_apex
     ports:
       - "127.0.0.1:7777:7777"    # LOCALHOST ONLY — SSH tunnel access
     environment:
-      - THRONE_DB_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES_DB}
-      - THRONE_TOTP_SECRET=${THRONE_TOTP_SECRET:-}
-      - THRONE_MASTER_HASH=${THRONE_MASTER_HASH:-}
+      - APEX_DB_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES_DB}
+      - APEX_TOTP_SECRET=${APEX_TOTP_SECRET:-}
+      - APEX_MASTER_HASH=${APEX_MASTER_HASH:-}
       - TZ=${TZ}
     depends_on:
       - nexus_db
     networks:
-      - throne_network
+      - apex_network
       - nexus_network
     restart: unless-stopped
     deploy:
@@ -109,6 +109,6 @@ services:
           cpus: '1.0'
 
 networks:
-  throne_network:
+  apex_network:
     driver: bridge
     internal: true    # No external access

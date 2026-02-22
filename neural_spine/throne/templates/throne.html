@@ -204,21 +204,21 @@
         .stat-label { color: var(--text-dim); }
         .stat-value { color: var(--text); font-weight: 600; }
 
-        /* ── ANGEL GRID ────────────────────────────────────── */
-        .angel-grid {
+        /* ── DAEMON GRID ────────────────────────────────────── */
+        .daemon-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 8px;
         }
-        .angel-chip {
+        .daemon-chip {
             background: var(--bg-void);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 8px; text-align: center;
             font-size: 0.75rem;
         }
-        .angel-chip.active { border-color: var(--green); color: var(--green); }
-        .angel-chip.inactive { border-color: var(--red); color: var(--text-dim); }
+        .daemon-chip.active { border-color: var(--green); color: var(--green); }
+        .daemon-chip.inactive { border-color: var(--red); color: var(--text-dim); }
 
         /* ── CHANNEL PANEL ─────────────────────────────────── */
         .channel-form {
@@ -272,7 +272,7 @@
         /* ── RESPONSIVE ────────────────────────────────────── */
         @media (max-width: 768px) {
             .creation-days { grid-template-columns: repeat(4, 1fr); }
-            .angel-grid { grid-template-columns: repeat(3, 1fr); }
+            .daemon-grid { grid-template-columns: repeat(3, 1fr); }
             .dashboard-grid { grid-template-columns: 1fr; }
         }
 
@@ -365,7 +365,7 @@
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">أنبياء</span>
-                        <span class="stat-value" id="stat-prophets">—</span>
+                        <span class="stat-value" id="stat-anchors">—</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">أعمال حسنة</span>
@@ -377,7 +377,7 @@
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">تمردات</span>
-                        <span class="stat-value" id="stat-rebellions" style="color:var(--red)">—</span>
+                        <span class="stat-value" id="stat-anomalies" style="color:var(--red)">—</span>
                     </div>
                 </div>
             </div>
@@ -385,7 +385,7 @@
             <!-- Angel System -->
             <div class="card">
                 <h3>👼 نظام الملائكة</h3>
-                <div class="angel-grid" id="angel-grid"></div>
+                <div class="daemon-grid" id="daemon-grid"></div>
             </div>
 
             <!-- Divine Channel -->
@@ -628,15 +628,15 @@ function initWebSocket() {
 // ── Refresh All ───────────────────────────────────────────
 
 async function refreshAll() {
-    const [days, stats, angelData, kernelData] = await Promise.all([
+    const [days, stats, daemonData, kernelData] = await Promise.all([
         api('/api/creation/status'),
         api('/api/civilization/stats'),
-        api('/api/angels/status'),
+        api('/api/daemons/status'),
         api('/api/kernel/status'),
     ]);
     if (days) renderDays(days);
     if (stats) updateStats(stats);
-    if (angelData) renderAngels(angelData);
+    if (daemonData) renderDaemons(daemonData);
     if (kernelData) renderKernel(kernelData);
     loadBeingsDropdown();
 }
@@ -739,29 +739,29 @@ function updateStats(stats) {
     if (!stats) return;
     document.getElementById('stat-population').textContent = stats.total_population ?? '—';
     document.getElementById('stat-alive').textContent = stats.alive ?? '—';
-    document.getElementById('stat-prophets').textContent = stats.prophets ?? '—';
+    document.getElementById('stat-anchors').textContent = stats.anchors ?? '—';
     document.getElementById('stat-good-deeds').textContent = stats.good_deeds ?? '—';
     document.getElementById('stat-bad-deeds').textContent = stats.bad_deeds ?? '—';
-    document.getElementById('stat-rebellions').textContent = stats.rebellions ?? '—';
+    document.getElementById('stat-anomalies').textContent = stats.anomalies ?? '—';
 }
 
 // ── Angels ────────────────────────────────────────────────
 
-function renderAngels(data) {
-    const grid = document.getElementById('angel-grid');
-    const angelNames = ['جبريل', 'ميكائيل', 'إسرافيل', 'عزرائيل', 'رقيب', 'عتيد', 'منكر', 'نكير', 'مالك', 'رضوان'];
+function renderDaemons(data) {
+    const grid = document.getElementById('daemon-grid');
+    const daemonNames = ['جبريل', 'ميكائيل', 'إسرافيل', 'عزرائيل', 'رقيب', 'عتيد', 'منكر', 'نكير', 'مالك', 'رضوان'];
 
-    if (data.angels) {
-        grid.innerHTML = data.angels.map((a, i) => {
+    if (data.daemons) {
+        grid.innerHTML = data.daemons.map((a, i) => {
             const active = a.status === 'ACTIVE';
-            return `<div class="angel-chip ${active ? 'active' : 'inactive'}">
-                ${angelNames[i] || a.name}<br>
+            return `<div class="daemon-chip ${active ? 'active' : 'inactive'}">
+                ${daemonNames[i] || a.name}<br>
                 <small>${active ? '● نشط' : '○ خامل'}</small>
             </div>`;
         }).join('');
     } else {
-        grid.innerHTML = angelNames.map(n =>
-            `<div class="angel-chip inactive">${n}<br><small>○ خامل</small></div>`
+        grid.innerHTML = daemonNames.map(n =>
+            `<div class="daemon-chip inactive">${n}<br><small>○ خامل</small></div>`
         ).join('');
     }
 }
@@ -803,7 +803,7 @@ async function sendWhisper() {
     if (!being || !command) { showToast('اختر كائناً واكتب الأمر'); return; }
 
     const result = await api('/api/channel/whisper', 'POST', {
-        being_id: being, command, type, strength
+        entity_id: being, command, type, strength
     });
     if (result) {
         showToast('تم إرسال الوحي ✓');
@@ -822,7 +822,7 @@ async function executeUnveil() {
     const being = document.getElementById('unveil-being').value;
     if (!being) { showToast('اختر النبي'); return; }
 
-    const result = await api('/api/unveil/full', 'POST', { being_id: being });
+    const result = await api('/api/unveil/full', 'POST', { entity_id: being });
     if (result) {
         const el = document.getElementById('unveil-result');
         el.innerHTML = `
