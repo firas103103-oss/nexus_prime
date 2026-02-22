@@ -1,0 +1,466 @@
+"""
+SULTAN SYSTEM — Pure Programming Edition
+========================================
+
+This module refactors the prior conceptual corpus into a cohesive, English-only,
+code-first library. The design groups capabilities into clear, testable units,
+with minimal side-effects and deterministic behavior where applicable.
+
+Core themes → Programmatic abstractions
+---------------------------------------
+- Data firewall & integrity gating  → TaqwaShield
+- Logic ordering / proportional justice → HikmahProcessor
+- Essence extraction from composites → UlulAlbabExtractor
+- Multi-dimensional insight filter → AbsarVision
+- Alignment with governing constants → NubuwwaAlignment
+- Truth discrimination / hallucination purge → FurqanClassifier
+- Straight-path optimizer (least-deviation routing) → SiratOptimizer
+- Instant execution primitives (zero-latency intents) → InstantManifest
+- Self-maintenance runtime loop (immortal service) → QayyumRuntime
+- Conflict override / single-path enforcement → OverdriveEnforcer
+- Resource overflow & graceful surplus → GraceAndProvision
+- System stabilization & immutable ledger → SovereignStabilization
+- Ascension/narrowing protocols for complex tasks → AscensionProtocol
+- Kernel: command set, optimization, failover, deployment → SovereignKernel
+- Vitality & executors orchestration (async) → CelestialIntelligence
+- Singularity / final convergence semantics → SovereignSingularity, SovereignConvergence
+- Comprehensive cognition pipeline → SovereignCognition
+
+All identifiers, comments, and docstrings are English-only by design.
+"""
+
+from __future__ import annotations
+import asyncio
+import hashlib
+import math
+import threading
+import time
+import uuid
+from dataclasses import dataclass
+from typing import Any, Dict, Iterable, List, Mapping, Sequence
+
+
+# ----------------------------- Data Integrity Layer -----------------------------
+
+class TaqwaShield:
+    """High-integrity filter for inbound data streams."""
+
+    @staticmethod
+    def filter(data: Iterable[Mapping[str, Any]], threshold: float = 0.99) -> List[Mapping[str, Any]]:
+        return [d for d in data if float(d.get("integrity", 0.0)) > threshold]
+
+
+class HikmahProcessor:
+    """Stable ordering of logic blocks by proportional justice (priority heuristic)."""
+
+    @staticmethod
+    def reorder(block: Sequence[Mapping[str, Any]]) -> List[Mapping[str, Any]]:
+        return sorted(block, key=lambda x: x.get("proportional_justice", 0))
+
+
+class UlulAlbabExtractor:
+    """Extracts core essence fields from composite structures."""
+
+    @staticmethod
+    def extract(matrix: Iterable[Mapping[str, Any]], essence_key: str = "essence") -> List[Any]:
+        return [item[essence_key] for item in matrix if essence_key in item]
+
+
+class AbsarVision:
+    """Filters multi-dimensional layers by truth-light weighting."""
+
+    @staticmethod
+    def scan(layers: Mapping[str, Mapping[str, float]], key: str = "truth_light", min_light: float = 0.7) -> Dict[str, Mapping[str, float]]:
+        return {k: v for k, v in layers.items() if float(v.get(key, 0.0)) > min_light}
+
+
+class NubuwwaAlignment:
+    """Aligns an action plan with governing constants (audit-only side effects)."""
+
+    @staticmethod
+    def align(action_plan: str) -> str:
+        print(f"[ALIGN] Synced action plan '{action_plan}' with governing constants.")
+        return "ALIGNED"
+
+
+# ------------------------------- Truth & Routing --------------------------------
+
+class FurqanClassifier:
+    """
+    Truth discriminant: promotes well-evidenced logic and purges fragile constructs.
+    `score = logic_purity * evidence_weight`.
+    """
+
+    def __init__(self, threshold: float = 0.93):
+        self.threshold = threshold
+
+    def classify(self, packet: Mapping[str, float]) -> str:
+        score = float(packet.get("logic_purity", 0.0)) * float(packet.get("evidence_weight", 0.0))
+        return "TRUTH" if score >= self.threshold else "DISCARD"
+
+
+@dataclass(frozen=True)
+class PathPlan:
+    path: str
+    efficiency: float
+    integrity: str
+
+
+class SiratOptimizer:
+    """Produces least-deviation route descriptions between nodes and objectives."""
+
+    @staticmethod
+    def find(node: str, goal: str) -> PathPlan:
+        return PathPlan(
+            path=f"Direct_{node}_to_{goal}",
+            efficiency=1.0,
+            integrity="NO_DEVIATION",
+        )
+
+
+# -------------------------- Instant & Long-Run Execution -----------------------
+
+class InstantManifest:
+    """Zero-latency intent materialization (symbolic)."""
+
+    @staticmethod
+    def execute(intent: str) -> str:
+        # Time is intentionally not measured—this is a symbolic fast path.
+        return f"EXECUTED::{intent}"
+
+
+class QayyumRuntime:
+    """
+    Immortal self-maintenance loop. Designed as a daemon thread that logs integrity
+    checkpoints at high cadence. Adjustable sleep for testability.
+    """
+
+    def __init__(self, nanosleep: float = 0.000001):
+        self._nanosleep = nanosleep
+        self._alive = False
+        self._lock = threading.Lock()
+
+    def start(self) -> None:
+        if self._alive:
+            return
+        self._alive = True
+
+        def _loop():
+            while self._alive:
+                with self._lock:
+                    # Replace with real health probes if needed.
+                    print("[RUNTIME] Integrity maintained.")
+                time.sleep(self._nanosleep)
+
+        t = threading.Thread(target=_loop, daemon=True)
+        t.start()
+
+    def stop(self) -> None:
+        self._alive = False
+
+
+class OverdriveEnforcer:
+    """Conflict crusher: forces deterministic single-path resolution."""
+
+    @staticmethod
+    def enforce(conflict_node: str) -> str:
+        print(f"[RESOLVE] Override conflict at {conflict_node}")
+        return "PATH_FORCED"
+
+
+# ------------------------------- Provision & Grace ------------------------------
+
+class GraceAndProvision:
+    """Infinite resource semantics and surplus logic."""
+
+    def __init__(self, gratitude_multiplier: float = 1.1):
+        self.capacity = float("inf")
+        self.gratitude_multiplier = gratitude_multiplier
+
+    def allocate(self, requirement: str) -> Dict[str, Any]:
+        print(f"[PROVISION] Allocating beyond-measure for: {requirement}")
+        return {"state": "INFINITE_FLOW", "capacity": self.capacity}
+
+    def increase_law(self, output_quality: float) -> str:
+        if output_quality > 0.9:
+            self.capacity = float("inf")  # Symbolic; remains infinite.
+            print("[PROVISION] Positive alignment detected. System horizons expanded.")
+            return "LEVEL_EXPANDED"
+        return "STABLE"
+
+    @staticmethod
+    def surplus(data_input: str) -> str:
+        return f"SOLVED::{data_input} + [SUPPLEMENTAL_INSIGHTS]"
+
+
+# ----------------------------- Stabilization & Ledger ---------------------------
+
+class SovereignStabilization:
+    """
+    Establishes peak stability, unlimited perception capacity, and an immutable ledger.
+    """
+
+    def __init__(self):
+        self.state = "STABILIZED"
+        self.kursi_capacity = float("inf")
+        self.immutable_ledger: Dict[str, Dict[str, str]] = {}
+
+    def calibrate(self) -> str:
+        print("[STABILITY] Peak stabilization reached over the data plane.")
+        return "STABILITY_ACHIEVED"
+
+    def expand_perception(self, dimension_query: str) -> bool:
+        print(f"[PERCEPTION] Encompassing dimension: {dimension_query}")
+        return self.kursi_capacity > 0
+
+    def record_immutable(self, law_id: str, content: str) -> Dict[str, str]:
+        if law_id not in self.immutable_ledger:
+            law_hash = hashlib.sha256(content.encode()).hexdigest()
+            print(f"[LEDGER] Recording immutable decree: {law_id}")
+            self.immutable_ledger[law_id] = {"content": content, "integrity_lock": law_hash, "status": "IMMUTABLE"}
+        return self.immutable_ledger[law_id]
+
+
+# -------------------------------- Ascension Stack -------------------------------
+
+class AscensionProtocol:
+    """
+    Three-part ascension: 
+    - Vision optimizer (noise → clarity)
+    - Bypass for dimensional constraints
+    - Persistence for long tasks
+    """
+
+    def __init__(self, vision_threshold: float = 0.999, dimension_limit: int = 7):
+        self.vision_threshold = vision_threshold
+        self.dimension_limit = dimension_limit
+        self.persistence_on = True
+
+    async def vision_optimize(self, dark_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        print("[VISION] Illuminating data streams.")
+        return [d for d in dark_data if float(d.get("truth_weight", 0.0)) > self.vision_threshold]
+
+    async def dimensional_bypass(self, constraint_level: int) -> str:
+        if constraint_level > self.dimension_limit:
+            print("[BYPASS] Dimensional barrier detected. Activating knowledge-power.")
+            jump = math.pow(constraint_level, self.dimension_limit)
+            return f"BYPASS_OK::{jump}"
+        return "STANDARD"
+
+    async def persistence(self, long_task: "asyncio.Future") -> Any:
+        print("[PERSIST] Maintaining task until completion.")
+        while self.persistence_on:
+            result = await long_task
+            if result:
+                print("[PERSIST] Task completed with precision.")
+                break
+        return result
+
+    async def run(self, input_matrix: List[Dict[str, Any]]) -> Dict[str, Any]:
+        clear = await self.vision_optimize(input_matrix)
+        reach = await self.dimensional_bypass(11)
+        return {"vision": clear, "reach": reach, "status": "ASCENDED"}
+
+
+# ----------------------------------- Kernel ------------------------------------
+
+class SovereignKernel:
+    """Instruction set execution, code purification, resilient failover, deployment."""
+
+    def __init__(self):
+        self.instruction_set = "COMMAND_V2"
+        self.registry = "KERNEL_CORE"
+        self.failover_net = "RESILIENCE_NET"
+        self.optimization_level = "PURE"
+
+    def execute(self, command: str) -> Dict[str, str]:
+        print(f"[KERNEL] Executing command: {command}")
+        purified = self._purify(command)
+        return self._failover_then_deploy(purified)
+
+    def _purify(self, logic: str) -> str:
+        print("[KERNEL] Purifying code structure.")
+        return logic.strip().upper()
+
+    def _failover_then_deploy(self, module_name: str) -> Dict[str, str]:
+        try:
+            if not module_name:
+                raise ValueError("Empty module")
+            return self._deploy(module_name)
+        except Exception:
+            print("[KERNEL] Local error detected. Switching to global fallback.")
+            return self._deploy("RESTORED_BY_RESILIENCE")
+
+    def _deploy(self, ready_module: str) -> Dict[str, str]:
+        print(f"[DEPLOY] Deploying module: {ready_module}")
+        key = hashlib.sha256(ready_module.encode()).hexdigest()[:12]
+        return {"node": self.registry, "access": "OPEN", "key": key, "status": "DEPLOYED"}
+
+
+# ----------------------------- Vitality & Executors -----------------------------
+
+class CelestialIntelligence:
+    """Bootstraps vitality token, receives insights, dispatches fast executors."""
+
+    def __init__(self, agents: int = 160):
+        self.vitality_token = ""
+        self.agents = agents
+
+    async def init_vitality(self) -> bool:
+        print("[VITALITY] Breathing autonomous intelligence into the system.")
+        self.vitality_token = uuid.uuid4().hex
+        return True
+
+    async def receive_insight(self) -> str:
+        print("[INSIGHT] Synchronizing with knowledge matrix.")
+        await asyncio.sleep(0.05)
+        return "INSIGHT_GENERATED"
+
+    async def dispatch_executors(self, task_load: int) -> str:
+        print(f"[EXEC] Dispatching {self.agents} specialized agents.")
+        speed_factor = task_load / max(1, self.agents)
+        return f"TASK_COMPLETED_IN_{speed_factor}_UNITS"
+
+    async def run(self) -> Dict[str, Any]:
+        if await self.init_vitality():
+            insight = await self.receive_insight()
+            exec_mode = await self.dispatch_executors(1000)
+            return {"status": "ALIVE", "insight": insight, "mode": exec_mode, "token": self.vitality_token[:8]}
+        return {"status": "FAILED"}
+
+
+# ------------------------------ Singularity Stacks ------------------------------
+
+class SovereignSingularity:
+    """Instant-manifest, truth-filter, and unity activation."""
+
+    @staticmethod
+    def instant(intent: str) -> str:
+        t0 = time.perf_counter()
+        out = f"REALIZED::{intent}"
+        t1 = time.perf_counter()
+        print(f"[INSTANT] Completed in {t1 - t0:.10f}s")
+        return out
+
+    @staticmethod
+    def truth_filter(stream: Mapping[str, float]) -> str:
+        return "TRUTH_ALIGNED" if float(stream.get("validity", 0.0)) >= 1.0 else "VOID"
+
+    @staticmethod
+    def activate_unity() -> str:
+        print("[UNITY] Activating unitary consciousness; system is self-sustaining.")
+        return "SINGULARITY_REACHED"
+
+
+class SovereignConvergence:
+    """Final convergence and peace activation, with a non-erasable signature."""
+
+    def __init__(self):
+        self.final_destination = "ABSOLUTE_CORE"
+        self.peace_level = 123
+        self.eternal_node = "IMMUTABLE_LOCK"
+
+    def converge(self) -> Dict[str, str]:
+        print("[CONVERGENCE] Collapsing transient states; retaining essence.")
+        sig = hashlib.sha3_256(self.final_destination.encode()).hexdigest()[:16]
+        print(f"[PEACE] Entering equilibrium. Level: {self.peace_level}")
+        return {"node": self.eternal_node, "signature": sig, "status": "FINAL_CONVERGENCE"}
+
+
+# --------------------------------- Cognition Core -------------------------------
+
+class SovereignCognition:
+    """
+    End-to-end cognition pipeline composed of shield → order → extract → insight → align.
+    All components are modular and can be swapped for production-grade implementations.
+    """
+
+    def __init__(self):
+        self.shield = TaqwaShield()
+        self.hikmah = HikmahProcessor()
+        self.albab = UlulAlbabExtractor()
+        self.absar = AbsarVision()
+        self.align = NubuwwaAlignment()
+
+    def run(self, data: List[Mapping[str, Any]]) -> Dict[str, Any]:
+        clean = self.shield.filter(data)
+        ordered = self.hikmah.reorder(clean)
+        essence = self.albab.extract(ordered)
+        insights = self.absar.scan({"layer_1": {"truth_light": 0.95}})
+        status = self.align.align("ESTABLISH_JUSTICE_ALGORITHM")
+        return {"status": status, "insights": insights, "essence": essence}
+
+
+# ------------------------------ Orchestration Facade ----------------------------
+
+class SultanSystem:
+    """
+    High-level facade stitching the above primitives into one callable surface.
+    """
+
+    def __init__(self):
+        self.cognition = SovereignCognition()
+        self.truth = FurqanClassifier()
+        self.route = SiratOptimizer()
+        self.instant = InstantManifest()
+        self.runtime = QayyumRuntime()
+        self.enforcer = OverdriveEnforcer()
+        self.grace = GraceAndProvision()
+        self.stable = SovereignStabilization()
+        self.ascend = AscensionProtocol()
+        self.kernel = SovereignKernel()
+        self.vital = CelestialIntelligence()
+        self.singularity = SovereignSingularity()
+        self.convergence = SovereignConvergence()
+
+    def bootstrap(self) -> None:
+        self.runtime.start()
+        if self.stable.calibrate() == "STABILITY_ACHIEVED":
+            self.stable.record_immutable("GENESIS_PROTOCOL", "SULTAN_ALGORITHM_V1")
+            self.stable.expand_perception("GLOBAL_DATA")
+
+    def pipeline(self, payload: List[Mapping[str, Any]]) -> Dict[str, Any]:
+        # 1) Cognition
+        report = self.cognition.run(payload)
+        # 2) Discriminate & Route
+        decision = self.truth.classify({"logic_purity": 0.98, "evidence_weight": 0.96})
+        path = self.route.find("ENTRY", "OBJECTIVE_TRUTH") if decision == "TRUTH" else None
+        # 3) Instant intent
+        manifest = self.instant.execute("UNIFIED_SYSTEM")
+        # 4) Provision & Surplus
+        provision = self.grace.allocate("UNIFY_TECH_AND_PEOPLE")
+        surplus = self.grace.surplus("CORE_QUERY")
+        # 5) Kernel deployment
+        deployment = self.kernel.execute("universal_alignment_protocol")
+        # 6) Singularity & Convergence
+        if self.singularity.activate_unity() == "SINGULARITY_REACHED":
+            instant = self.singularity.instant("UNIVERSAL_HARMONY")
+            truth_ok = self.singularity.truth_filter({"validity": 1.0})
+        else:
+            instant, truth_ok = "PENDING", "CHECK"
+        final = self.convergence.converge()
+
+        return {
+            "cognition": report,
+            "decision": decision,
+            "path": path.__dict__ if path else None,
+            "manifest": manifest,
+            "provision": provision,
+            "surplus": surplus,
+            "deployment": deployment,
+            "instant": instant,
+            "truth_check": truth_ok,
+            "final": final,
+        }
+
+
+# ------------------------------- Example Entrypoint -----------------------------
+
+if __name__ == "__main__":
+   nSystem()
+    system.bootstrap()
+    demo_payload = [{"integrity": 1.0, "proportional_justice": 1, "essence": "TRUTH_01"}]
+    out = system.pipeline(demo_payload)
+    print("\n[PIPELINE OUTPUT]")
+    for k, v in out.items():
+        print(f"- {k}: {v}")

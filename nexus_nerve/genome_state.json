@@ -1,12 +1,12 @@
 {
   "OPS-CTRL": {
-    "performance": 94.5,
-    "learning": 74.5,
+    "performance": 95.0,
+    "learning": 75.0,
     "reliability": 90,
-    "evolution": 89.5,
-    "tasks_completed": 3,
-    "commands_received": 3,
-    "last_active": "2026-02-20T15:44:34.660536+00:00",
+    "evolution": 90.0,
+    "tasks_completed": 4,
+    "commands_received": 4,
+    "last_active": "2026-02-22T16:45:48.565478+00:00",
     "evolution_history": [
       {
         "timestamp": "2026-02-20T15:37:34.615111+00:00",
@@ -67,6 +67,26 @@
           "reliability": 90,
           "evolution": 89.5
         }
+      },
+      {
+        "timestamp": "2026-02-22T16:45:27.679867+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 94.5,
+          "learning": 74.7,
+          "reliability": 90,
+          "evolution": 89.6
+        }
+      },
+      {
+        "timestamp": "2026-02-22T16:45:48.565488+00:00",
+        "event": "task_complete",
+        "snapshot": {
+          "performance": 95.0,
+          "learning": 75.0,
+          "reliability": 90,
+          "evolution": 90.0
+        }
       }
     ]
   },
@@ -102,13 +122,13 @@
     ]
   },
   "NEXUS-ANALYST": {
-    "performance": 80,
-    "learning": 86.2,
+    "performance": 80.5,
+    "learning": 86.7,
     "reliability": 86,
-    "evolution": 70.1,
-    "tasks_completed": 0,
-    "commands_received": 1,
-    "last_active": "2026-02-20T15:39:40.958774+00:00",
+    "evolution": 70.6,
+    "tasks_completed": 1,
+    "commands_received": 2,
+    "last_active": "2026-02-22T16:23:31.861598+00:00",
     "evolution_history": [
       {
         "timestamp": "2026-02-20T15:39:40.958782+00:00",
@@ -118,6 +138,26 @@
           "learning": 86.2,
           "reliability": 86,
           "evolution": 70.1
+        }
+      },
+      {
+        "timestamp": "2026-02-22T16:23:05.113252+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 80,
+          "learning": 86.4,
+          "reliability": 86,
+          "evolution": 70.2
+        }
+      },
+      {
+        "timestamp": "2026-02-22T16:23:31.861608+00:00",
+        "event": "task_complete",
+        "snapshot": {
+          "performance": 80.5,
+          "learning": 86.7,
+          "reliability": 86,
+          "evolution": 70.6
         }
       }
     ]
@@ -249,13 +289,13 @@
     ]
   },
   "mrf": {
-    "performance": 98,
-    "learning": 95.4,
+    "performance": 98.5,
+    "learning": 95.9,
     "reliability": 81,
-    "evolution": 69.2,
-    "tasks_completed": 0,
-    "commands_received": 2,
-    "last_active": "2026-02-20T15:49:25.167125+00:00",
+    "evolution": 69.7,
+    "tasks_completed": 1,
+    "commands_received": 3,
+    "last_active": "2026-02-22T16:24:07.746239+00:00",
     "evolution_history": [
       {
         "timestamp": "2026-02-20T15:39:40.999646+00:00",
@@ -275,6 +315,26 @@
           "learning": 95.4,
           "reliability": 81,
           "evolution": 69.2
+        }
+      },
+      {
+        "timestamp": "2026-02-22T16:23:49.247698+00:00",
+        "event": "command_received",
+        "snapshot": {
+          "performance": 98,
+          "learning": 95.6,
+          "reliability": 81,
+          "evolution": 69.3
+        }
+      },
+      {
+        "timestamp": "2026-02-22T16:24:07.746251+00:00",
+        "event": "task_complete",
+        "snapshot": {
+          "performance": 98.5,
+          "learning": 95.9,
+          "reliability": 81,
+          "evolution": 69.7
         }
       }
     ]
