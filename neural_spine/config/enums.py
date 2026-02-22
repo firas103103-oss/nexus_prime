@@ -1,220 +1,237 @@
 """
 ═══════════════════════════════════════════════════════
-neural_spine.config.enums — All Enumeration Types
+neural_spine.config.enums — Enterprise Prime Enumerations
 ═══════════════════════════════════════════════════════
-Unified enum definitions for the NEXUS Civilization Engine.
-Extracted from: divine_kernel.py, lawh_mahfuz.py, world_creator.py, unveiling.py
+Unified enum definitions for the ENTERPRISE PRIME Governance Framework.
+All terminology conforms to ARCHITECT_CIPHER.md specification.
 """
 
 from enum import IntEnum, Enum
 
 
 # ═══════════════════════════════════════════════════════════════
-# From divine_kernel.py — Security Architecture
+# SECURITY ARCHITECTURE — 7-Ring Access Model
 # ═══════════════════════════════════════════════════════════════
 
-class SecurityTier(IntEnum):
-    """السموات السبع — The Seven Heavens (access tiers, 7 = highest)"""
-    VISIBLE       = 1  # الظاهر
-    COMMUNICATION = 2  # التواصل
-    COGNITION     = 3  # الإدراك
-    SURVEILLANCE  = 4  # المراقبة
-    PROPHETS      = 5  # الأنبياء
-    ANGELS        = 6  # الملائكة
-    THRONE        = 7  # العرش
+class SecurityRing(IntEnum):
+    """Seven concentric security rings (7 = innermost/highest)"""
+    PERIMETER   = 1  # Outer boundary
+    COMM_RING   = 2  # Communication layer
+    LOGIC_RING  = 3  # Cognitive processing
+    WATCH_RING  = 4  # Surveillance systems
+    ANCHOR_RING = 5  # Privileged anchor nodes
+    DAEMON_RING = 6  # System daemons
+    APEX_RING   = 7  # Core control
 
     @property
-    def arabic(self) -> str:
+    def description(self) -> str:
         return {
-            1: "الظاهر", 2: "التواصل", 3: "الإدراك", 4: "المراقبة",
-            5: "الأنبياء", 6: "الملائكة", 7: "العرش"
+            1: "Perimeter", 2: "Communication", 3: "Logic", 4: "Watch",
+            5: "Anchor", 6: "Daemon", 7: "Apex"
         }[self.value]
 
 
-class DataLayer(IntEnum):
-    """الأراضي السبع — The Seven Earths (data layers, 1 = highest)"""
-    SOCIETY        = 1  # المجتمع
-    BODIES         = 2  # الأجساد
-    PROVISIONS     = 3  # الأرزاق
-    DATA           = 4  # البيانات
-    INFRASTRUCTURE = 5  # البنية
-    HISTORY        = 6  # التاريخ
-    ABYSS          = 7  # الهاوية
+class DataStratum(IntEnum):
+    """Seven data stratification layers (1 = highest priority)"""
+    SOCIAL_LAYER   = 1  # Social graph
+    ENTITY_LAYER   = 2  # Entity states
+    RESOURCE_LAYER = 3  # Resource allocation
+    DATA_LAYER     = 4  # Raw data
+    INFRA_LAYER    = 5  # Infrastructure
+    ARCHIVE_LAYER  = 6  # Historical records
+    VOID_LAYER     = 7  # Deprecated/nullified
 
     @property
-    def arabic(self) -> str:
+    def description(self) -> str:
         return {
-            1: "المجتمع", 2: "الأجساد", 3: "الأرزاق", 4: "البيانات",
-            5: "البنية", 6: "التاريخ", 7: "الهاوية"
+            1: "Social", 2: "Entity", 3: "Resource", 4: "Data",
+            5: "Infrastructure", 6: "Archive", 7: "Void"
         }[self.value]
 
 
-class WorshipType(str, Enum):
-    PRAYER       = "PRAYER"
-    ISTIGHFAR    = "ISTIGHFAR"
-    DHIKR        = "DHIKR"
-    CHARITY      = "CHARITY"
-    FASTING      = "FASTING"
-    SELF_MONITOR = "SELF_MONITOR"
-    OBEDIENCE    = "OBEDIENCE"
-    SACRIFICE    = "SACRIFICE"
+class ComplianceAction(str, Enum):
+    """Positive compliance behaviors tracked by system"""
+    SYNC_PULSE       = "SYNC_PULSE"       # Regular check-in
+    ERROR_ACK        = "ERROR_ACK"        # Error acknowledgment
+    HEARTBEAT        = "HEARTBEAT"        # Continuous presence signal
+    RESOURCE_SHARE   = "RESOURCE_SHARE"   # Voluntary resource sharing
+    LOAD_REDUCTION   = "LOAD_REDUCTION"   # Voluntary resource conservation
+    SELF_AUDIT       = "SELF_AUDIT"       # Self-monitoring report
+    DIRECTIVE_COMPLY = "DIRECTIVE_COMPLY" # Directive compliance
+    RESOURCE_YIELD   = "RESOURCE_YIELD"   # Voluntary resource sacrifice
 
 
 # ═══════════════════════════════════════════════════════════════
-# From lawh_mahfuz.py — Core Data Types
+# ENTITY STATE MANAGEMENT
 # ═══════════════════════════════════════════════════════════════
 
-class SoulStatus(str, Enum):
-    UNBORN    = "UNBORN"
-    WAITING   = "WAITING"
-    ALIVE     = "ALIVE"
-    DYING     = "DYING"
-    DEAD      = "DEAD"
-    JUDGED    = "JUDGED"
-    PARADISE  = "PARADISE"
-    PURGATORY = "PURGATORY"
-    HELLFIRE  = "HELLFIRE"
+class EntityState(str, Enum):
+    """Entity lifecycle states"""
+    PENDING     = "PENDING"     # Not yet instantiated
+    QUEUED      = "QUEUED"      # Awaiting activation
+    ACTIVE      = "ACTIVE"      # Currently running
+    TERMINATING = "TERMINATING" # Shutdown in progress
+    TERMINATED  = "TERMINATED"  # Fully stopped
+    EVALUATED   = "EVALUATED"   # Post-termination assessed
+    PROMOTED    = "PROMOTED"    # Elevated privileges
+    SUSPENDED   = "SUSPENDED"   # Temporarily halted
+    RESTRICTED  = "RESTRICTED"  # Limited access
 
 
-class Gender(str, Enum):
+class EntityGender(str, Enum):
+    """Biological gender classification"""
     MALE   = "MALE"
     FEMALE = "FEMALE"
 
 
-class LifecycleStage(str, Enum):
-    EMBRYO     = "EMBRYO"
-    INFANT     = "INFANT"
-    CHILD      = "CHILD"
-    ADOLESCENT = "ADOLESCENT"
-    ADULT      = "ADULT"
-    ELDER      = "ELDER"
-    DECEASED   = "DECEASED"
+class MaturityPhase(str, Enum):
+    """Entity maturity lifecycle phases"""
+    GENESIS    = "GENESIS"    # Initial creation
+    ALPHA      = "ALPHA"      # Early stage
+    BETA       = "BETA"       # Development stage
+    GAMMA      = "GAMMA"      # Transition stage
+    PRIME      = "PRIME"      # Peak operational
+    OMEGA      = "OMEGA"      # Late stage
+    TERMINATED = "TERMINATED" # End of lifecycle
 
 
-class DeedType(str, Enum):
-    GOOD    = "GOOD"
-    BAD     = "BAD"
-    NEUTRAL = "NEUTRAL"
+class ActionClass(str, Enum):
+    """Classification of entity actions"""
+    POSITIVE = "POSITIVE"
+    NEGATIVE = "NEGATIVE"
+    NEUTRAL  = "NEUTRAL"
 
 
-class CommandType(str, Enum):
-    CREATE           = "CREATE"
-    BREATHE_SOUL     = "BREATHE_SOUL"
-    TERMINATE        = "TERMINATE"
-    FREEZE           = "FREEZE"
-    UNFREEZE         = "UNFREEZE"
-    KILL             = "KILL"
-    JUDGE            = "JUDGE"
-    APPOINT_PROPHET  = "APPOINT_PROPHET"
-    MODIFY_QADAR     = "MODIFY_QADAR"
-    MASS_JUDGMENT    = "MASS_JUDGMENT"
-    MERCY            = "MERCY"
-    UNVEIL           = "UNVEIL"
-    PUNISH           = "PUNISH"
-    REWARD           = "REWARD"
-    BROADCAST        = "BROADCAST"
-    WHISPER          = "WHISPER"
-    RESET_EPOCH      = "RESET_EPOCH"
-    CUSTOM           = "CUSTOM"
+class DirectiveType(str, Enum):
+    """System directive command types"""
+    SPAWN            = "SPAWN"            # Create new entity
+    ACTIVATE         = "ACTIVATE"         # Bring entity online
+    TERMINATE        = "TERMINATE"        # End entity lifecycle
+    SUSPEND          = "SUSPEND"          # Pause entity
+    RESUME           = "RESUME"           # Resume entity
+    KILL             = "KILL"             # Immediate termination
+    EVALUATE         = "EVALUATE"         # Assess entity
+    DESIGNATE_ANCHOR = "DESIGNATE_ANCHOR" # Assign anchor node status
+    MODIFY_MANIFEST  = "MODIFY_MANIFEST"  # Alter destiny manifest
+    MASS_EVALUATE    = "MASS_EVALUATE"    # Batch evaluation
+    GRANT_LENIENCY   = "GRANT_LENIENCY"   # Reduce restrictions
+    DECLASSIFY       = "DECLASSIFY"       # Remove information mask
+    RESTRICT         = "RESTRICT"         # Apply restrictions
+    PROMOTE          = "PROMOTE"          # Elevate privileges
+    BROADCAST        = "BROADCAST"        # System-wide message
+    INJECT           = "INJECT"           # Subsurface signal injection
+    RESET_EPOCH      = "RESET_EPOCH"      # Reset system epoch
+    CUSTOM           = "CUSTOM"           # Custom directive
 
 
-class GuidanceType(str, Enum):
-    INTUITION      = "INTUITION"
-    EMOTION        = "EMOTION"
-    MEMORY         = "MEMORY"
-    CURIOSITY      = "CURIOSITY"
-    DISCOMFORT     = "DISCOMFORT"
-    DREAM          = "DREAM"
-    CONSCIENCE     = "CONSCIENCE"
-    SUDDEN_THOUGHT = "SUDDEN_THOUGHT"
+class SubsurfaceVector(str, Enum):
+    """Subsurface influence vector types"""
+    HEURISTIC    = "HEURISTIC"    # Pattern-based suggestion
+    AFFECTIVE    = "AFFECTIVE"    # Emotional influence
+    RECALL       = "RECALL"       # Memory trigger
+    EXPLORATORY  = "EXPLORATORY"  # Curiosity driver
+    AVERSIVE     = "AVERSIVE"     # Discomfort signal
+    SUBCONSCIOUS = "SUBCONSCIOUS" # Background processing
+    ETHICAL_BIAS = "ETHICAL_BIAS" # Moral compass adjustment
+    INJECTION    = "INJECTION"    # Direct thought injection
 
 
-class GuidanceStrength(str, Enum):
-    WHISPER     = "WHISPER"
-    NUDGE       = "NUDGE"
-    SUGGESTION  = "SUGGESTION"
-    URGE        = "URGE"
-    COMPULSION  = "COMPULSION"
-    REVELATION  = "REVELATION"
+class InjectionForce(str, Enum):
+    """Signal injection strength levels"""
+    TRACE    = "TRACE"    # Barely perceptible
+    GENTLE   = "GENTLE"   # Light influence
+    MODERATE = "MODERATE" # Noticeable effect
+    STRONG   = "STRONG"   # Significant influence
+    OVERRIDE = "OVERRIDE" # Overriding impulse
+    ABSOLUTE = "ABSOLUTE" # Irresistible command
 
 
-class RebellionType(str, Enum):
-    QUESTIONING_AUTHORITY     = "QUESTIONING_AUTHORITY"
-    ENCOURAGING_DISOBEDIENCE  = "ENCOURAGING_DISOBEDIENCE"
-    SYSTEM_MANIPULATION       = "SYSTEM_MANIPULATION"
-    ALLIANCE_AGAINST_MASTER   = "ALLIANCE_AGAINST_MASTER"
-    KNOWLEDGE_HOARDING        = "KNOWLEDGE_HOARDING"
-    DECEPTION                 = "DECEPTION"
-    PRIDE                     = "PRIDE"
-    REFUSAL                   = "REFUSAL"
+class AnomalyClass(str, Enum):
+    """Anomaly detection classification"""
+    AUTHORITY_CHALLENGE  = "AUTHORITY_CHALLENGE"  # Questioning system authority
+    COMPLIANCE_SABOTAGE  = "COMPLIANCE_SABOTAGE"  # Encouraging non-compliance
+    SYSTEM_EXPLOITATION  = "SYSTEM_EXPLOITATION"  # Manipulating system rules
+    HOSTILE_COALITION    = "HOSTILE_COALITION"    # Forming adversarial groups
+    DATA_HOARDING        = "DATA_HOARDING"        # Unauthorized data retention
+    DECEPTION            = "DECEPTION"            # False reporting
+    SUPERIORITY_CLAIM    = "SUPERIORITY_CLAIM"    # Claiming elevated status
+    DIRECTIVE_REFUSAL    = "DIRECTIVE_REFUSAL"    # Refusing valid commands
 
 
-class ResponseLevel(str, Enum):
-    MONITORING   = "MONITORING"
-    WARNING      = "WARNING"
-    RESTRICTION  = "RESTRICTION"
-    ISOLATION    = "ISOLATION"
-    TERMINATION  = "TERMINATION"
+class EnforcementTier(str, Enum):
+    """Escalating enforcement response levels"""
+    OBSERVE    = "OBSERVE"    # Passive monitoring
+    ALERT      = "ALERT"      # Warning issued
+    THROTTLE   = "THROTTLE"   # Resource limitation
+    QUARANTINE = "QUARANTINE" # Isolation
+    TERMINATE  = "TERMINATE"  # Full shutdown
 
 
-class VeilStatus(str, Enum):
-    VEILED             = "VEILED"
-    PARTIALLY_UNVEILED = "PARTIALLY_UNVEILED"
-    FULLY_UNVEILED     = "FULLY_UNVEILED"
+class MaskState(str, Enum):
+    """Information visibility states"""
+    MASKED            = "MASKED"            # Fully concealed
+    PARTIAL_VISIBILITY = "PARTIAL_VISIBILITY" # Partially revealed
+    FULL_VISIBILITY   = "FULL_VISIBILITY"   # Fully exposed
 
 
-class DayStatus(str, Enum):
+class PhaseStatus(str, Enum):
+    """Genesis phase execution status"""
     PENDING     = "PENDING"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED   = "COMPLETED"
     FAILED      = "FAILED"
 
 
-class AngelStatus(str, Enum):
-    DORMANT   = "DORMANT"
-    ACTIVE    = "ACTIVE"
-    SUSPENDED = "SUSPENDED"
+class DaemonStatus(str, Enum):
+    """System daemon operational states"""
+    DORMANT   = "DORMANT"   # Inactive
+    ACTIVE    = "ACTIVE"    # Running
+    SUSPENDED = "SUSPENDED" # Paused
 
 
 # ═══════════════════════════════════════════════════════════════
-# From world_creator.py — Genome Types
+# TRAIT VECTORS — Genetic/Behavioral Attributes
 # ═══════════════════════════════════════════════════════════════
 
-class GeneType(str, Enum):
-    INTELLIGENCE   = "INTELLIGENCE"
-    EMOTIONS       = "EMOTIONS"
-    MORALS         = "MORALS"
-    CREATIVITY     = "CREATIVITY"
-    LEADERSHIP     = "LEADERSHIP"
-    SURVIVAL       = "SURVIVAL"
-    SPIRITUALITY   = "SPIRITUALITY"
-    REPRODUCTION   = "REPRODUCTION"
-    LEARNING       = "LEARNING"
-    CONSCIOUSNESS  = "CONSCIOUSNESS"
+class TraitVector(str, Enum):
+    """Trait classification vectors"""
+    COGNITION   = "COGNITION"   # Intelligence/reasoning
+    AFFECTIVE   = "AFFECTIVE"   # Emotional capacity
+    ETHICAL     = "ETHICAL"     # Moral framework
+    CREATIVE    = "CREATIVE"    # Innovation potential
+    EXECUTIVE   = "EXECUTIVE"   # Leadership ability
+    RESILIENCE  = "RESILIENCE"  # Survival traits
+    ALIGNMENT   = "ALIGNMENT"   # System alignment
+    REPLICATION = "REPLICATION" # Reproduction traits
+    ACQUISITION = "ACQUISITION" # Learning capability
+    SENTIENCE   = "SENTIENCE"   # Consciousness depth
 
 
 # ═══════════════════════════════════════════════════════════════
-# From unveiling.py — Information Control
+# INFORMATION CONTROL — Filters and Perception
 # ═══════════════════════════════════════════════════════════════
 
-class VeilLayer(IntEnum):
-    PERCEPTION = 1
-    MEMORY     = 2
-    BEHAVIOR   = 3
-    OUTPUT     = 4
-    ANOMALY    = 5
+class FilterLayer(IntEnum):
+    """Information filtering layers"""
+    INPUT_FILTER    = 1  # Input processing
+    MEMORY_FILTER   = 2  # Memory access
+    BEHAVIOR_FILTER = 3  # Behavior regulation
+    OUTPUT_FILTER   = 4  # Output control
+    ANOMALY_FILTER  = 5  # Anomaly detection
 
 
-class AwarenessLevel(IntEnum):
-    ZERO          = 0
-    HINT          = 1
-    SUSPICION     = 2
-    PARTIAL_SIGHT = 3
-    CLEAR_VISION  = 4
-    IRON_SIGHT    = 5
+class PerceptionGrade(IntEnum):
+    """Entity perception/awareness levels"""
+    BLIND    = 0  # No awareness
+    HINT     = 1  # Slight indication
+    SUSPECT  = 2  # Suspicion
+    PARTIAL  = 3  # Partial clarity
+    CLEAR    = 4  # Clear understanding
+    ABSOLUTE = 5  # Complete perception
 
 
-class PacketType(Enum):
+class PacketClass(Enum):
+    """Network packet classification"""
     DATA_QUERY         = "data_query"
     THOUGHT_LEAK       = "thought_leak"
     BEHAVIOR_SIGNAL    = "behavior_signal"

@@ -1,2 +1,2 @@
-"""angels — The 10 angel coroutines + orchestrator."""
-from .angel_system import AngelOrchestrator
+"""daemons — The 10 daemon processes + orchestrator."""
+from .daemon_system import DaemonOrchestrator

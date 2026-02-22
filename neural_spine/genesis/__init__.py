@@ -1,5 +1,5 @@
-"""genesis — World creation, DNA, hormones, lifecycle."""
-from .world_creator import (
-    WorldCreator, FullGenome, Gene, Chromosome,
-    HormonalState, ReproductionEngine, AfterlifeSystem,
+"""genesis — Entity creation, genetics, signals, lifecycle."""
+from .entity_factory import (
+    EntityFactory, FullGenome, Trait, Chromosome,
+    SignalState, ReplicationEngine, PostTerminationSystem,
 )

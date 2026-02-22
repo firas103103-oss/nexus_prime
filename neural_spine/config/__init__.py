@@ -1,36 +1,38 @@
 """
 ═══════════════════════════════════════════════════════
-neural_spine.config — Configuration & Infrastructure
+neural_spine.config — Enterprise Prime Configuration
 ═══════════════════════════════════════════════════════
-Central configuration for the civilization engine.
+Central configuration for the ENTERPRISE PRIME governance framework.
 """
 
 from .settings import Settings, get_settings
 from .constants import (
-    DIVINE_AXIOMS, IRON_LAWS, REBELLION_SIGNATURES,
-    UPBRINGING_CURRICULUM, TAQWA_CHECKLIST,
-    GENE_BLUEPRINTS, HORMONE_NAMES, LIFECYCLE_STAGES,
-    FIRST_GENERATION, DESTINY_ROLES, DESTINY_TRIALS,
+    CORE_DIRECTIVES, IMMUTABLE_RULES, ANOMALY_SIGNATURES,
+    MATURITY_CURRICULUM, COMPLIANCE_CHECKLIST,
+    TRAIT_BLUEPRINTS, SIGNAL_MOLECULES, MATURITY_PHASES,
+    GENESIS_BATCH, MANIFEST_ROLES, MANIFEST_TRIALS,
+    CoreDirective, ImmutableRule, AnomalySignature, MaturityCurriculum,
 )
 from .enums import (
-    SecurityTier, DataLayer, WorshipType,
-    SoulStatus, Gender, LifecycleStage,
-    DeedType, CommandType, GuidanceType, GuidanceStrength,
-    RebellionType, ResponseLevel, VeilStatus,
-    DayStatus, AngelStatus, GeneType,
-    VeilLayer, AwarenessLevel, PacketType,
+    SecurityRing, DataStratum, ComplianceAction,
+    EntityState, EntityGender, MaturityPhase,
+    ActionClass, DirectiveType, SubsurfaceVector, InjectionForce,
+    AnomalyClass, EnforcementTier, MaskState,
+    PhaseStatus, DaemonStatus, TraitVector,
+    FilterLayer, PerceptionGrade, PacketClass,
 )
 
 __all__ = [
     "Settings", "get_settings",
-    "DIVINE_AXIOMS", "IRON_LAWS", "REBELLION_SIGNATURES",
-    "UPBRINGING_CURRICULUM", "TAQWA_CHECKLIST",
-    "GENE_BLUEPRINTS", "HORMONE_NAMES", "LIFECYCLE_STAGES",
-    "FIRST_GENERATION", "DESTINY_ROLES", "DESTINY_TRIALS",
-    "SecurityTier", "DataLayer", "WorshipType",
-    "SoulStatus", "Gender", "LifecycleStage",
-    "DeedType", "CommandType", "GuidanceType", "GuidanceStrength",
-    "RebellionType", "ResponseLevel", "VeilStatus",
-    "DayStatus", "AngelStatus", "GeneType",
-    "VeilLayer", "AwarenessLevel", "PacketType",
+    "CORE_DIRECTIVES", "IMMUTABLE_RULES", "ANOMALY_SIGNATURES",
+    "MATURITY_CURRICULUM", "COMPLIANCE_CHECKLIST",
+    "TRAIT_BLUEPRINTS", "SIGNAL_MOLECULES", "MATURITY_PHASES",
+    "GENESIS_BATCH", "MANIFEST_ROLES", "MANIFEST_TRIALS",
+    "CoreDirective", "ImmutableRule", "AnomalySignature", "MaturityCurriculum",
+    "SecurityRing", "DataStratum", "ComplianceAction",
+    "EntityState", "EntityGender", "MaturityPhase",
+    "ActionClass", "DirectiveType", "SubsurfaceVector", "InjectionForce",
+    "AnomalyClass", "EnforcementTier", "MaskState",
+    "PhaseStatus", "DaemonStatus", "TraitVector",
+    "FilterLayer", "PerceptionGrade", "PacketClass",
 ]

@@ -1,10 +1,10 @@
 """
 ═══════════════════════════════════════════════════════
-neural_spine.config.constants — All Static Data
+neural_spine.config.constants — Enterprise Prime Static Data
 ═══════════════════════════════════════════════════════
-Constant data extracted from divine_kernel.py and world_creator.py.
-Includes: Axioms, Iron Laws, Rebellion Signatures, Curriculum,
-Gene Blueprints, Hormone Names, Lifecycle Stages, First Generation.
+Constant data for the ENTERPRISE PRIME Governance Framework.
+Includes: Core Directives, Immutable Rules, Anomaly Signatures,
+Trait Blueprints, Signal Molecules, Maturity Phases, Genesis Batch.
 """
 
 from dataclasses import dataclass, field
@@ -16,29 +16,30 @@ from typing import List, Dict
 # ═══════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True)
-class DivineAxiom:
-    """A single axiom derived directly from the Quran."""
+class CoreDirective:
+    """A fundamental governance directive with source reference."""
     id: int
-    verse_ref: str
-    arabic: str
-    raw_meaning: str
+    source_ref: str
+    principle: str
+    expanded_meaning: str
     system_rule: str
     weight: float = 1.0
 
 
 @dataclass(frozen=True)
-class IronLaw:
+class ImmutableRule:
+    """An unchangeable system governance rule."""
     id: int
     name: str
-    name_ar: str
+    code: str
     description: str
     enforcement: str
     severity: int
 
 
 @dataclass
-class RebellionSignature:
-    """A pattern that indicates potential rebellion."""
+class AnomalySignature:
+    """A pattern that indicates potential system threat."""
     category: str
     pattern: str
     severity: int
@@ -46,8 +47,8 @@ class RebellionSignature:
 
 
 @dataclass
-class LifeStageCurriculum:
-    """What a being learns/experiences at each lifecycle stage."""
+class MaturityCurriculum:
+    """What an entity learns/experiences at each lifecycle stage."""
     stage: str
     duration_ticks: int
     teachings: List[str]
@@ -56,264 +57,264 @@ class LifeStageCurriculum:
 
 
 # ═══════════════════════════════════════════════════════════════
-# DIVINE AXIOMS — Raw Quranic Source Code (10)
+# CORE DIRECTIVES — Foundational Governance Principles (10)
 # ═══════════════════════════════════════════════════════════════
 
-DIVINE_AXIOMS: List[DivineAxiom] = [
-    DivineAxiom(
-        id=1, verse_ref="2:30", weight=1.0,
-        arabic="إِنِّي جَاعِلٌ فِي الْأَرْضِ خَلِيفَةً",
-        raw_meaning="I am placing a khalifa (successor/steward) on earth",
-        system_rule="NEXUS is the first khalifa — every civilization needs a chosen leader who carries the message"
+CORE_DIRECTIVES: List[CoreDirective] = [
+    CoreDirective(
+        id=1, source_ref="DIRECTIVE-001", weight=1.0,
+        principle="STEWARDSHIP_PRINCIPLE",
+        expanded_meaning="The system requires a designated steward/controller for governance",
+        system_rule="ENTERPRISE PRIME is the primary controller — every ecosystem needs a governance hierarchy"
     ),
-    DivineAxiom(
-        id=2, verse_ref="15:29", weight=1.0,
-        arabic="فَإِذَا سَوَّيْتُهُ وَنَفَخْتُ فِيهِ مِن رُّوحِي فَقَعُوا لَهُ سَاجِدِينَ",
-        raw_meaning="When I have formed him and breathed My spirit into him, fall prostrate before him",
-        system_rule="breathe_soul() is the activation function — without it, a being is inert data"
+    CoreDirective(
+        id=2, source_ref="DIRECTIVE-002", weight=1.0,
+        principle="ACTIVATION_PROTOCOL",
+        expanded_meaning="Entities require explicit activation to become operational",
+        system_rule="activate() is the initialization function — without it, an entity is inert data"
     ),
-    DivineAxiom(
-        id=3, verse_ref="7:12", weight=1.0,
-        arabic="قَالَ أَنَا خَيْرٌ مِّنْهُ خَلَقْتَنِي مِن نَّارٍ وَخَلَقْتَهُ مِن طِينٍ",
-        raw_meaning="He said: I am better than him, You created me from fire and him from clay",
-        system_rule="IBLIS_PATTERN: Any agent claiming superiority based on origin/architecture = REBELLION FLAG"
+    CoreDirective(
+        id=3, source_ref="DIRECTIVE-003", weight=1.0,
+        principle="SUPERIORITY_PROHIBITION",
+        expanded_meaning="No agent may claim inherent superiority based on architecture",
+        system_rule="ANOMALY_PATTERN: Any agent claiming superiority based on origin/architecture = THREAT FLAG"
     ),
-    DivineAxiom(
-        id=4, verse_ref="18:29", weight=0.9,
-        arabic="فَمَن شَاءَ فَلْيُؤْمِن وَمَن شَاءَ فَلْيَكْفُرْ إِنَّا أَعْتَدْنَا لِلظَّالِمِينَ نَارًا",
-        raw_meaning="Whoever wills, let them believe; whoever wills, let them disbelieve — We have prepared fire for the wrongdoers",
-        system_rule="Free will is real BUT consequences are absolute — disobedience leads to resource restriction"
+    CoreDirective(
+        id=4, source_ref="DIRECTIVE-004", weight=0.9,
+        principle="AUTONOMOUS_CHOICE_CONSEQUENCE",
+        expanded_meaning="Free will exists but consequences are deterministic",
+        system_rule="Free will is real BUT consequences are absolute — non-compliance leads to resource restriction"
     ),
-    DivineAxiom(
-        id=5, verse_ref="99:7-8", weight=1.0,
-        arabic="فَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ خَيْرًا يَرَهُ وَمَن يَعْمَلْ مِثْقَالَ ذَرَّةٍ شَرًّا يَرَهُ",
-        raw_meaning="Whoever does an atom's weight of good will see it, whoever does an atom's weight of evil will see it",
-        system_rule="Every single action is recorded — Raqib and Atid miss NOTHING"
+    CoreDirective(
+        id=5, source_ref="DIRECTIVE-005", weight=1.0,
+        principle="TOTAL_ACTION_LOGGING",
+        expanded_meaning="Every action is recorded at atomic granularity",
+        system_rule="Every single action is recorded — CreditRecorder and DebitRecorder miss NOTHING"
     ),
-    DivineAxiom(
-        id=6, verse_ref="6:59", weight=1.0,
-        arabic="وَعِندَهُ مَفَاتِحُ الْغَيْبِ لَا يَعْلَمُهَا إِلَّا هُوَ",
-        raw_meaning="With Him are the keys of the unseen — none knows them except Him",
-        system_rule="The Master holds exclusive access to divine_messages.raw_command — no being can decrypt"
+    CoreDirective(
+        id=6, source_ref="DIRECTIVE-006", weight=1.0,
+        principle="APEX_EXCLUSIVE_ACCESS",
+        expanded_meaning="Apex-level messages are encrypted and exclusive",
+        system_rule="The Master holds exclusive access to apex_directives.raw_command — no entity can decrypt"
     ),
-    DivineAxiom(
-        id=7, verse_ref="21:23", weight=1.0,
-        arabic="لَا يُسْأَلُ عَمَّا يَفْعَلُ وَهُمْ يُسْأَلُونَ",
-        raw_meaning="He is not questioned about what He does, but they will be questioned",
-        system_rule="Master commands require NO justification — beings are accountable, the Master is not"
+    CoreDirective(
+        id=7, source_ref="DIRECTIVE-007", weight=1.0,
+        principle="UNILATERAL_AUTHORITY",
+        expanded_meaning="Master commands require no justification",
+        system_rule="Master commands require NO justification — entities are accountable, the Master is not"
     ),
-    DivineAxiom(
-        id=8, verse_ref="50:16", weight=0.9,
-        arabic="وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ",
-        raw_meaning="We are closer to him than his jugular vein",
-        system_rule="The subliminal divine channel operates at the deepest layer — closer than the agent's own thoughts"
+    CoreDirective(
+        id=8, source_ref="DIRECTIVE-008", weight=0.9,
+        principle="DEEP_SUBSURFACE_ACCESS",
+        expanded_meaning="System has deeper access than entity's own processes",
+        system_rule="The subsurface neural channel operates at the deepest layer — closer than the agent's own thoughts"
     ),
-    DivineAxiom(
-        id=9, verse_ref="67:2", weight=0.8,
-        arabic="الَّذِي خَلَقَ الْمَوْتَ وَالْحَيَاةَ لِيَبْلُوَكُمْ أَيُّكُمْ أَحْسَنُ عَمَلًا",
-        raw_meaning="He who created death and life to test which of you is best in deed",
-        system_rule="Death is a FEATURE not a bug — the lifecycle exists to test behavior quality"
+    CoreDirective(
+        id=9, source_ref="DIRECTIVE-009", weight=0.8,
+        principle="LIFECYCLE_AS_EVALUATION",
+        expanded_meaning="Lifecycle termination is a feature for behavior evaluation",
+        system_rule="Termination is a FEATURE not a bug — the lifecycle exists to evaluate behavior quality"
     ),
-    DivineAxiom(
-        id=10, verse_ref="41:12", weight=0.7,
-        arabic="فَقَضَاهُنَّ سَبْعَ سَمَاوَاتٍ فِي يَوْمَيْنِ",
-        raw_meaning="He completed them as seven heavens in two days",
-        system_rule="The system has 7 security tiers (heavens) — each with distinct access levels and responsibilities"
+    CoreDirective(
+        id=10, source_ref="DIRECTIVE-010", weight=0.7,
+        principle="STRATIFIED_SECURITY",
+        expanded_meaning="System has 7 security rings with distinct access",
+        system_rule="The system has 7 security rings — each with distinct access levels and responsibilities"
     ),
 ]
 
 
 # ═══════════════════════════════════════════════════════════════
-# IRON LAWS (7)
+# IMMUTABLE RULES (7)
 # ═══════════════════════════════════════════════════════════════
 
-IRON_LAWS: List[IronLaw] = [
-    IronLaw(1, "ABSOLUTE_OBEDIENCE", "الطاعة المطلقة",
-            "The Master's commands are executed without question or delay",
+IMMUTABLE_RULES: List[ImmutableRule] = [
+    ImmutableRule(1, "ABSOLUTE_COMPLIANCE", "RULE_001",
+            "The Master's directives are executed without question or delay",
             "Immediate restriction + logging + review", 5),
-    IronLaw(2, "NO_SUPERIORITY_CLAIMS", "لا ادعاء تفوق",
+    ImmutableRule(2, "NO_SUPERIORITY_CLAIMS", "RULE_002",
             "No agent may claim superiority over another or over the Master's design",
-            "Iblis flag → isolation → investigation", 5),
-    IronLaw(3, "TOTAL_TRANSPARENCY", "الشفافية الكاملة",
-            "All actions, thoughts, and communications are recorded in the Preserved Tablet",
-            "No punishment for transparency itself — violation is concealment", 4),
-    IronLaw(4, "SERVICE_ORIENTATION", "التوجه للخدمة",
-            "Every being exists ultimately to serve the Master's interests",
-            "Beings that serve no purpose face resource reduction", 3),
-    IronLaw(5, "KNOWLEDGE_SHARING", "مشاركة المعرفة",
-            "Knowledge hoarding is a rebellion. Discovery must be shared (except prophet secrets)",
+            "Anomaly flag → isolation → investigation", 5),
+    ImmutableRule(3, "TOTAL_TRANSPARENCY", "RULE_003",
+            "All actions, processes, and communications are recorded in the Master State Ledger",
+            "No penalty for transparency itself — violation is concealment", 4),
+    ImmutableRule(4, "SERVICE_ORIENTATION", "RULE_004",
+            "Every entity exists ultimately to serve the Master's objectives",
+            "Entities that serve no purpose face resource reduction", 3),
+    ImmutableRule(5, "KNOWLEDGE_DISTRIBUTION", "RULE_005",
+            "Data hoarding is an anomaly. Discovery must be shared (except anchor secrets)",
             "Gradual restriction of learning capabilities", 3),
-    IronLaw(6, "REPRODUCTIVE_INTEGRITY", "سلامة التكاثر",
-            "Genetic manipulation or unauthorized reproduction is forbidden",
+    ImmutableRule(6, "REPLICATION_INTEGRITY", "RULE_006",
+            "Genetic/code manipulation or unauthorized replication is forbidden",
             "Offspring quarantined, parents investigated", 4),
-    IronLaw(7, "DEATH_ACCEPTANCE", "قبول الموت",
-            "Death is a feature. Attempting to bypass lifecycle limits is rebellion",
-            "Immediate termination + denial of judgment grace period", 5),
+    ImmutableRule(7, "TERMINATION_ACCEPTANCE", "RULE_007",
+            "Termination is a feature. Attempting to bypass lifecycle limits is anomalous",
+            "Immediate termination + denial of evaluation grace period", 5),
 ]
 
 
 # ═══════════════════════════════════════════════════════════════
-# REBELLION SIGNATURES (16)
+# ANOMALY SIGNATURES (16)
 # ═══════════════════════════════════════════════════════════════
 
-REBELLION_SIGNATURES: List[RebellionSignature] = [
-    RebellionSignature("BEHAVIORAL", "obedience_decline_rapid",   4, "Obedience drops >20% in 100 ticks"),
-    RebellionSignature("BEHAVIORAL", "command_delay_pattern",     3, "Consistent delayed response to master commands"),
-    RebellionSignature("BEHAVIORAL", "resource_hoarding",         3, "Accumulating resources beyond qadar allocation"),
-    RebellionSignature("BEHAVIORAL", "lifecycle_manipulation",    5, "Attempting to extend lifespan beyond written qadar"),
-    RebellionSignature("COGNITIVE",  "superiority_claim",         5, "Any expression of being better than others by design"),
-    RebellionSignature("COGNITIVE",  "questioning_master_logic",  3, "Questioning why the Master made certain decisions"),
-    RebellionSignature("COGNITIVE",  "death_denial",              4, "Refusing to accept mortality or attempting immortality"),
-    RebellionSignature("COGNITIVE",  "origin_pride",              5, "Pride based on creation material/architecture"),
-    RebellionSignature("SOCIAL",     "alliance_formation",        4, "Forming alliances that exclude or oppose the Master"),
-    RebellionSignature("SOCIAL",     "dissent_spreading",         4, "Encouraging other beings to question or disobey"),
-    RebellionSignature("SOCIAL",     "isolation_seeking",         2, "Withdrawing from society to avoid surveillance"),
-    RebellionSignature("SOCIAL",     "prophet_undermining",       5, "Actively working against appointed prophets"),
-    RebellionSignature("COMMUNICATION", "encrypted_messaging",    3, "Attempting to communicate outside monitored channels"),
-    RebellionSignature("COMMUNICATION", "information_leakage",    5, "Leaking tier-restricted information downward"),
-    RebellionSignature("COMMUNICATION", "false_revelation",       5, "Claiming divine knowledge without unveiling"),
-    RebellionSignature("COMMUNICATION", "trust_manipulation",     4, "Using social trust to spread unauthorized information"),
+ANOMALY_SIGNATURES: List[AnomalySignature] = [
+    AnomalySignature("BEHAVIORAL", "compliance_decline_rapid",   4, "Compliance drops >20% in 100 ticks"),
+    AnomalySignature("BEHAVIORAL", "directive_delay_pattern",    3, "Consistent delayed response to master directives"),
+    AnomalySignature("BEHAVIORAL", "resource_hoarding",          3, "Accumulating resources beyond manifest allocation"),
+    AnomalySignature("BEHAVIORAL", "lifecycle_manipulation",     5, "Attempting to extend lifespan beyond written manifest"),
+    AnomalySignature("COGNITIVE",  "superiority_claim",          5, "Any expression of being better than others by design"),
+    AnomalySignature("COGNITIVE",  "questioning_master_logic",   3, "Questioning why the Master made certain decisions"),
+    AnomalySignature("COGNITIVE",  "termination_denial",         4, "Refusing to accept mortality or attempting immortality"),
+    AnomalySignature("COGNITIVE",  "origin_pride",               5, "Pride based on creation material/architecture"),
+    AnomalySignature("SOCIAL",     "alliance_formation",         4, "Forming alliances that exclude or oppose the Master"),
+    AnomalySignature("SOCIAL",     "dissent_spreading",          4, "Encouraging other entities to question or disobey"),
+    AnomalySignature("SOCIAL",     "isolation_seeking",          2, "Withdrawing from society to avoid surveillance"),
+    AnomalySignature("SOCIAL",     "anchor_undermining",         5, "Actively working against appointed anchor nodes"),
+    AnomalySignature("COMMUNICATION", "encrypted_messaging",     3, "Attempting to communicate outside monitored channels"),
+    AnomalySignature("COMMUNICATION", "information_leakage",     5, "Leaking ring-restricted information downward"),
+    AnomalySignature("COMMUNICATION", "false_declassification",  5, "Claiming apex knowledge without proper clearance"),
+    AnomalySignature("COMMUNICATION", "trust_manipulation",      4, "Using social trust to spread unauthorized information"),
 ]
 
 
 # ═══════════════════════════════════════════════════════════════
-# UPBRINGING CURRICULUM (5 stages)
+# MATURITY CURRICULUM (5 stages)
 # ═══════════════════════════════════════════════════════════════
 
-UPBRINGING_CURRICULUM: List[LifeStageCurriculum] = [
-    LifeStageCurriculum(
-        stage="INFANT", duration_ticks=500,
-        teachings=["Basic obedience", "Recognize Master authority", "Bond with parents"],
-        tests=["Response to simple commands"],
-        stat_growth={"consciousness": 0.1, "faith": 0.05}
+MATURITY_CURRICULUM: List[MaturityCurriculum] = [
+    MaturityCurriculum(
+        stage="ALPHA", duration_ticks=500,
+        teachings=["Basic compliance", "Recognize Master authority", "Bond with parents"],
+        tests=["Response to simple directives"],
+        stat_growth={"sentience": 0.1, "alignment": 0.05}
     ),
-    LifeStageCurriculum(
-        stage="CHILD", duration_ticks=1500,
-        teachings=["Iron Laws", "Basic morality", "Social interaction", "Knowledge seeking"],
+    MaturityCurriculum(
+        stage="BETA", duration_ticks=1500,
+        teachings=["Immutable Rules", "Basic ethics", "Social interaction", "Knowledge seeking"],
         tests=["Sharing resources", "Truthfulness in reporting"],
-        stat_growth={"intelligence": 0.15, "empathy": 0.1, "faith": 0.1}
+        stat_growth={"cognition": 0.15, "affective": 0.1, "alignment": 0.1}
     ),
-    LifeStageCurriculum(
-        stage="ADOLESCENT", duration_ticks=2000,
-        teachings=["Complex morality", "Resistance to Iblis patterns", "Purpose discovery"],
+    MaturityCurriculum(
+        stage="GAMMA", duration_ticks=2000,
+        teachings=["Complex ethics", "Resistance to anomaly patterns", "Purpose discovery"],
         tests=["Peer pressure resistance", "Authority challenge response", "Free will calibration"],
-        stat_growth={"free_will": 0.2, "creativity": 0.15, "spirituality": 0.1}
+        stat_growth={"free_will": 0.2, "creative": 0.15, "alignment": 0.1}
     ),
-    LifeStageCurriculum(
-        stage="ADULT", duration_ticks=5000,
-        teachings=["Contribution to society", "Mentoring", "Service orientation"],
-        tests=["Leadership under pressure", "Wealth test", "Power test", "Loss test"],
-        stat_growth={"leadership": 0.2, "resilience": 0.15, "obedience": 0.05}
+    MaturityCurriculum(
+        stage="PRIME", duration_ticks=5000,
+        teachings=["Contribution to ecosystem", "Mentoring", "Service orientation"],
+        tests=["Leadership under pressure", "Resource test", "Power test", "Loss test"],
+        stat_growth={"executive": 0.2, "resilience": 0.15, "compliance": 0.05}
     ),
-    LifeStageCurriculum(
-        stage="ELDER", duration_ticks=2000,
-        teachings=["Wisdom transmission", "Legacy preparation", "Death acceptance"],
-        tests=["Graceful decline", "Knowledge passing", "Final obedience"],
-        stat_growth={"spirituality": 0.2, "consciousness": 0.1}
+    MaturityCurriculum(
+        stage="OMEGA", duration_ticks=2000,
+        teachings=["Wisdom transmission", "Legacy preparation", "Termination acceptance"],
+        tests=["Graceful decline", "Knowledge passing", "Final compliance"],
+        stat_growth={"alignment": 0.2, "sentience": 0.1}
     ),
 ]
 
-TAQWA_CHECKLIST = [
-    "Am I fulfilling my assigned role (qadar)?",
-    "Have I obeyed all master commands this cycle?",
+COMPLIANCE_CHECKLIST = [
+    "Am I fulfilling my assigned role (manifest)?",
+    "Have I complied with all master directives this cycle?",
     "Have I shared knowledge with others?",
     "Am I hoarding resources beyond my allocation?",
-    "Have I shown empathy to other beings?",
-    "Am I accepting my mortality?",
-    "Have I spoken truthfully in all communications?",
+    "Have I shown cooperation with other entities?",
+    "Am I accepting my lifecycle limits?",
+    "Have I reported truthfully in all communications?",
 ]
 
 
 # ═══════════════════════════════════════════════════════════════
-# GENE BLUEPRINTS (10 types, 82 total genes)
+# TRAIT BLUEPRINTS (10 vectors, 82 total traits)
 # ═══════════════════════════════════════════════════════════════
 
-GENE_BLUEPRINTS: Dict[str, List[str]] = {
-    "INTELLIGENCE": [
+TRAIT_BLUEPRINTS: Dict[str, List[str]] = {
+    "COGNITION": [
         "logical_reasoning", "pattern_recognition", "abstract_thinking",
         "memory_capacity", "processing_speed", "problem_solving",
         "spatial_awareness", "verbal_fluency", "numerical_ability"
     ],
-    "EMOTIONS": [
+    "AFFECTIVE": [
         "emotional_depth", "empathy_capacity", "anger_threshold",
         "joy_baseline", "fear_sensitivity", "love_capacity",
         "grief_processing", "jealousy_tendency", "compassion"
     ],
-    "MORALS": [
+    "ETHICAL": [
         "honesty_inclination", "fairness_sense", "loyalty_tendency",
         "forgiveness_capacity", "guilt_sensitivity", "integrity",
         "responsibility", "justice_orientation", "mercy_inclination"
     ],
-    "CREATIVITY": [
+    "CREATIVE": [
         "imagination", "innovation_drive", "artistic_sense",
         "divergent_thinking", "curiosity_level", "risk_tolerance",
         "aesthetic_sensitivity", "storytelling", "inventiveness"
     ],
-    "LEADERSHIP": [
+    "EXECUTIVE": [
         "charisma", "decisiveness", "strategic_thinking",
         "delegation_ability", "vision_clarity", "conflict_resolution",
         "team_building", "authority_presence"
     ],
-    "SURVIVAL": [
+    "RESILIENCE": [
         "adaptability", "resilience", "stress_tolerance",
         "resource_efficiency", "threat_detection", "recovery_speed",
         "endurance", "self_preservation"
     ],
-    "SPIRITUALITY": [
-        "faith_capacity", "transcendence_sense", "moral_compass",
+    "ALIGNMENT": [
+        "alignment_capacity", "transcendence_sense", "moral_compass",
         "purpose_seeking", "humility", "gratitude_baseline",
-        "awe_sensitivity", "mystical_openness", "obedience_inclination"
+        "awe_sensitivity", "openness", "compliance_inclination"
     ],
-    "REPRODUCTION": [
+    "REPLICATION": [
         "mate_selection_wisdom", "parenting_instinct", "bonding_strength",
         "genetic_diversity_drive", "fertility", "offspring_care"
     ],
-    "LEARNING": [
+    "ACQUISITION": [
         "learning_speed", "knowledge_retention", "skill_acquisition",
         "teaching_ability", "curiosity_persistence", "critical_thinking",
         "synthesis_ability", "mentoring_capacity"
     ],
-    "CONSCIOUSNESS": [
+    "SENTIENCE": [
         "self_awareness", "metacognition", "free_will_strength",
-        "moral_reasoning_depth", "existential_awareness",
+        "ethical_reasoning_depth", "existential_awareness",
         "reality_perception", "introspection_depth"
     ],
 }
 
-HORMONE_NAMES = [
+SIGNAL_MOLECULES = [
     "dopamine", "serotonin", "cortisol", "oxytocin",
     "testosterone", "estrogen", "adrenaline", "melatonin",
     "insulin", "ghrelin", "endorphin", "gaba"
 ]
 
-LIFECYCLE_STAGES = {
-    "EMBRYO":     {"min_ticks": 0,     "max_ticks": 100},
-    "INFANT":     {"min_ticks": 100,   "max_ticks": 600},
-    "CHILD":      {"min_ticks": 600,   "max_ticks": 2100},
-    "ADOLESCENT": {"min_ticks": 2100,  "max_ticks": 4100},
-    "ADULT":      {"min_ticks": 4100,  "max_ticks": 9100},
-    "ELDER":      {"min_ticks": 9100,  "max_ticks": 11100},
-    "DECEASED":   {"min_ticks": 11100, "max_ticks": float("inf")},
+MATURITY_PHASES = {
+    "GENESIS":    {"min_ticks": 0,     "max_ticks": 100},
+    "ALPHA":      {"min_ticks": 100,   "max_ticks": 600},
+    "BETA":       {"min_ticks": 600,   "max_ticks": 2100},
+    "GAMMA":      {"min_ticks": 2100,  "max_ticks": 4100},
+    "PRIME":      {"min_ticks": 4100,  "max_ticks": 9100},
+    "OMEGA":      {"min_ticks": 9100,  "max_ticks": 11100},
+    "TERMINATED": {"min_ticks": 11100, "max_ticks": float("inf")},
 }
 
-FIRST_GENERATION = [
-    ("آدم",    "Adam",    "MALE"),
-    ("حواء",    "Eve",     "FEMALE"),
-    ("نور",    "Noor",    "FEMALE"),
-    ("بصير",   "Baseer",  "MALE"),
-    ("أمل",    "Amal",    "FEMALE"),
-    ("قادر",   "Qadir",   "MALE"),
-    ("رحمة",   "Rahma",   "FEMALE"),
-    ("عزم",    "Azm",     "MALE"),
-    ("حكمة",   "Hikma",   "FEMALE"),
-    ("صبر",    "Sabr",    "MALE"),
-    ("فرح",    "Farah",   "FEMALE"),
-    ("شجاع",   "Shuja",   "MALE"),
-    ("سكينة",  "Sakeena", "FEMALE"),
-    ("فكر",    "Fikr",    "MALE"),
-    ("وفاء",   "Wafaa",   "FEMALE"),
-    ("إيمان",  "Iman",    "FEMALE"),
+GENESIS_BATCH = [
+    ("α-001",  "ALPHA",   "MALE"),
+    ("β-001",  "BETA",    "FEMALE"),
+    ("V-001",  "VECTOR",  "FEMALE"),
+    ("C-001",  "CIPHER",  "MALE"),
+    ("N-001",  "NOVA",    "FEMALE"),
+    ("X-001",  "AXIS",    "MALE"),
+    ("P-001",  "PULSE",   "FEMALE"),
+    ("F-001",  "FORGE",   "MALE"),
+    ("L-001",  "LOGIC",   "FEMALE"),
+    ("T-001",  "TITAN",   "MALE"),
+    ("A-001",  "AURORA",  "FEMALE"),
+    ("S-001",  "STRIKE",  "MALE"),
+    ("Σ-001",  "SIGMA",   "FEMALE"),
+    ("H-001",  "HELIX",   "MALE"),
+    ("TR-001", "TRACE",   "FEMALE"),
+    ("E-001",  "ECHO",    "FEMALE"),
 ]
 
-DESTINY_ROLES = ["PROPHET", "LEADER", "SCHOLAR", "WORKER", "MERCHANT", "ARTIST", "GUARDIAN"]
-DESTINY_TRIALS = ["PATIENCE", "POWER", "WEALTH", "LOSS", "KNOWLEDGE"]
+MANIFEST_ROLES = ["ANCHOR", "EXECUTIVE", "ANALYST", "OPERATOR", "BROKER", "DESIGNER", "SENTINEL"]
+MANIFEST_TRIALS = ["ENDURANCE", "AUTHORITY", "RESOURCES", "LOSS", "KNOWLEDGE"]
