@@ -21,12 +21,14 @@
 - [Key Features](#-key-features)
 - [Architecture](#-architecture)
 - [Quick Start](#-quick-start)
+- [Domains & Services](#-domains--services)
 - [System Requirements](#-system-requirements)
 - [Installation](#-installation)
 - [Configuration](#-configuration)
 - [Usage](#-usage)
 - [API Reference](#-api-reference)
 - [Deployment](#-deployment)
+- [Production Verification](#-production-verification)
 - [Monitoring](#-monitoring)
 - [Security](#-security)
 - [Troubleshooting](#-troubleshooting)
@@ -148,6 +150,14 @@
 | **Open WebUI** | main | 3000 | AI chat interface |
 | **n8n** | latest | 5678 | Workflow automation |
 | **Shadow7 API** | 1.0.0 | 8002 | Publishing platform |
+| **PostgREST** | v12.2.0 | 3001 | Supabase-compatible REST API |
+| **X-BIO Sentinel** | 1.0.0 | 8080 | Edge intelligence |
+| **Sovereign Gateway** | 1.0.0 | 9999 | AS-SULTAN Gateway |
+| **Sovereign Dify Bridge** | 1.0.0 | 8888 | Dify integration |
+| **NEXUS Nerve** | 1.0.0 | 8200 | Central nervous system |
+| **NEXUS Oracle** | 1.0.0 | 8100 | RAG documentation AI |
+| **Memory Keeper** | 1.0.0 | 9000 | Central memory |
+| **Grafana** | latest | 3002 | Monitoring dashboards |
 
 ---
 
@@ -173,22 +183,54 @@ docker compose up -d
 ### Verify Installation
 
 ```bash
-# Check all containers
-docker compose ps
+# Full health check (recommended)
+./scripts/full_health_check.sh
+# Exit 0 = all services OK
 
-# Test health endpoints
+# Manual checks
+docker compose ps
 curl localhost:8090/health              # Cortex
 curl localhost:4000/health/liveliness   # LiteLLM
 curl localhost:8003/api/v1/auth/health  # Auth
+curl localhost:8080/health             # X-BIO
+curl localhost:3001/manuscripts         # PostgREST (add apikey header)
 ```
 
 ### Access UIs
 
-- **Dashboard**: http://localhost:5001
-- **Boardroom AI**: http://localhost:8501
-- **Open WebUI**: http://localhost:3000
-- **n8n Workflows**: http://localhost:5678
-- **Voice Interface**: http://localhost:5050
+- **Dashboard**: http://localhost:5001 | https://dashboard.mrf103.com
+- **Boardroom AI**: http://localhost:8501 | https://boardroom.mrf103.com
+- **Open WebUI**: http://localhost:3000 | https://chat.mrf103.com
+- **n8n Workflows**: http://localhost:5678 | https://flow.mrf103.com
+- **Voice Interface**: http://localhost:5050 | https://voice.mrf103.com
+- **Sovereign OS**: http://localhost:8888 | https://sovereign.mrf103.com
+- **Publisher**: https://publisher.mrf103.com
+- **Grafana**: http://localhost:3002 | https://grafana.mrf103.com
+
+---
+
+## 🌐 Domains & Services
+
+| Domain | Service | Port |
+|--------|---------|------|
+| mrf103.com | Landing | 80/443 |
+| publisher.mrf103.com | Shadow Seven Publisher | 8002, 3001 |
+| chat/nexus/ai.mrf103.com | Open WebUI | 3000 |
+| flow/n8n.mrf103.com | n8n | 5678 |
+| sovereign/god.mrf103.com | Sovereign OS | 8888 |
+| gateway.mrf103.com | AS-SULTAN Gateway | 9999 |
+| dify.mrf103.com | Dify Platform | 8085 |
+| boardroom.mrf103.com | Cognitive Boardroom | 8501 |
+| dashboard/app/dash.mrf103.com | nexus_dashboard | 5001 |
+| cortex.mrf103.com | NEXUS Cortex | 8090 |
+| nerve.mrf103.com | NEXUS Nerve | 8200 |
+| oracle.mrf103.com | NEXUS Oracle | 8100 |
+| memory.mrf103.com | Memory Keeper | 9000 |
+| voice.mrf103.com | Edge-TTS | 5050 |
+| xbio.mrf103.com | X-BIO Sentinel | 8080 |
+| grafana.mrf103.com | Grafana | 3002 |
+
+Full list: [PRODUCTION_VERIFICATION.md](PRODUCTION_VERIFICATION.md)
 
 ---
 
@@ -236,7 +278,23 @@ See [API_REFERENCE.md](docs/API_REFERENCE.md) for complete API documentation.
 
 ## 🚢 Deployment
 
-See [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) for production deployment instructions.
+```bash
+# Production deployment
+docker compose up -d
+docker compose -f monitoring/docker-compose.monitoring.yml up -d
+./scripts/dify_launch.sh  # Optional
+```
+
+See [RUNBOOK.md](RUNBOOK.md) for full deployment and recovery procedures.
+
+---
+
+## ✅ Production Verification
+
+**No mock or dummy implementations in production.** All services use real backends.
+
+- Full verification: [PRODUCTION_VERIFICATION.md](PRODUCTION_VERIFICATION.md)
+- Health check: `./scripts/full_health_check.sh`
 
 ---
 
@@ -267,6 +325,19 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ## 📄 License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+
+---
+
+## 📚 Documentation Index
+
+| Document | Description |
+|----------|-------------|
+| [PRODUCTION_VERIFICATION.md](PRODUCTION_VERIFICATION.md) | التحقق من الإنتاج — لا mock |
+| [RUNBOOK.md](RUNBOOK.md) | التشغيل والإيقاف والاستعادة |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | دليل النشر الكامل |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | البنية المعمارية |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | مرجع API |
+| [docs/COMPREHENSIVE_ASSESSMENT_2026.md](docs/COMPREHENSIVE_ASSESSMENT_2026.md) | التقييم الشامل — خطط عمل، تسعير، استثمار |
 
 ---
 

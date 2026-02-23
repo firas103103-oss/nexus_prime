@@ -27,11 +27,18 @@ EVE Protocol ──────────► Fractal Polarization ────
 # Or: docker exec -i nexus_db psql -U postgres -d nexus_db < scripts/db/msl_schema.sql
 ```
 
-See `SOVEREIGN_PORTS_AND_SERVICES.md` for full port matrix and startup order.
+See `SOVEREIGN_PORTS_AND_SERVICES.md` for port matrix. See `SOVEREIGN_PAGES_INDEX.md` for all URLs.
 
 ---
 
 ## Deployment
+
+### Quick Launch
+
+```bash
+cd /root/NEXUS_PRIME_UNIFIED
+./scripts/sovereign_launch.sh
+```
 
 ### 1. Sovereign Dify Bridge (Standalone)
 
@@ -49,6 +56,7 @@ The bridge runs on **port 8888** and provides:
 - **System Status** (`/api/systems/status`) — Nerve, Gateway, Oracle, Memory Keeper
 - X-BIO VOC webhook (`POST /api/xbio/voc-webhook`)
 - APEX Control Interface (`/`) — Sovereign OS Dashboard
+- **Traffic Analytics** (`/api/analytics/collect`, `/api/analytics/stats`) — Google Analytics–style
 
 ### 2. Full Stack (with Gateway)
 
@@ -61,18 +69,21 @@ Gateway (9999) proxies to the bridge when `DIFY_BOARDROOM_ENABLED=true`:
 - `GET /api/dify/hormonal/status`
 - `GET /api/dify/ledger/recent`
 - `GET /api/dify/genome/entity/{id}/llm-params`
+- `POST /api/dify/eve/create` — Eve Protocol
+- `GET /api/dify/systems/status` — System status
+- `GET /api/dify/ledger/notifications` — UI notifications
 - `POST /api/dify/xbio/voc-webhook`
 
-### 3. Dify (Optional)
+### 3. Dify — منصب ✅
 
-To connect the bridge to Dify workflows:
+```bash
+./scripts/dify_launch.sh
+```
 
-1. Clone Dify: `git clone https://github.com/langgenius/dify.git && cd dify/docker`
-2. Copy env: `cp .env.example .env`
-3. Set `OPENAI_API_BASE=http://nexus_litellm:4000/v1` and `OPENAI_API_KEY=sk-nexus-sovereign-mrf103`
-4. Connect to `nexus_network` or set `DIFY_API_URL` in bridge env
-5. Create a "Defensive" workflow in Dify with inputs: `entity_name`, `trigger_reason`, `cortisol`, `adrenaline`, `mood`
-6. Set `DIFY_API_KEY` and `DIFY_DEFENSIVE_WORKFLOW_ID` in bridge env
+- **الوصول:** https://dify.mrf103.com أو http://localhost:8085
+- **أول تشغيل:** افتح /install لإنشاء حساب الأدمن
+- **LiteLLM:** Dify يستخدم nexus_litellm (Ollama) تلقائياً
+- **ربط Bridge:** بعد إنشاء workflow في Dify، ضع `DIFY_API_KEY` و `DIFY_DEFENSIVE_WORKFLOW_ID` في .env
 
 ---
 
@@ -150,6 +161,18 @@ Returns: `polarized_genome`, `signal_molecules`, `mood`, `llm_params`, `metadata
 
 ---
 
+## Traffic Analytics (Google Analytics–style)
+
+Self-hosted, no external deps. Tracks page views and events.
+
+- **Collect**: `POST /api/analytics/collect` — beacon payload `{event_type, path, event_name, event_params, referrer, session_id}`
+- **Stats**: `GET /api/analytics/stats?hours=24` — pageviews, sessions, top pages, hourly trend
+- **JS API**: `sovAnalytics('event', name, params)` — e.g. `sovAnalytics('event', 'eve_create', {})`
+
+The dashboard auto-injects tracking (pageview on load). Apply analytics schema: `docker exec -i nexus_db psql -U postgres -d nexus_db < scripts/db/analytics_schema.sql`
+
+---
+
 ## APEX Control Interface
 
-Open `http://localhost:8888` or `http://localhost:9999/api/dify/god-mode` for the Sovereign OS dashboard. The dashboard auto-refreshes ledger notifications every 15s and system status every 30s.
+Open `http://localhost:8888` or `http://localhost:9999/api/dify/god-mode` for the Sovereign OS dashboard. The dashboard auto-refreshes ledger notifications every 15s, system status every 30s, and analytics every 60s.

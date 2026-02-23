@@ -17,10 +17,11 @@
 | 8200 | Nerve | nexus_nerve | Central nervous system |
 | 8300 | Neural Spine | neural_spine | Cognitive backbone (override) |
 | 8501 | Boardroom | nexus_boardroom | Cognitive boardroom |
-| 8888 | **Dify Bridge** | **sovereign_dify_bridge** | **Sovereign OS Dashboard** |
+| 8888 | **Dify Bridge** | **sovereign_dify_bridge** | **Sovereign OS Dashboard** (sovereign/god.mrf103.com) |
 | 9000 | Memory Keeper | nexus_memory_keeper | حارس الذاكرة |
 | 9001 | Memory Keeper UI | nexus_memory_keeper | Web UI |
-| 9999 | **Gateway** | **sovereign_gateway** | **AS-SULTAN unified bridge** |
+| 9999 | **Gateway** | **sovereign_gateway** | **AS-SULTAN unified bridge** (gateway.mrf103.com) |
+| 8085 | **Dify** | dify-nginx | Dify platform (dify.mrf103.com) |
 | 50051 | Orchestrator | nexus_orchestrator | gRPC meta-orchestrator |
 | 11434 | Ollama | nexus_ollama | Local LLM |
 | 5001 | Dashboard | nexus_dashboard | Nexus dashboard |
@@ -36,20 +37,30 @@
 
 ## MSL Schema Prerequisite
 
-Before full operation, ensure MSL schema is applied:
+Before full operation (Bridge hormonal/ledger/Eve), apply MSL schema once:
 
 ```bash
-cd /root/NEXUS_PRIME_UNIFIED
 ./scripts/db/apply_msl_schema.sh
 ```
 
-Or manually:
+Requires `nexus_db` running. Re-run safe (shows "already exists" if applied).
+
+## Deployment Commands
+
 ```bash
-docker exec -i nexus_db psql -U postgres -d nexus_db < scripts/db/msl_schema.sql
+# Full Sovereign stack (recommended)
+./scripts/sovereign_launch.sh
+
+# With MSL schema first
+./scripts/sovereign_launch.sh --msl
+
+# Minimal (bridge + gateway + deps only)
+./scripts/sovereign_launch.sh --minimal
 ```
 
 ## Optional Services (docker-compose.override.yml)
 
+Add `-f docker-compose.override.yml` for:
 - **nexus_apex** (7777) — Apex command layer
 - **neural_spine** (8300) — Cognitive backbone
 - **reflex_agents** — Agent runtime

@@ -758,6 +758,21 @@ async def dify_systems_status():
         return JSONResponse({"error": "Dify boardroom disabled"}, status_code=503)
     return await _dify_bridge_proxy("GET", "/api/systems/status")
 
+@app.post("/api/dify/analytics/collect")
+async def dify_analytics_collect(request: Request):
+    """Sovereign Analytics — collect beacon."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return JSONResponse({"ok": True})
+    body = await request.json()
+    return await _dify_bridge_proxy("POST", "/api/analytics/collect", body=body)
+
+@app.get("/api/dify/analytics/stats")
+async def dify_analytics_stats(hours: int = 24):
+    """Sovereign Analytics — dashboard stats."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return JSONResponse({"error": "Dify boardroom disabled"}, status_code=503)
+    return await _dify_bridge_proxy("GET", f"/api/analytics/stats?hours={hours}")
+
 @app.get("/api/dify/ledger/notifications")
 async def dify_ledger_notifications(limit: int = 20):
     """Ledger notifications for UI sync."""

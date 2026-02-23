@@ -248,24 +248,6 @@ services:
       retries: 3
       start_period: 15s
 
-  # PostgREST — Supabase-compatible REST API (Shadow 7 Publisher)
-  nexus_postgrest:
-    image: postgrest/postgrest:v12.2.0
-    container_name: nexus_postgrest
-    ports:
-      - "3001:3000"
-    environment:
-      - PGRST_DB_URI=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
-      - PGRST_DB_SCHEMAS=public
-      - PGRST_DB_ANON_ROLE=web_anon
-      - PGRST_JWT_SECRET=${JWT_SECRET:-61000362792c462e2e662a985ba4151231f7c1236c7b02ccdee9cee3acc85260}
-    networks:
-      - nexus_network
-    depends_on:
-      nexus_db:
-        condition: service_healthy
-    restart: always
-
   # ═══ PHASE 3: RS256 Auth Service ══════════════════════════════
   nexus_auth:
     build: ../integration/shared-auth

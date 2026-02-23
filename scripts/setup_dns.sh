@@ -8,8 +8,8 @@ CF_TOKEN="NTf2k_LX2NykdvAI78ClVO1NTojmYQoQZJEgpNDX"
 ZONE_ID="156bc9bdda82a4c6d357dbf5578d4845"
 SERVER_IP="46.224.225.96"
 
-# Subdomains to create
-SUBDOMAINS="publisher sultan admin chat flow api jarvis imperial voice nexus n8n dash data"
+# Subdomains to create (sovereign, god, gateway = Sovereign Stack)
+SUBDOMAINS="publisher sultan admin chat flow api jarvis imperial voice nexus n8n dash data sovereign god gateway"
 
 echo "============================================"
 echo "🌐 NEXUS DNS Setup - Cloudflare"

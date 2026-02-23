@@ -10,6 +10,7 @@ COPY genome_agent_mapper.py .
 COPY msl_ledger.py .
 COPY hormonal_orchestrator.py .
 COPY eve_protocol.py .
+COPY analytics_tracker.py .
 COPY main.py .
 
 EXPOSE 8888

@@ -80,6 +80,9 @@ data/npm_data/*
 data/npm_letsencrypt/*
 !data/npm_letsencrypt/.gitkeep
 
+# Embedded repos (use submodule if needed)
+dify/
+
 # Backups
 nexus_prime_backups/
 *.backup

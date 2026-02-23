@@ -21,6 +21,7 @@ from config import (
     DATABASE_URL,
     DIFY_API_URL,
     DIFY_API_KEY,
+    DIFY_DEFENSIVE_WORKFLOW_ID,
     NERVE_URL,
     GATEWAY_URL,
     ORACLE_URL,
@@ -37,6 +38,7 @@ from msl_ledger import (
 )
 from hormonal_orchestrator import fetch_signal_molecules, hormonal_loop
 from eve_protocol import create_eve_genome
+from analytics_tracker import track, get_stats, ensure_analytics_schema
 
 pool: Optional[asyncpg.Pool] = None
 _hormonal_task: Optional[asyncio.Task] = None
@@ -56,6 +58,7 @@ async def lifespan(app: FastAPI):
             else:
                 raise RuntimeError(f"DB connection failed after 5 attempts: {e}") from e
     _hormonal_task = asyncio.create_task(hormonal_loop(pool))
+    await ensure_analytics_schema(pool)
     yield
     if _hormonal_task:
         _hormonal_task.cancel()
@@ -254,9 +257,93 @@ async def xbio_voc_webhook(req: Request, payload: XBioVOCPayload, background_tas
             "raqib",
             1.0,
         )
-        # TODO: trigger Dify workflow when DIFY_DEFENSIVE_WORKFLOW_ID set
+        # Trigger Dify defensive workflow when API key configured
+        if DIFY_API_KEY:
+            try:
+                url = f"{DIFY_API_URL.rstrip('/')}/v1/workflows/run"
+                body = {
+                    "user": "xbio-voc-webhook",
+                    "response_mode": "blocking",
+                    "inputs": {
+                        "entity_name": SOVEREIGN_ENTITY_NAME,
+                        "trigger_reason": "VOC anomaly",
+                        "sensor_id": payload.sensor_id,
+                        "anomaly_score": payload.anomaly_score,
+                        "voc_level": payload.voc_level,
+                    },
+                }
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    r = await client.post(
+                        url,
+                        json=body,
+                        headers={
+                            "Authorization": f"Bearer {DIFY_API_KEY}",
+                            "Content-Type": "application/json",
+                        },
+                    )
+                    if r.status_code >= 400:
+                        background_tasks.add_task(
+                            log_action,
+                            pool,
+                            entity_id,
+                            "WARN",
+                            "DIFY_TRIGGER_FAIL",
+                            f"Dify workflow returned {r.status_code}: {r.text[:200]}",
+                            "raqib",
+                            0.5,
+                        )
+            except Exception as e:
+                background_tasks.add_task(
+                    log_action,
+                    pool,
+                    entity_id,
+                    "WARN",
+                    "DIFY_TRIGGER_ERR",
+                    str(e)[:200],
+                    "raqib",
+                    0.5,
+                )
         return {"status": "triggered", "anomaly_score": payload.anomaly_score}
     return {"status": "received", "anomaly_score": payload.anomaly_score}
+
+
+# ─── Sovereign Analytics (Google Analytics–style) ─────────────────────
+
+class AnalyticsBeacon(BaseModel):
+    """Beacon payload from tracking JS."""
+    event_type: str = "pageview"
+    path: str
+    event_name: Optional[str] = None
+    event_params: Optional[Dict[str, Any]] = None
+    referrer: Optional[str] = None
+    session_id: Optional[str] = None
+
+
+@app.post("/api/analytics/collect")
+async def analytics_collect(req: Request, payload: AnalyticsBeacon):
+    """Collect pageview/event (like ga('send'))."""
+    if not pool:
+        return {"ok": True}
+    user_agent = req.headers.get("User-Agent", "")
+    await track(
+        pool,
+        event_type=payload.event_type,
+        path=payload.path,
+        event_name=payload.event_name,
+        event_params=payload.event_params,
+        referrer=payload.referrer,
+        session_id=payload.session_id,
+        user_agent=user_agent,
+    )
+    return {"ok": True}
+
+
+@app.get("/api/analytics/stats")
+async def analytics_stats(hours: int = 24):
+    """Dashboard stats (like GA overview)."""
+    if not pool:
+        raise HTTPException(503, "Bridge not ready")
+    return await get_stats(pool, hours=hours)
 
 
 # ─── Health & Dify Proxy ─────────────────────────────────────────────
@@ -349,6 +436,13 @@ async def apex_control_interface():
         </div>
 
         <div class="card" style="margin-top: 24px;">
+            <h2>📊 Traffic Analytics</h2>
+            <p>Page views, sessions, top pages (last 24h)</p>
+            <div id="analytics-stats" class="endpoint" style="margin-top:8px;">Loading...</div>
+            <a href="/api/analytics/stats" target="_blank">GET /api/analytics/stats</a>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
             <h2>Integration Map</h2>
             <pre>
 MSL (signal_molecules) ──► Hormonal Orchestrator ──► Dify Workflows
@@ -361,8 +455,17 @@ EVE Protocol ──────────► Fractal Polarization ────
     </div>
     <script>
         var API = window.location.pathname.startsWith('/api/dify') ? '/api/dify' : '/api';
+        var ANALYTICS = (API.indexOf('dify')>=0 ? API : API) + '/analytics';
+        (function(){
+            var sid = sessionStorage.getItem('sov_sid') || 's' + Date.now() + '-' + Math.random().toString(36).slice(2);
+            sessionStorage.setItem('sov_sid', sid);
+            var send = function(t, p, n, pr){ var b = new Blob([JSON.stringify({event_type:t,path:p||location.pathname||'/',event_name:n,event_params:pr||{},referrer:document.referrer||'',session_id:sid})], {type:'application/json'}); (navigator.sendBeacon && navigator.sendBeacon(ANALYTICS + '/collect', b)) || fetch(ANALYTICS + '/collect', {method:'POST', body:b, headers:{'Content-Type':'application/json'}, keepalive:true}); };
+            send('pageview');
+            window.sovAnalytics = function(a,n,p){ if(a==='event') send('event', location.pathname||'/', n, p||{}); };
+        })();
         async function createEve() {
             try {
+                if (window.sovAnalytics) sovAnalytics('event', 'eve_create', {});
                 const r = await fetch(API + '/eve/create', { method: 'POST' });
                 const d = await r.json();
                 alert('EVE Created! Mood: ' + (d.mood||'N/A') + ' | temp=' + (d.llm_params?.temperature||'N/A'));
@@ -391,10 +494,23 @@ EVE Protocol ──────────► Fractal Polarization ────
                 document.getElementById('sys-status').textContent = parts.join(' | ');
             } catch (e) { document.getElementById('sys-status').textContent = 'Unreachable'; }
         }
+        async function loadAnalytics() {
+            try {
+                const r = await fetch(ANALYTICS + '/stats?hours=24');
+                const d = await r.json();
+                const el = document.getElementById('analytics-stats');
+                if (d.error) { el.textContent = d.error; return; }
+                var s = 'Pageviews: ' + d.pageviews + ' | Sessions: ' + d.sessions;
+                if (d.top_pages && d.top_pages.length) s += ' | Top: ' + d.top_pages.slice(0,3).map(p=>p.path).join(', ');
+                el.textContent = s;
+            } catch (e) { document.getElementById('analytics-stats').textContent = 'Unavailable'; }
+        }
         loadNotifications();
         loadSysStatus();
+        loadAnalytics();
         setInterval(loadNotifications, 15000);
         setInterval(loadSysStatus, 30000);
+        setInterval(loadAnalytics, 60000);
     </script>
 </body>
 </html>

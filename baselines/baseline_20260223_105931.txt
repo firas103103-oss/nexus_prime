@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════
+NEXUS PRIME — Baseline Capture — 20260223_105931
+═══════════════════════════════════════════════════════════
+
+=== 1. Port Status ===
+  Port 3000: 200
+  Port 3001: 000000
+  Port 3002: 000000
+  Port 4000: 200
+  Port 5050: 200
+  Port 5678: 200
+  Port 8002: 404
+  Port 8003: 404
+  Port 8005: 200
+  Port 8080: 000000
+  Port 8085: 307
+  Port 8090: 200
+  Port 8100: 404
+  Port 8200: 200
+  Port 8501: 200
+  Port 8888: 200
+  Port 9000: 200
+  Port 9999: 200
+  Port 5001: 200
+  Port 11434: 200
+
+=== 2. Docker Containers ===
+NAMES                   STATUS                    PORTS
+dify-nginx-1            Up 9 hours                0.0.0.0:8085->80/tcp, [::]:8085->80/tcp, 0.0.0.0:8445->443/tcp, [::]:8445->443/tcp
+dify-worker-1           Up 9 hours                5001/tcp
+dify-plugin_daemon-1    Up 9 hours                0.0.0.0:5003->5003/tcp, [::]:5003->5003/tcp
+dify-api-1              Up 9 hours                5001/tcp
+dify-worker_beat-1      Up 9 hours                5001/tcp
+dify-ssrf_proxy-1       Up 9 hours                3128/tcp
+dify-weaviate-1         Up 9 hours                
+dify-db_postgres-1      Up 9 hours (healthy)      5432/tcp
+dify-web-1              Up 9 hours                3000/tcp
+dify-sandbox-1          Up 9 hours (healthy)      
+dify-redis-1            Up 9 hours (healthy)      6379/tcp
+sovereign_dify_bridge   Up 9 hours (unhealthy)    0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
+nexus_oracle            Up 9 hours (healthy)      0.0.0.0:8100->8100/tcp, [::]:8100->8100/tcp
+nexus_db                Up 11 hours (healthy)     5432/tcp
+sovereign_gateway       Up 12 hours (healthy)     0.0.0.0:9999->9999/tcp, [::]:9999->9999/tcp
+nexus_nerve             Up 12 hours (unhealthy)   0.0.0.0:8200->8200/tcp, [::]:8200->8200/tcp
+nexus_memory_keeper     Up 15 hours (healthy)     0.0.0.0:9000-9001->9000-9001/tcp, [::]:9000-9001->9000-9001/tcp
+nexus_ai                Up 16 hours (healthy)     0.0.0.0:3000->8080/tcp, [::]:3000->8080/tcp
+nexus_dashboard         Up 16 hours               0.0.0.0:5001->5001/tcp, [::]:5001->5001/tcp
+nexus_boardroom         Up 16 hours (healthy)     0.0.0.0:8501->8501/tcp, [::]:8501->8501/tcp
+nexus_orchestrator      Up 16 hours (healthy)     0.0.0.0:50051->50051/tcp, [::]:50051->50051/tcp
+shadow7_api             Up 16 hours (healthy)     0.0.0.0:8002->8002/tcp, [::]:8002->8002/tcp
+nexus_cortex            Up 16 hours (healthy)     0.0.0.0:8090->8090/tcp, [::]:8090->8090/tcp
+nexus_auth              Up 16 hours (healthy)     0.0.0.0:8003->8002/tcp, [::]:8003->8002/tcp
+nexus_litellm           Up 16 hours (unhealthy)   0.0.0.0:4000->4000/tcp, [::]:4000->4000/tcp
+nexus_flow              Up 16 hours               0.0.0.0:5678->5678/tcp, [::]:5678->5678/tcp
+nexus_voice             Up 16 hours               0.0.0.0:5050->8000/tcp, [::]:5050->8000/tcp
+nexus_ollama            Up 16 hours               0.0.0.0:11434->11434/tcp, [::]:11434->11434/tcp
+nexus_redis             Up 16 hours (healthy)     0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
+
+=== 3. Disk Usage (top dirs) ===
+3.0G	/root/NEXUS_PRIME_UNIFIED/data/
+2.4G	/root/NEXUS_PRIME_UNIFIED/products/
+623M	/root/NEXUS_PRIME_UNIFIED/neural_spine_backup_pre_restructure/
+600M	/root/NEXUS_PRIME_UNIFIED/dashboard-arc/
+568M	/root/NEXUS_PRIME_UNIFIED/neural_spine/
+201M	/root/NEXUS_PRIME_UNIFIED/dify/
+87M	/root/NEXUS_PRIME_UNIFIED/SOURCE_CODE_EXTRACTED/
+48M	/root/NEXUS_PRIME_UNIFIED/planets/
+424K	/root/NEXUS_PRIME_UNIFIED/scripts/
+404K	/root/NEXUS_PRIME_UNIFIED/AI_HR_REGISTRY/
+376K	/root/NEXUS_PRIME_UNIFIED/web-dashboards/
+300K	/root/NEXUS_PRIME_UNIFIED/integration/
+264K	/root/NEXUS_PRIME_UNIFIED/nexus_prime_core/
+184K	/root/NEXUS_PRIME_UNIFIED/nexus_nerve/
+144K	/root/NEXUS_PRIME_UNIFIED/nexus_middleware/
+104K	/root/NEXUS_PRIME_UNIFIED/memory_keeper/
+92K	/root/NEXUS_PRIME_UNIFIED/sovereign_dify_bridge/
+80K	/root/NEXUS_PRIME_UNIFIED/nexus_cortex/
+80K	/root/NEXUS_PRIME_UNIFIED/docs/
+76K	/root/NEXUS_PRIME_UNIFIED/k8s-manifests/
+
+=== 4. Static Roots ===
+  /var/www/nexus-landing: 7 items
+  /var/www/monitor: 1 items
+  /var/www/finance: 1 items
+  /var/www/marketing: 1 items
+  /var/www/nexus-platform: 1 items
+  /var/www/prime: 1 items
+  /root/products/shadow-seven-publisher/dist: 2 items
+
+=== 5. Health Endpoints ===
+  http://127.0.0.1:8888/health: 200
+  http://127.0.0.1:9999/health: 200
+  http://127.0.0.1:8200/health: 200
+  http://127.0.0.1:8090/health: 200
