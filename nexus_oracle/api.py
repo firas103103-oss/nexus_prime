@@ -78,7 +78,7 @@ async def health():
     return {
         "status": "healthy",
         "chromadb": chroma_collection is not None,
-        "doc_count": chroma_collection.count() if chroma_collection else 0,
+        "doc_count": chroma_collection.count() if chroma_collection is not None else 0,
     }
 
 

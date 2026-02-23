@@ -46,6 +46,8 @@ APEX_URL = os.getenv("APEX_URL", "http://127.0.0.1:7777")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 EDGE_TTS_URL = os.getenv("EDGE_TTS_URL", "http://localhost:5050")  # nexus_voice in Docker
 GATEWAY_PORT = int(os.getenv("GATEWAY_PORT", "9999"))
+DIFY_BRIDGE_URL = os.getenv("DIFY_BRIDGE_URL", "http://sovereign_dify_bridge:8888")
+DIFY_BOARDROOM_ENABLED = os.getenv("DIFY_BOARDROOM_ENABLED", "false").lower() == "true"
 
 # ═══════════════════════════════════════════════════════════
 # Initialize AS-SULTAN
@@ -677,8 +679,99 @@ async def gateway_root():
             "nerve_agents": "GET /api/nerve/agents",
             "nerve_pulse": "GET /api/nerve/pulse",
         },
+        "dify_bridge": DIFY_BRIDGE_URL if DIFY_BOARDROOM_ENABLED else None,
+        "dify_endpoints": {
+            "god_mode": "GET /api/dify/god-mode",
+            "hormonal": "GET /api/dify/hormonal/status",
+            "ledger": "GET /api/dify/ledger/recent",
+            "genome_params": "GET /api/dify/genome/entity/{id}/llm-params",
+        } if DIFY_BOARDROOM_ENABLED else None,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ═══════════════════════════════════════════════════════════
+# Dify Bridge Proxy — God Mode & God Creation Center
+# ═══════════════════════════════════════════════════════════
+
+async def _dify_bridge_proxy(method: str, path: str, body: Dict = None, raw: bool = False):
+    """Proxy to Sovereign Dify Bridge."""
+    url = f"{DIFY_BRIDGE_URL.rstrip('/')}{path}"
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            if method == "GET":
+                r = await client.get(url)
+            else:
+                r = await client.request(method, url, json=body or {})
+            r.raise_for_status()
+            if raw:
+                from fastapi.responses import HTMLResponse
+                return HTMLResponse(content=r.text)
+            return r.json()
+    except Exception as e:
+        return {"status": "dify_bridge_offline", "error": str(e), "path": path}
+
+
+@app.get("/api/dify/god-mode")
+async def dify_god_mode():
+    """APEX Control Interface — God Mode Dashboard (proxied)."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return {"status": "disabled", "message": "DIFY_BOARDROOM_ENABLED=false"}
+    return await _dify_bridge_proxy("GET", "/", raw=True)
+
+
+@app.get("/api/dify/hormonal/status")
+async def dify_hormonal_status():
+    """Hormonal orchestration — signal_molecules state."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return {"status": "disabled"}
+    return await _dify_bridge_proxy("GET", "/api/hormonal/status")
+
+
+@app.get("/api/dify/ledger/recent")
+async def dify_ledger_recent(limit: int = 50):
+    """Raqib/Atid observer — action_ledger."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return {"status": "disabled"}
+    return await _dify_bridge_proxy("GET", f"/api/ledger/recent?limit={limit}")
+
+
+@app.get("/api/dify/genome/entity/{entity_id}/llm-params")
+async def dify_genome_params(entity_id: str):
+    """Genome-driven agent params — 82 traits → temperature, top_p."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return {"status": "disabled"}
+    return await _dify_bridge_proxy("GET", f"/api/genome/entity/{entity_id}/llm-params")
+
+
+@app.post("/api/dify/eve/create")
+async def dify_eve_create():
+    """Eve Protocol — Fractal Polarization (proxied)."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return JSONResponse({"error": "Dify boardroom disabled"}, status_code=503)
+    return await _dify_bridge_proxy("POST", "/api/eve/create")
+
+@app.get("/api/dify/systems/status")
+async def dify_systems_status():
+    """Global system awareness — Nerve, Gateway, Oracle, Memory Keeper."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return JSONResponse({"error": "Dify boardroom disabled"}, status_code=503)
+    return await _dify_bridge_proxy("GET", "/api/systems/status")
+
+@app.get("/api/dify/ledger/notifications")
+async def dify_ledger_notifications(limit: int = 20):
+    """Ledger notifications for UI sync."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return JSONResponse({"error": "Dify boardroom disabled"}, status_code=503)
+    return await _dify_bridge_proxy("GET", f"/api/ledger/notifications?limit={limit}")
+
+@app.post("/api/dify/xbio/voc-webhook")
+async def dify_xbio_voc_webhook(request: Request):
+    """Bio-Olfactory Loop — X-BIO VOC/Anomaly webhook (proxied)."""
+    if not DIFY_BOARDROOM_ENABLED:
+        return {"status": "disabled"}
+    body = await request.json()
+    return await _dify_bridge_proxy("POST", "/api/xbio/voc-webhook", body=body)
 
 
 @app.get("/health")

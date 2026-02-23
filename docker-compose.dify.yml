@@ -1,20 +1,64 @@
 # ═══════════════════════════════════════════════════════════════════════════
-# Dify Boardroom — Constitutionally Aware (merge with docker-compose.yml)
+# SOVEREIGN COMMAND CENTER — God Mode & God Creation Center
 # ═══════════════════════════════════════════════════════════════════════════
-# Use: docker compose -f docker-compose.yml -f docker-compose.dify.yml up -d
-# All NEXUS agent traffic must route through Sovereign Gateway (9999).
+# Merge: docker compose -f docker-compose.yml -f docker-compose.dify.yml up -d
+#
+# Architecture:
+#   MSL (signal_molecules) ──► Hormonal Orchestrator ──► Dify Workflows
+#   MSL (genomes) ──────────► Genome Mapper ──────────► LiteLLM params
+#   MSL (action_ledger) ◄─── Raqib/Atid ────────────── Every Dify trigger
+#   X-BIO (VOC/Anomaly) ───► Webhook ─────────────────► Dify + action_ledger
+#
+# Dify Deployment: Clone https://github.com/langgenius/dify, cd dify/docker,
+#   cp .env.example .env, set OPENAI_API_BASE=http://nexus_litellm:4000/v1,
+#   then docker compose up -d. Connect to nexus_network for bridge access.
 # ═══════════════════════════════════════════════════════════════════════════
 
 services:
-  sovereign_gateway:
+  # ─── Sovereign Dify Bridge — Unified Control Plane ─────────────────
+  sovereign_dify_bridge:
     build:
-      context: .
-      dockerfile: Dockerfile.gateway
-    image: nexus_prime_unified-sovereign_gateway
+      context: ./sovereign_dify_bridge
+      dockerfile: Dockerfile
+    container_name: sovereign_dify_bridge
+    ports:
+      - "8888:8888"
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
+      - DIFY_API_URL=${DIFY_API_URL:-http://dify_api:5001}
+      - DIFY_API_KEY=${DIFY_API_KEY:-}
+      - DIFY_DEFENSIVE_WORKFLOW_ID=${DIFY_DEFENSIVE_WORKFLOW_ID:-}
+      - NERVE_URL=http://nexus_nerve:8200
+      - GATEWAY_URL=http://sovereign_gateway:9999
+      - ORACLE_URL=http://nexus_oracle:8100
+      - MEMORY_KEEPER_URL=http://nexus_memory_keeper:9000
+      - CORTISOL_SPIKE_THRESHOLD=${CORTISOL_SPIKE_THRESHOLD:-0.6}
+      - ADRENALINE_SPIKE_THRESHOLD=${ADRENALINE_SPIKE_THRESHOLD:-0.5}
+      - HORMONAL_POLL_INTERVAL_SEC=${HORMONAL_POLL_INTERVAL_SEC:-10}
+      - XBIO_WEBHOOK_SECRET=${XBIO_WEBHOOK_SECRET:-nexus_xbio_sentinel}
+      - SOVEREIGN_ENTITY_NAME=AS-SULTAN
+    networks:
+      - nexus_network
+    depends_on:
+      nexus_db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ─── Sovereign Gateway — Dify Bridge Integration ───────────────────
+  sovereign_gateway:
     environment:
       - DIFY_BOARDROOM_ENABLED=true
+      - DIFY_BRIDGE_URL=http://sovereign_dify_bridge:8888
       - NERVE_URL=http://nexus_nerve:8200
       - APEX_URL=http://nexus_apex:7777
       - OLLAMA_URL=http://nexus_ollama:11434
       - EDGE_TTS_URL=http://nexus_voice:8000
       - GATEWAY_PORT=9999
+    depends_on:
+      - sovereign_dify_bridge

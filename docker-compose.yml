@@ -8,6 +8,12 @@ services:
     networks:
       - nexus_network
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   nexus_ollama:
     image: ollama/ollama:latest
