@@ -1,7 +1,0 @@
-✅ [دمج جديد] تم نقل mrf103ARC-Namer-main إلى 01_BACKEND
-✅ [دمج جديد] تم نقل arc-core-main إلى 01_BACKEND
-✅ [دمج جديد] تم نقل BME688_Android_App إلى 04_MOBILE
-✅ [دمج جديد] تم نقل bme688_ino إلى 05_UNCLASSIFIED
-✅ [دمج جديد] تم نقل sketch_dec18a إلى 03_HARDWARE
-✅ [دمج جديد] تم نقل sketch_dec18b إلى 03_HARDWARE
-✅ [دمج جديد] تم نقل sketgdgdgdgdgdgd إلى 05_UNCLASSIFIED

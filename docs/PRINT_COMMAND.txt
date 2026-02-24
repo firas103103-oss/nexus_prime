@@ -1,0 +1,18 @@
+# طباعة الأرشيف الكامل — أمر واحد
+
+الملف: docs/MRF_ALL_FOR_PRINT.txt (1583 سطر)
+
+## أوامر الطباعة
+
+# Linux (CUPS)
+lp docs/MRF_ALL_FOR_PRINT.txt
+
+# أو مع خيارات
+lp -o media=A4 -o sides=two-sided-long-edge docs/MRF_ALL_FOR_PRINT.txt
+
+# بديل
+lpr docs/MRF_ALL_FOR_PRINT.txt
+
+# تحويل لـ PDF أولاً (إن وُجد enscript أو a2ps)
+enscript -p - docs/MRF_ALL_FOR_PRINT.txt | ps2pdf - MRF_ALL_FOR_PRINT.pdf
+# ثم طباعة الـ PDF

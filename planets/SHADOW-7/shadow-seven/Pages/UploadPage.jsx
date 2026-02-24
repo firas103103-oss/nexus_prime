@@ -12,7 +12,8 @@ import { useState, useRef, useCallback } from 'react';
 import { Upload, FileText, X, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
 import { useToast } from '../Components/ToastProvider';
 import { analyzeAndCleanText } from '@/Components/upload/TextAnalyzerEnhanced';
-import { supabase } from '../api/supabaseClient';
+
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_SUPABASE_URL || '';
 
 const UploadPage = () => {
   const [files, setFiles] = useState([]);
@@ -125,7 +126,7 @@ const UploadPage = () => {
       };
 
       const analysis = await analyzeAndCleanText(content, 'ar', logger);
-      await handleAnalysisComplete(analysis);
+      await handleAnalysisComplete(analysis, { ...fileObj, content });
 
     } catch (err) {
       console.error('Error processing file:', err);
@@ -143,65 +144,52 @@ const UploadPage = () => {
     ));
   };
 
-  // رفع إلى Supabase
-  const uploadToSupabase = async (fileObj, analysisResults) => {
+  // رفع إلى Backend المحلي (يستبدل Supabase Storage)
+  const uploadToBackend = async (fileObj, analysisResults) => {
     try {
       updateFileStatus(fileObj.id, 'analyzing', 80);
 
-      // 1. رفع الملف إلى Storage
-      const fileName = `${Date.now()}-${fileObj.file.name}`;
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from('manuscripts')
-        .upload(fileName, fileObj.file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      const formData = new FormData();
+      formData.append('file', fileObj.file);
+      formData.append('title', fileObj.name.replace(/\.(txt|docx|pdf)$/i, ''));
+      formData.append('content', fileObj.content || '');
+      formData.append('word_count', String(analysisResults.wordCount || 0));
+      formData.append('metadata', JSON.stringify({
+        chapters: analysisResults.chapters || [],
+        content_type: analysisResults.contentType,
+        language: analysisResults.language,
+        analysis: analysisResults
+      }));
 
-      if (storageError) throw storageError;
+      const base = (API_BASE || '').replace(/\/$/, '');
+      const url = base ? `${base}/api/shadow7/manuscripts/upload` : '/api/shadow7/manuscripts/upload';
+      const res = await fetch(url, {
+        method: 'POST',
+        body: formData
+      });
 
-      updateFileStatus(fileObj.id, 'analyzing', 90);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || res.statusText || 'فشل الرفع');
+      }
 
-      // 2. الحصول على المستخدم الحالي
-      const { data: { user } } = await supabase.auth.getUser();
-
-      // 3. حفظ البيانات في Database
-      const { data: manuscript, error: dbError } = await supabase
-        .from('manuscripts')
-        .insert({
-          title: fileObj.name.replace(/\.(txt|docx|pdf)$/i, ''),
-          content: fileObj.content,
-          file_path: storageData.path,
-          word_count: analysisResults.wordCount || 0,
-          status: 'draft',
-          user_id: user?.id,
-          metadata: {
-            chapters: analysisResults.chapters || [],
-            content_type: analysisResults.contentType,
-            language: analysisResults.language,
-            analysis: analysisResults
-          }
-        })
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
+      const manuscript = await res.json();
       updateFileStatus(fileObj.id, 'completed', 100);
       success('تم رفع المخطوطة بنجاح إلى قاعدة البيانات! 🎉');
-      
       return manuscript;
     } catch (err) {
-      console.error('Upload to Supabase error:', err);
+      console.error('Upload error:', err);
       error(`فشل الرفع: ${err.message}`);
       throw err;
     }
   };
 
   // معالجة نتائج التحليل
-  const handleAnalysisComplete = async (results) => {
-    if (currentFile) {
+  const handleAnalysisComplete = async (results, fileWithContent) => {
+    const fileObj = fileWithContent || currentFile;
+    if (fileObj) {
       setFiles(prev => prev.map(f =>
-        f.id === currentFile.id 
+        f.id === fileObj.id 
           ? { ...f, status: 'completed', progress: 100, analysis: results }
           : f
       ));
@@ -209,8 +197,11 @@ const UploadPage = () => {
       setAnalysisResults(results);
       success('✅ تم التحليل بنجاح! يمكنك الآن الانتقال للخطوة التالية.');
       
-      // TODO: رفع إلى Supabase بعد إنشاء الجداول
-      // await uploadToSupabase(currentFile, results);
+      try {
+        await uploadToBackend(fileObj, results);
+      } catch (uploadErr) {
+        console.warn('Upload skipped:', uploadErr.message);
+      }
     }
     
     setAnalyzing(false);

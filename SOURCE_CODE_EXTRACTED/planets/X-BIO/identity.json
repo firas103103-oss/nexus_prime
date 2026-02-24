@@ -1,9 +1,0 @@
-{
-    "id": "NP-X-BIO",
-    "name": "X-BIO",
-    "role": "الحواس الفيزيائية. استشعار البيانات من عقد ESP32-S3 والتحليل الحيوي.",
-    "status": "Operational",
-    "assets_count": 591,
-    "primary_directive": "Maximize sovereign efficiency in the X-BIO sector.",
-    "knowledge_base_path": "/root/nexus/planets/X-BIO"
-}

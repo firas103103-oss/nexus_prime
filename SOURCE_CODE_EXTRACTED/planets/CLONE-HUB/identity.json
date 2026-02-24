@@ -1,9 +1,0 @@
-{
-    "id": "NP-CLONE-HUB",
-    "name": "CLONE-HUB",
-    "role": "التوأم الرقمي. محاكاة قرارات MrF وتحويل المدخلات لمخرجات تنفيذية.",
-    "status": "Operational",
-    "assets_count": 23054,
-    "primary_directive": "Maximize sovereign efficiency in the CLONE-HUB sector.",
-    "knowledge_base_path": "/root/nexus/planets/CLONE-HUB"
-}

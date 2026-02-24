@@ -196,6 +196,29 @@ model_list:
 
 ---
 
+### 7. Sovereign Stack (NEXUS PRIME v2.0.0-sovereign)
+
+**Additional Components:**
+- **Nerve** (8200) — Central nervous system, agent coordination, health aggregation
+- **Sovereign Gateway** (9999) — AS-SULTAN unified bridge (gateway.mrf103.com)
+- **Sovereign Dify Bridge** (8888) — Hormonal orchestration, Genome-driven agents, Eve Protocol, Raqib/Atid Ledger
+- **Oracle** (8100) — RAG documentation AI
+- **Memory Keeper** (9000) — Central memory, cognitive timeline
+- **X-BIO** (8080) — IoT biomedical sensing (ESP32, BME688)
+- **Shadow7** (8002) — Publishing platform API
+- **Boardroom** (8501) — Cognitive boardroom AI
+- **Dashboard** (5001) — Command center UI
+- **PostgREST** (3001) — Supabase-compatible REST API
+
+**Sovereign Features:**
+- Genome-driven hormones (msl.signal_molecules)
+- Ethical Gate (VOC <50ms)
+- Raqib/Atid action_ledger
+- Dify workflow triggers (hormonal spike, X-BIO VOC webhook)
+- Eve Protocol (Fractal Polarization)
+
+---
+
 ## 🔄 Data Flow
 
 ### Command Execution Flow

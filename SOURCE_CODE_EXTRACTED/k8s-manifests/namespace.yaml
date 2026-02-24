@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: nexus-prime
-  labels:
-    app.kubernetes.io/name: nexus-prime
-    app.kubernetes.io/part-of: nexus-empire
-    environment: production
