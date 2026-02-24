@@ -156,6 +156,40 @@ async def _check_service(url: str, path: str = "/health", timeout: float = 3.0) 
         return {"status": "unreachable", "error": str(e)[:80]}
 
 
+# ─── Sovereign Encyclopedia RAG (Oracle Codex) ─────────────────────────
+
+class RAGQueryRequest(BaseModel):
+    """Query the Sovereign Encyclopedia before systemic decisions."""
+    question: str
+    top_k: int = 5
+
+
+@app.post("/api/rag/query")
+async def rag_query_codex(req: RAGQueryRequest):
+    """
+    Query the Sovereign Encyclopedia (Nexus Oracle) before rendering systemic decisions.
+    God Mode and Gateway should call this for Codex-grounded responses.
+    """
+    async with httpx.AsyncClient(timeout=90) as client:
+        try:
+            resp = await client.post(
+                f"{ORACLE_URL.rstrip('/')}/ask",
+                json={"question": req.question, "top_k": req.top_k},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return {
+                "answer": data.get("answer", ""),
+                "sources": data.get("sources", []),
+                "model": data.get("model", "oracle"),
+                "codex": True,
+            }
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(e.response.status_code, f"Oracle error: {e.response.text[:200]}")
+        except Exception as e:
+            raise HTTPException(503, f"Oracle unreachable: {str(e)[:100]}")
+
+
 @app.get("/api/systems/status")
 async def systems_status():
     """Aggregate status of all NEXUS subsystems — Nerve, Gateway, Oracle, Memory Keeper, Bridge."""

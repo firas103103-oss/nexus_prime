@@ -63,9 +63,10 @@ def index_documents():
     logger.info(f"Embedding model: {EMBED_MODEL}")
     logger.info(f"Chunk size: {CHUNK_SIZE}, overlap: {CHUNK_OVERLAP}")
 
-    # 1. Find all .md files
-    pattern = os.path.join(DOCS_PATH, "**", "*.md")
-    all_files = glob.glob(pattern, recursive=True)
+    # 1. Find all .md and .yaml files (Sovereign Encyclopedia: docs + ENTERPRISE_CODEX)
+    pattern_md = os.path.join(DOCS_PATH, "**", "*.md")
+    pattern_yaml = os.path.join(DOCS_PATH, "*.yaml")
+    all_files = glob.glob(pattern_md, recursive=True) + glob.glob(pattern_yaml, recursive=True)
     md_files = [f for f in all_files if not should_skip(f)]
 
     logger.info(f"Found {len(all_files)} total .md files, {len(md_files)} after filtering")

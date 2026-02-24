@@ -24,9 +24,9 @@ JWT_SECRET=your_jwt_secret_for_postgrest
 DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES_DB}
 ```
 
-**Optional (for local-only, leave empty or omit):**
-- `SUPABASE_URL` — Not used; PostgREST is local
-- `SUPABASE_KEY` — Only for JWT generation (PostgREST anon role)
+**Optional (for local-only):**
+- `SUPABASE_URL` — Omit or leave empty; nexus_dashboard auto-uses `http://nexus_postgrest:3000`
+- `SUPABASE_KEY` — JWT for PostgREST anon role (generate via script using JWT_SECRET)
 - `STRIPE_SECRET_KEY` — Optional; payment endpoints return "not configured" if empty
 
 ---
@@ -35,7 +35,8 @@ DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/${POSTGRES
 
 ```
 nexus_db (PostgreSQL)
-    ├── nexus_postgrest (3001) — REST API
+    ├── nexus_postgrest (3001) — REST API (dashboard, Shadow Seven)
+    ├── nexus_dashboard (5001) — via PostgREST when SUPABASE_URL empty
     ├── shadow7_api (8002) — Manuscript upload, submit
     ├── nexus_auth (8003)
     └── nexus_memory_keeper (9000)

@@ -129,10 +129,10 @@ PORT=9002
 NODE_ENV=development
 ARC_OPERATOR_PASSWORD=arc-dev-password-123
 
-# Database
-SUPABASE_URL=https://rffpacsvwxfjhxgtsbzf.supabase.co
-SUPABASE_KEY=eyJhbGciOiJI... (anon key)
-DATABASE_URL=postgresql://postgres.rffpacsvwxfjhxgtsbzf:mrfiras1Q%40Q%40@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
+# Database (NEXUS PRIME local sovereignty — use nexus_db)
+SUPABASE_URL=http://nexus_postgrest:3000
+SUPABASE_KEY=<JWT signed with JWT_SECRET for web_anon role>
+DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@nexus_db:5432/nexus_db
 
 # AI APIs
 OPENAI_API_KEY=sk-proj-8KzH... (configured)

@@ -70,29 +70,32 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 LITELLM_URL = os.getenv("LITELLM_URL", "http://localhost:4000")
 LITELLM_KEY = os.getenv("LITELLM_KEY", "sk-nexus-sovereign-mrf103")
 
+# Docker service names for pulse checks (nexus_nerve runs in Docker; localhost fails)
+_SVC = os.getenv("NERVE_PULSE_HOST", "localhost")
+_HOST = "host.docker.internal" if _SVC == "docker" else _SVC
 SERVICES = [
-    {"name": "PostgreSQL", "port": 5432, "host": "localhost", "check": "tcp"},
-    {"name": "Ollama LLM", "port": 11434, "host": "localhost", "check": "http", "path": "/api/tags"},
-    {"name": "Open WebUI", "port": 3000, "host": "localhost", "check": "http", "path": "/"},
-    {"name": "n8n Flow", "port": 5678, "host": "localhost", "check": "http", "path": "/healthz"},
-    {"name": "Shadow7 API", "port": 8002, "host": "localhost", "check": "http", "path": "/health"},
-    {"name": "PostgREST", "port": 3001, "host": "localhost", "check": "http", "path": "/"},
-    {"name": "Auth Service", "port": 8003, "host": "localhost", "check": "http", "path": "/health"},
-    {"name": "Edge-TTS", "port": 5050, "host": "localhost", "check": "http", "path": "/health"},
-    {"name": "Boardroom", "port": 8501, "host": "localhost", "check": "http", "path": "/healthz"},
-    {"name": "Dashboard", "port": 5001, "host": "localhost", "check": "http", "path": "/"},
-    {"name": "Cortex", "port": 8090, "host": "localhost", "check": "http", "path": "/health"},
-    {"name": "Memory Keeper", "port": 9000, "host": "localhost", "check": "http", "path": "/"},
-    {"name": "Orchestrator", "port": 50051, "host": "localhost", "check": "tcp"},
-    {"name": "X-Bio Sentinel", "port": 8080, "host": "localhost", "check": "http", "path": "/"},
-    {"name": "Prometheus", "port": 9090, "host": "localhost", "check": "http", "path": "/-/healthy"},
-    {"name": "Grafana", "port": 3002, "host": "localhost", "check": "http", "path": "/api/health"},
-    {"name": "Ecosystem API", "port": 8005, "host": "localhost", "check": "http", "path": "/health"},
-    {"name": "Oracle API", "port": 8100, "host": "localhost", "check": "http", "path": "/health"},
-    {"name": "Redis", "port": 6379, "host": "localhost", "check": "tcp"},
-    {"name": "LiteLLM", "port": 4000, "host": "localhost", "check": "http", "path": "/health"},
-    {"name": "Alertmanager", "port": 9093, "host": "localhost", "check": "http", "path": "/-/healthy"},
-    {"name": "Neural Spine", "port": 8300, "host": "localhost", "check": "http", "path": "/health"},
+    {"name": "PostgreSQL", "port": 5432, "host": "nexus_db" if _SVC == "docker" else _SVC, "check": "tcp"},
+    {"name": "Ollama LLM", "port": 11434, "host": "nexus_ollama" if _SVC == "docker" else _SVC, "check": "http", "path": "/api/tags"},
+    {"name": "Open WebUI", "port": 8080, "host": "nexus_ai" if _SVC == "docker" else _SVC, "check": "http", "path": "/"},
+    {"name": "n8n Flow", "port": 5678, "host": "nexus_flow" if _SVC == "docker" else _SVC, "check": "http", "path": "/healthz"},
+    {"name": "Shadow7 API", "port": 8002, "host": "shadow7_api" if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
+    {"name": "PostgREST", "port": 3000, "host": "nexus_postgrest" if _SVC == "docker" else _SVC, "check": "http", "path": "/"},
+    {"name": "Auth Service", "port": 8003, "host": _HOST if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
+    {"name": "Edge-TTS", "port": 8000, "host": "nexus_voice" if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
+    {"name": "Boardroom", "port": 8501, "host": "nexus_boardroom" if _SVC == "docker" else _SVC, "check": "http", "path": "/_stcore/health"},
+    {"name": "Dashboard", "port": 5001, "host": "nexus_dashboard" if _SVC == "docker" else _SVC, "check": "http", "path": "/"},
+    {"name": "Cortex", "port": 8090, "host": "nexus_cortex" if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
+    {"name": "Memory Keeper", "port": 9000, "host": "nexus_memory_keeper" if _SVC == "docker" else _SVC, "check": "http", "path": "/"},
+    {"name": "Orchestrator", "port": 50051, "host": "nexus_orchestrator" if _SVC == "docker" else _SVC, "check": "tcp"},
+    {"name": "X-Bio Sentinel", "port": 8080, "host": "nexus_xbio" if _SVC == "docker" else _SVC, "check": "http", "path": "/"},
+    {"name": "Prometheus", "port": 9090, "host": _HOST if _SVC == "docker" else _SVC, "check": "http", "path": "/-/healthy"},
+    {"name": "Grafana", "port": 3002, "host": _HOST if _SVC == "docker" else _SVC, "check": "http", "path": "/api/health"},
+    {"name": "Ecosystem API", "port": 8005, "host": _HOST if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
+    {"name": "Oracle API", "port": 8100, "host": "nexus_oracle" if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
+    {"name": "Redis", "port": 6379, "host": "nexus_redis" if _SVC == "docker" else _SVC, "check": "tcp"},
+    {"name": "LiteLLM", "port": 4000, "host": "nexus_litellm" if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
+    {"name": "Alertmanager", "port": 9093, "host": _HOST if _SVC == "docker" else _SVC, "check": "http", "path": "/-/healthy"},
+    {"name": "Neural Spine", "port": 8300, "host": _HOST if _SVC == "docker" else _SVC, "check": "http", "path": "/health"},
 ]
 
 # ═══════════════════════════════════════════════════════════════
