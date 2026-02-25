@@ -286,15 +286,9 @@ const App: React.FC = () => {
               <span>© 2024 X-BIO SENTINEL HQ // RIYADH</span>
            </div>
            <div className="flex items-center gap-10">
-              <a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                 <Terminal className="w-3 h-3" /> SYSTEM_SHELL
-              </a>
-              <a href="#" className="hover:text-white transition-colors flex items-center gap-2">
-                 <ShieldCheck className="w-3 h-3" /> VERIFIED_ORIGIN
-              </a>
-              <a href="#" className="hover:text-xb-cyan transition-colors flex items-center gap-2 border-l border-white/10 pl-10">
-                 SECURE_CONTACT <ArrowRight className="w-3 h-3" />
-              </a>
+              <a href="https://mrf103.com/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">الشروط</a>
+              <a href="https://mrf103.com/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">الخصوصية</a>
+              <a href="https://mrf103.com/copyright.html" target="_blank" rel="noopener noreferrer" className="hover:text-xb-cyan transition-colors">حقوق النشر</a>
            </div>
         </div>
       </footer>

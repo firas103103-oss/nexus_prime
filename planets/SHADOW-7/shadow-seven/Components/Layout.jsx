@@ -89,10 +89,16 @@ export default function Layout() {
             )
           })}
         </nav>
-        <div className="p-4 border-t">
+        <div className="p-4 border-t space-y-2">
           <p className="text-xs text-muted-foreground text-center">
-            © 2024 الظل السابع — منصة نشر فينتج
+            © 2026 MRF103 — الظل السابع
           </p>
+          <div className="flex flex-wrap justify-center gap-2 text-xs">
+            <a href="https://mrf103.com/terms.html" className="text-primary hover:underline">الشروط</a>
+            <a href="https://mrf103.com/privacy.html" className="text-primary hover:underline">الخصوصية</a>
+            <a href="https://mrf103.com/copyright.html" className="text-primary hover:underline">حقوق النشر</a>
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center">SAIP</p>
         </div>
       </aside>
 
@@ -108,9 +114,16 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-8 min-h-[calc(100vh-4rem)]">
           <Outlet />
         </main>
+
+        {/* Legal footer — mobile */}
+        <footer className="lg:hidden py-4 px-4 border-t bg-card/50 text-center text-xs text-muted-foreground">
+          <a href="https://mrf103.com/terms.html" className="text-primary hover:underline ml-2">الشروط</a>
+          <a href="https://mrf103.com/privacy.html" className="text-primary hover:underline ml-2">الخصوصية</a>
+          <a href="https://mrf103.com/copyright.html" className="text-primary hover:underline ml-2">حقوق النشر</a>
+        </footer>
       </div>
     </div>
   )

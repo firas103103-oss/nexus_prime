@@ -11,31 +11,9 @@ afterEach(() => {
   cleanup();
 });
 
-// Mock Supabase client
-vi.mock('@/api/supabaseClient', () => ({
-  supabase: {
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-      signIn: vi.fn(),
-      signOut: vi.fn(),
-    },
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-    }),
-    storage: {
-      from: vi.fn().mockReturnValue({
-        upload: vi.fn().mockResolvedValue({ data: { path: 'test' }, error: null }),
-        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'test' } }),
-      }),
-    },
-  },
+// Mock postgresClient (local API)
+vi.mock('@/api/postgresClient', () => ({
+  supabase: null,
   db: {
     manuscripts: {
       list: vi.fn().mockResolvedValue([]),
@@ -43,15 +21,23 @@ vi.mock('@/api/supabaseClient', () => ({
       create: vi.fn().mockResolvedValue({}),
       update: vi.fn().mockResolvedValue({}),
       delete: vi.fn().mockResolvedValue({ success: true }),
+      filter: vi.fn().mockResolvedValue([]),
     },
+    complianceRules: { list: vi.fn().mockResolvedValue([]), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    coverDesigns: { create: vi.fn().mockResolvedValue({}) },
+    processingJobs: { filter: vi.fn().mockResolvedValue([]) },
   },
   auth: {
     getUser: vi.fn().mockResolvedValue(null),
     signIn: vi.fn(),
+    signUp: vi.fn(),
     signOut: vi.fn(),
+    updateUser: vi.fn(),
   },
   storage: {
     uploadFile: vi.fn().mockResolvedValue({ file_url: 'test', path: 'test' }),
+    deleteFile: vi.fn(),
+    getPublicUrl: vi.fn((_, p) => p),
   },
 }));
 

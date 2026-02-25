@@ -1,10 +1,10 @@
-// اختبار API Clients
-import { supabase, auth, storage } from './api/supabaseClient.js'
+// اختبار API Clients — Local Postgres
+import { auth, storage, db } from './api/postgresClient.js'
 import { gemini, GeminiClient } from './api/geminiClient.js'
 import { api, apiClient } from './api/index.js'
 
-console.log('=== API CLIENTS TEST ===')
-console.log('✓ Supabase imported:', typeof supabase)
+console.log('=== API CLIENTS TEST (Local Postgres) ===')
+console.log('✓ db imported:', typeof db)
 console.log('✓ Auth imported:', typeof auth)
 console.log('✓ Storage imported:', typeof storage)
 console.log('✓ Gemini imported:', typeof gemini)

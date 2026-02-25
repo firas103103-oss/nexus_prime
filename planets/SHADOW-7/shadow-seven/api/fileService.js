@@ -1,28 +1,19 @@
 /**
  * File Upload & Processing Service
- * يستبدل base44.integrations.Core.UploadFile و ExtractDataFromUploadedFile
+ * يستخدم shadow7_api المحلي بدلاً من Supabase Storage
  */
 
-import { storage } from './supabaseClient'
+import { storage } from './postgresClient'
 import { gemini } from './geminiClient'
 import mammoth from 'mammoth'
 
 export class FileService {
   /**
-   * رفع ملف إلى Supabase Storage
+   * رفع ملف إلى التخزين المحلي (shadow7_api)
    */
   static async uploadFile(file) {
     try {
-      // توليد اسم فريد للملف
-      const timestamp = Date.now()
-      const random = Math.random().toString(36).substring(7)
-      const extension = file.name.split('.').pop()
-      const fileName = `${timestamp}-${random}.${extension}`
-      const filePath = `manuscripts/${fileName}`
-
-      // رفع الملف
-      const result = await storage.uploadFile('manuscripts', filePath, file)
-
+      const result = await storage.uploadFile('manuscripts', `manuscripts/${file.name}`, file)
       return {
         file_url: result.file_url,
         file_path: result.path,

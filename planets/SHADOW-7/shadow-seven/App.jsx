@@ -1,12 +1,14 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Layout from '@/Components/Layout'
 import ErrorBoundary from '@/Components/ErrorBoundary'
 import ToastProvider from '@/Components/ToastProvider'
 import CollaborationProvider from '@/contexts/CollaborationContext'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 // Lazy loading للصفحات الثقيلة
 const Dashboard = lazy(() => import('@/Pages/Dashboard'))
+const AuthPage = lazy(() => import('@/pages/AuthPage'))
 const ExportPage = lazy(() => import('@/Pages/ExportPage'))
 const UploadPage = lazy(() => import('@/Pages/UploadPage'))
 const ManuscriptsPage = lazy(() => import('@/Pages/ManuscriptsPage'))
@@ -29,9 +31,12 @@ function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
+        <AuthProvider>
         <CollaborationProvider>
           <Suspense fallback={<PageLoader />}>
             <Routes>
+              <Route path="/login" element={<AuthPage />} />
+              <Route path="/auth" element={<AuthPage />} />
               <Route element={<Layout />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/upload" element={<UploadPage />} />
@@ -46,6 +51,7 @@ function App() {
             </Routes>
           </Suspense>
         </CollaborationProvider>
+        </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>
   )

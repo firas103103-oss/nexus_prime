@@ -37,6 +37,8 @@ export default function XBioSentinel() {
 
   const [trainingMode, setTrainingMode] = useState(false);
   const [instinctAlerts, setInstinctAlerts] = useState<string[]>([]);
+  const [apiStatus, setApiStatus] = useState<{ health?: string; patents?: string[]; implemented?: string[] } | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const [agents] = useState([
     { id: 'olfactory', name: 'Olfactory', nameAr: 'الشمي', role: 'Smell Detection & Classification', icon: '👃', color: '#14B8A6', tasks: 156 },
@@ -50,6 +52,33 @@ export default function XBioSentinel() {
     { id: '2', name: 'Coffee', nameAr: 'قهوة', category: 'food', confidence: 88, color: '#F59E0B', lastDetected: new Date(Date.now() - 3600000) },
     { id: '3', name: 'Smoke', nameAr: 'دخان', category: 'alert', confidence: 0, color: '#EF4444', lastDetected: new Date(Date.now() - 86400000) }
   ]);
+
+  // Fetch X-BIO API (xbio.mrf103.com) — Live Fire Test
+  useEffect(() => {
+    const fetchApi = async () => {
+      try {
+        const [healthRes, patentsRes] = await Promise.all([
+          fetch('https://xbio.mrf103.com/health'),
+          fetch('https://xbio.mrf103.com/api/patents')
+        ]);
+        if (healthRes.ok && patentsRes.ok) {
+          const health = await healthRes.json();
+          const patents = await patentsRes.json();
+          setApiStatus({
+            health: health?.status || 'ok',
+            patents: patents?.patents || [],
+            implemented: patents?.implemented || []
+          });
+          setApiError(null);
+        } else {
+          setApiError('API غير متاح');
+        }
+      } catch (e) {
+        setApiError((e as Error).message || 'فشل الاتصال');
+      }
+    };
+    fetchApi();
+  }, []);
 
   // Simulate real-time sensor updates
   useEffect(() => {
@@ -77,6 +106,15 @@ export default function XBioSentinel() {
               xBio Sentinel
             </h1>
             <p className="text-gray-400 text-lg">Maestro Scent - سينت | الشم الرقمي والغريزة</p>
+            {apiStatus && (
+              <div className="mt-2 text-sm">
+                <span className="text-green-400">API: {apiStatus.health}</span>
+                {apiStatus.patents?.length && (
+                  <span className="text-gray-500 ml-2">| براءات: {apiStatus.patents.length} ({apiStatus.implemented?.length || 0} مُنفّذة)</span>
+                )}
+              </div>
+            )}
+            {apiError && <div className="mt-2 text-sm text-red-400">API: {apiError}</div>}
           </div>
           <div className="flex gap-3">
             <button

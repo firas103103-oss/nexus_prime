@@ -1,10 +1,10 @@
 /**
- * API Client - توحيد الوصول إلى Supabase و Gemini
- * يسهّل الانتقال من base44
+ * API Client - توحيد الوصول إلى Local Postgres و Gemini
+ * يستبدل Supabase بـ shadow7_api + PostgREST
  */
 
-// استيراد Supabase
-export { supabase, db, auth, storage } from './supabaseClient'
+// استيراد Local Postgres Client
+export { supabase, db, auth, storage } from './postgresClient'
 
 // استيراد Gemini
 export { gemini, geminiPro, GeminiClient } from './geminiClient'
@@ -12,8 +12,8 @@ export { gemini, geminiPro, GeminiClient } from './geminiClient'
 // استيراد File Service
 export { default as fileService } from './fileService'
 
-// Backward compatibility wrapper (لتسهيل الانتقال)
-import { db } from './supabaseClient'
+// Backward compatibility wrapper
+import { db, auth } from './postgresClient'
 import { gemini } from './geminiClient'
 import FileService from './fileService'
 
@@ -58,7 +58,26 @@ export const api = {
 }
 
 // API Client للـ Dashboard
+const TOKEN_KEY = 'shadow7_guest_token'
+const USER_KEY = 'shadow7_guest_user'
+
 export const apiClient = {
+  getToken: () => localStorage.getItem(TOKEN_KEY),
+  setToken: (token) => { if (token) localStorage.setItem(TOKEN_KEY, token); else localStorage.removeItem(TOKEN_KEY) },
+  login: async (credentials) => {
+    await auth.signIn(credentials?.email, credentials?.password)
+    const user = await auth.getUser()
+    const token = 'guest-' + (user?.id || crypto.randomUUID())
+    localStorage.setItem(TOKEN_KEY, token)
+    localStorage.setItem(USER_KEY, JSON.stringify(user))
+    return { token, user }
+  },
+  logout: async () => {
+    await auth.signOut()
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
+  },
+
   // Manuscripts CRUD
   async getManuscripts(params = {}) {
     const { orderBy = '-created_at', limit, filters } = params

@@ -273,7 +273,7 @@ export function AppSidebar() {
 
       <SidebarSeparator />
 
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9" data-testid="avatar-user">
             <AvatarImage src={user?.profileImageUrl || undefined} alt={getUserDisplayName()} />
@@ -307,6 +307,11 @@ export function AppSidebar() {
             <LogOut className="h-4 w-4" />
             <span className="sr-only">{t('nav.logout')}</span>
           </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 text-[10px] text-sidebar-foreground/60">
+          <a href="https://mrf103.com/terms.html" target="_blank" rel="noopener noreferrer" className="hover:text-sidebar-foreground">الشروط</a>
+          <a href="https://mrf103.com/privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-sidebar-foreground">الخصوصية</a>
+          <a href="https://mrf103.com/copyright.html" target="_blank" rel="noopener noreferrer" className="hover:text-sidebar-foreground">حقوق النشر</a>
         </div>
       </SidebarFooter>
     </Sidebar>

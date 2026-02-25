@@ -228,6 +228,13 @@ export default function Landing() {
                 <span>v2.0.0</span>
               </div>
             </div>
+
+            {/* Legal */}
+            <div className="flex gap-4 text-[10px]">
+              <a href="https://mrf103.com/terms.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400/80 hover:text-cyan-400">الشروط</a>
+              <a href="https://mrf103.com/privacy.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400/80 hover:text-cyan-400">الخصوصية</a>
+              <a href="https://mrf103.com/copyright.html" target="_blank" rel="noopener noreferrer" className="text-cyan-400/80 hover:text-cyan-400">حقوق النشر</a>
+            </div>
           </div>
         </footer>
       </div>
