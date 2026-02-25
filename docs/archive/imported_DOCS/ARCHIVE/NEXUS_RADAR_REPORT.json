@@ -1,0 +1,200 @@
+[
+    {
+        "identity": "alsultan-intelligence",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "Python",
+        "last_sync": "2026-02-17T21:08:55Z"
+    },
+    {
+        "identity": "arc-docs",
+        "status": "Public",
+        "health": {
+            "stars": 1,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": null,
+        "last_sync": "2026-01-01T15:38:55Z"
+    },
+    {
+        "identity": "arc-interface",
+        "status": "Public",
+        "health": {
+            "stars": 1,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": null,
+        "last_sync": "2026-01-01T14:47:06Z"
+    },
+    {
+        "identity": "arc-meta",
+        "status": "Public",
+        "health": {
+            "stars": 1,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": null,
+        "last_sync": "2026-01-01T15:25:17Z"
+    },
+    {
+        "identity": "arc-namer-cli",
+        "status": "Public",
+        "health": {
+            "stars": 1,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "TypeScript",
+        "last_sync": "2026-01-11T18:07:05Z"
+    },
+    {
+        "identity": "arc-namer-vscode",
+        "status": "Public",
+        "health": {
+            "stars": 1,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "TypeScript",
+        "last_sync": "2026-01-11T18:07:06Z"
+    },
+    {
+        "identity": "arc-ops",
+        "status": "Public",
+        "health": {
+            "stars": 1,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": null,
+        "last_sync": "2026-01-01T14:57:36Z"
+    },
+    {
+        "identity": "arc-shared",
+        "status": "Public",
+        "health": {
+            "stars": 1,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": null,
+        "last_sync": "2026-01-01T14:48:01Z"
+    },
+    {
+        "identity": "imperial-ui",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "JavaScript",
+        "last_sync": "2026-02-17T18:41:31Z"
+    },
+    {
+        "identity": "jarvis-control-hub",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "Python",
+        "last_sync": "2026-02-17T21:07:22Z"
+    },
+    {
+        "identity": "mrf103-mobile-app",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "TypeScript",
+        "last_sync": "2026-02-17T18:59:06Z"
+    },
+    {
+        "identity": "mrf103-website",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "HTML",
+        "last_sync": "2026-02-17T18:42:40Z"
+    },
+    {
+        "identity": "mrf103ArUserXp",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "HTML",
+        "last_sync": "2025-12-10T17:18:40Z"
+    },
+    {
+        "identity": "mrf103AR_VISION",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": null,
+        "last_sync": "2025-12-10T17:20:33Z"
+    },
+    {
+        "identity": "nexus-data-core",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": null,
+        "last_sync": "2026-02-17T18:59:09Z"
+    },
+    {
+        "identity": "nexus_prime",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "TypeScript",
+        "last_sync": "2026-02-18T02:14:26Z"
+    },
+    {
+        "identity": "shadow-seven-publisher",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "JavaScript",
+        "last_sync": "2026-02-17T18:59:00Z"
+    },
+    {
+        "identity": "xbio-sentinel",
+        "status": "Public",
+        "health": {
+            "stars": 0,
+            "forks": 0,
+            "open_issues": 0
+        },
+        "tech_stack": "Python",
+        "last_sync": "2026-02-17T18:59:08Z"
+    }
+]
