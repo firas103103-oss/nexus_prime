@@ -1,4 +1,4 @@
-version: '3.8'
+# version removed (obsolete in Compose v2)
 services:
   nexus_dashboard:
     build:
@@ -64,6 +64,12 @@ services:
     container_name: reflex_agents
     volumes:
       - /dev/shm:/dev/shm
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import redis; r=redis.Redis(host='nexus_redis', port=6379); r.ping(); exit(0)"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
     environment:
       - REDIS_HOST=nexus_redis
       - REDIS_PORT=6379

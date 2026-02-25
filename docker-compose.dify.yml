@@ -44,7 +44,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; r=urllib.request.urlopen('http://localhost:8888/health', timeout=10); exit(0 if r.status==200 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
