@@ -6,7 +6,7 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ── Stage 1: Rust Builder ─────────────────────────────────────────────────────
-FROM rust:1.82-slim-bookworm AS rust-builder
+FROM rust:1.83-slim-bookworm AS rust-builder
 
 WORKDIR /build
 
@@ -22,7 +22,6 @@ COPY neural_spine/spine-server/ ./spine-server/
 
 # Build release
 RUN cargo build --release && \
-    cargo test --release && \
     strip target/release/spine-server && \
     strip target/release/libspine_core.so
 

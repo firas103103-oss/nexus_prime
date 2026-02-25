@@ -13,7 +13,7 @@ import { Upload, FileText, X, CheckCircle, AlertCircle, Sparkles } from 'lucide-
 import { useToast } from '../Components/ToastProvider';
 import { analyzeAndCleanText } from '@/Components/upload/TextAnalyzerEnhanced';
 
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_SUPABASE_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const UploadPage = () => {
   const [files, setFiles] = useState([]);

@@ -126,6 +126,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: "alive", timestamp: new Date().toISOString() });
   });
 
+  // Stripe status (for UI "Payment Pending Setup" banner)
+  app.get("/api/integrations/stripe-status", (_req, res) => {
+    const configured = !!(process.env.STRIPE_SECRET_KEY || "").trim();
+    res.json({ configured, message: configured ? "Stripe ready" : "Payment Pending Setup — UK company formation in progress" });
+  });
+
   // Kubernetes-style readiness probe
   app.get("/api/health/ready", async (req, res) => {
     try {

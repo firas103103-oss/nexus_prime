@@ -215,6 +215,14 @@ const IntegrationCard: React.FC<{ integration: Integration }> = ({ integration }
 export const IntegrationDashboard: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [stripeConfigured, setStripeConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch('/api/integrations/stripe-status')
+      .then((r) => r.json())
+      .then((d) => setStripeConfigured(d.configured))
+      .catch(() => setStripeConfigured(null));
+  }, []);
 
   const filteredIntegrations = integrations.filter(integration => {
     const matchesCategory = selectedCategory === 'all' || integration.category === selectedCategory;
@@ -228,6 +236,12 @@ export const IntegrationDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-primary p-6">
+      {stripeConfigured === false && (
+        <div className="mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-800 dark:text-amber-200 flex items-center gap-2">
+          <Clock className="w-5 h-5 flex-shrink-0" />
+          <span>Payment Pending Setup — UK company formation in progress. Add STRIPE_SECRET_KEY when ready.</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

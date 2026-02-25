@@ -12,11 +12,13 @@ export class StripeAdapter implements IntegrationAdapter {
   type = IntegrationType.STRIPE;
 
   async testConnection(integration: Integration): Promise<boolean> {
+    const secretKey = integration?.credentials?.secretKey ?? process.env.STRIPE_SECRET_KEY;
+    if (!secretKey || secretKey.trim() === '') {
+      return false; // Payment Pending Setup — graceful, no crash
+    }
     try {
       const response = await fetch('https://api.stripe.com/v1/balance', {
-        headers: {
-          'Authorization': `Bearer ${integration.credentials.secretKey}`,
-        },
+        headers: { 'Authorization': `Bearer ${secretKey}` },
       });
       return response.ok;
     } catch {
@@ -25,9 +27,12 @@ export class StripeAdapter implements IntegrationAdapter {
   }
 
   async send(integration: Integration, data: any): Promise<void> {
-    // Stripe operations depend on the action type
+    const secretKey = integration?.credentials?.secretKey ?? process.env.STRIPE_SECRET_KEY;
+    if (!secretKey || secretKey.trim() === '') {
+      throw new Error('Payment Pending Setup — UK company formation in progress. Add STRIPE_SECRET_KEY when ready.');
+    }
+
     const { action, ...params } = data;
-    
     let endpoint = 'https://api.stripe.com/v1/';
     switch (action) {
       case 'create_customer':
@@ -46,7 +51,7 @@ export class StripeAdapter implements IntegrationAdapter {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${integration.credentials.secretKey}`,
+        'Authorization': `Bearer ${secretKey}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams(params).toString(),

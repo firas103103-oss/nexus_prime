@@ -121,93 +121,134 @@ export interface TTSRequest {
   };
 }
 
+const VOICE_ENGINE_URL = process.env.VOICE_ENGINE_URL || process.env.ELEVENLABS_API_URL?.replace(/\/v1$/, "") || "http://nexus_voice:8000";
+
+function elevenLabsVoiceIdToEdgeTTS(voiceId: string): string {
+  const map: Record<string, string> = {
+    "21m00Tcm4TlvDq8ikWAM": "nova", "EXAVITQu4vr4xnSDxMaL": "nova",
+    "pNInz6obpgDQGcFmaJgB": "alloy", "ErXwobaYiN019PkySvjV": "onyx",
+    "MF3mGyEYCl7XYWbV9V6O": "shimmer", "N2lVS1w4EtoT3dr4eOWO": "echo",
+    "VR6AewLTigWG4xSOukaG": "onyx", "onwK4e9ZLuTAKqWW03F9": "alloy",
+    "iP95p4xoKVk53GoZ742B": "fable", "pqHfZKP75CvOlQylNhV4": "alloy",
+  };
+  if (!voiceId || voiceId === "default") return "alloy";
+  return map[voiceId] ?? "alloy";
+}
+
 export async function generateSpeech(request: TTSRequest): Promise<Buffer | null> {
   const startTime = Date.now();
-  
+  const integrationName = "voice";
+
   try {
     const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
-    if (!ELEVENLABS_API_KEY) {
-      log("⚠️ ELEVENLABS_API_KEY not configured", "elevenlabs");
-      return null;
-    }
+    if (ELEVENLABS_API_KEY) {
+      const model_id = request.model_id || "eleven_multilingual_v2";
+      const url = `https://api.elevenlabs.io/v1/text-to-speech/${request.voice_id}`;
+      const body = {
+        text: request.text,
+        model_id,
+        voice_settings: request.voice_settings || {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.0,
+          use_speaker_boost: true,
+        },
+      };
 
-    const model_id = request.model_id || "eleven_multilingual_v2";
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${request.voice_id}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": ELEVENLABS_API_KEY,
+        },
+        body: JSON.stringify(body),
+      });
 
-    const body = {
-      text: request.text,
-      model_id,
-      voice_settings: request.voice_settings || {
-        stability: 0.5,
-        similarity_boost: 0.75,
-        style: 0.0,
-        use_speaker_boost: true,
-      },
-    };
+      const latencyMs = Date.now() - startTime;
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "xi-api-key": ELEVENLABS_API_KEY,
-      },
-      body: JSON.stringify(body),
-    });
+      if (!res.ok) {
+        const errorText = await res.text();
+        log(`❌ ElevenLabs TTS failed: ${res.status} - ${errorText}`, "elevenlabs");
+        if (isSupabaseConfigured()) {
+          await supabase?.from("integration_logs").insert({
+            integration_name: "elevenlabs",
+            event_type: "tts_generated",
+            direction: "outbound",
+            request_payload: { text: request.text.substring(0, 100), voice_id: request.voice_id },
+            status_code: res.status,
+            success: "false",
+            error_message: errorText,
+            latency_ms: latencyMs,
+          });
+        }
+        return null;
+      }
 
-    const latencyMs = Date.now() - startTime;
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      log(`❌ ElevenLabs TTS failed: ${res.status} - ${errorText}`, "elevenlabs");
-
+      const audioBuffer = Buffer.from(await res.arrayBuffer());
       if (isSupabaseConfigured()) {
         await supabase?.from("integration_logs").insert({
           integration_name: "elevenlabs",
           event_type: "tts_generated",
           direction: "outbound",
-          request_payload: { text: request.text.substring(0, 100), voice_id: request.voice_id },
+          request_payload: { text_length: request.text.length, voice_id: request.voice_id, agent_id: request.agent_id },
+          response_payload: { audio_size_bytes: audioBuffer.length },
+          status_code: 200,
+          success: "true",
+          latency_ms: latencyMs,
+        });
+      }
+      log(`✅ Speech generated: ${audioBuffer.length} bytes (${latencyMs}ms)`, "elevenlabs");
+      return audioBuffer;
+    }
+
+    // nexus_voice (Edge-TTS) fallback — local sovereignty
+    const edgeVoice = elevenLabsVoiceIdToEdgeTTS(request.voice_id);
+    const lang = /[\u0600-\u06FF]/.test(request.text) ? "ar" : "en";
+    const url = `${VOICE_ENGINE_URL}/v1/speak?text=${encodeURIComponent(request.text)}&voice=${encodeURIComponent(edgeVoice)}&lang=${lang}`;
+
+    const res = await fetch(url);
+    const latencyMs = Date.now() - startTime;
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      log(`❌ nexus_voice TTS failed: ${res.status} - ${errorText}`, integrationName);
+      if (isSupabaseConfigured()) {
+        await supabase?.from("integration_logs").insert({
+          integration_name: "nexus_voice",
+          event_type: "tts_generated",
+          direction: "outbound",
+          request_payload: { text_length: request.text.length, voice_id: request.voice_id },
           status_code: res.status,
           success: "false",
           error_message: errorText,
           latency_ms: latencyMs,
         });
       }
-
       return null;
     }
 
     const audioBuffer = Buffer.from(await res.arrayBuffer());
-
-    // Log successful TTS generation
     if (isSupabaseConfigured()) {
       await supabase?.from("integration_logs").insert({
-        integration_name: "elevenlabs",
+        integration_name: "nexus_voice",
         event_type: "tts_generated",
         direction: "outbound",
-        request_payload: {
-          text_length: request.text.length,
-          voice_id: request.voice_id,
-          agent_id: request.agent_id,
-        },
+        request_payload: { text_length: request.text.length, voice_id: request.voice_id },
         response_payload: { audio_size_bytes: audioBuffer.length },
         status_code: 200,
         success: "true",
         latency_ms: latencyMs,
-        metadata: { model_id },
       });
     }
-
-    log(`✅ Speech generated: ${audioBuffer.length} bytes (${latencyMs}ms)`, "elevenlabs");
+    log(`✅ Speech generated (nexus_voice): ${audioBuffer.length} bytes (${latencyMs}ms)`, integrationName);
     return audioBuffer;
   } catch (err: any) {
     const latencyMs = Date.now() - startTime;
-    
-    log(`❌ ElevenLabs error: ${err.message}`, "elevenlabs");
-
+    log(`❌ Voice error: ${err.message}`, integrationName);
     if (isSupabaseConfigured()) {
       await supabase?.from("integration_logs").insert({
-        integration_name: "elevenlabs",
+        integration_name: "voice",
         event_type: "tts_generated",
         direction: "outbound",
         request_payload: { text_length: request.text.length, voice_id: request.voice_id },
@@ -217,7 +258,6 @@ export async function generateSpeech(request: TTSRequest): Promise<Buffer | null
         latency_ms: latencyMs,
       });
     }
-
     return null;
   }
 }
