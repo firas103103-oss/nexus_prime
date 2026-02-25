@@ -43,7 +43,7 @@ services:
       - nexus_network
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health/liveliness"]
+      test: ["CMD", "python", "-c", "import urllib.request; r=urllib.request.urlopen('http://localhost:4000/health/liveliness', timeout=10); exit(0 if r.status==200 else 1)"]
       interval: 30s
       timeout: 15s
       retries: 5
@@ -131,6 +131,7 @@ services:
       - OPENAI_BASE_URL=http://nexus_litellm:4000/v1
       - OPENAI_API_KEY=sk-nexus-sovereign-mrf103
       - ELEVENLABS_API_URL=http://nexus_voice:8000/v1
+      - NERVE_URL=http://nexus_nerve:8200
       # Local sovereignty: use PostgREST when SUPABASE_URL not set
       - SUPABASE_URL=${SUPABASE_URL:-http://nexus_postgrest:3000}
     networks:
@@ -140,6 +141,7 @@ services:
       - nexus_postgrest
       - nexus_ollama
       - nexus_litellm
+      - nexus_nerve
     restart: always
 
   # Open WebUI - AI Chat Interface
@@ -270,27 +272,26 @@ services:
     restart: always
 
   # ═══ PHASE 3: RS256 Auth Service ══════════════════════════════
-  # DISABLED: integration/shared-auth missing — uncomment when folder exists
-  # nexus_auth:
-  #   build: ../integration/shared-auth
-  #   container_name: nexus_auth
-  #   ports:
-  #     - "8003:8002"
-  #   volumes:
-  #     - ./data/auth_keys:/app/keys
-  #   environment:
-  #     - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
-  #     - JWT_TOKEN_EXPIRY=86400
-  #   networks:
-  #     - nexus_network
-  #   depends_on:
-  #     - nexus_db
-  #   restart: always
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/auth/health"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  nexus_auth:
+    build: ./integration/shared-auth
+    container_name: nexus_auth
+    ports:
+      - "8003:8002"
+    volumes:
+      - ./data/auth_keys:/app/keys
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
+      - JWT_TOKEN_EXPIRY=86400
+    networks:
+      - nexus_network
+    depends_on:
+      - nexus_db
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # ═══ NEXUS MEMORY KEEPER - حارس الذاكرة المركزية ══════════
   nexus_memory_keeper:
@@ -412,26 +413,25 @@ services:
       start_period: 20s
 
   # ═══ Ecosystem API — Port 8005 (mrf103.com /api/) ═══════════
-  # DISABLED: integration/ecosystem-api missing — uncomment when folder exists
-  # ecosystem_api:
-  #   build: ./integration/ecosystem-api
-  #   container_name: ecosystem_api
-  #   ports:
-  #     - "8005:8005"
-  #   environment:
-  #     - PRODUCTS_DIR=/products
-  #     - ECOSYSTEM_DATA_DIR=/data
-  #   volumes:
-  #     - /root/products:/products:ro
-  #     - ecosystem_api_data:/data
-  #   networks:
-  #     - nexus_network
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
-  #     interval: 30s
-  #     timeout: 5s
-  #     retries: 3
+  ecosystem_api:
+    build: ./integration/ecosystem-api
+    container_name: ecosystem_api
+    ports:
+      - "8005:8005"
+    environment:
+      - PRODUCTS_DIR=/products
+      - ECOSYSTEM_DATA_DIR=/data
+    volumes:
+      - /root/products:/products:ro
+      - ecosystem_api_data:/data
+    networks:
+      - nexus_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   # ═══ PHASE 8: Nexus Oracle — RAG Documentation AI ═══════════
   nexus_oracle:

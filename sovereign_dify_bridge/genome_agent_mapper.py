@@ -68,6 +68,8 @@ def signal_to_mood(signals: Dict[str, float]) -> str:
     s = signals.get("serotonin", 0.5)
     c = signals.get("cortisol", 0.3)
     a = signals.get("adrenaline", 0.2)
+    g = signals.get("gaba", 0.5)
+    o = signals.get("oxytocin", 0.4)
     if d > 0.7 and s > 0.6:
         return "JOYFUL"
     if c > 0.6 and a > 0.5:
@@ -76,4 +78,33 @@ def signal_to_mood(signals: Dict[str, float]) -> str:
         return "DEPRESSED"
     if a > 0.7:
         return "ALERT"
+    if o > 0.7:
+        return "BONDED"
+    if g > 0.7 and c < 0.3:
+        return "CALM"
     return "NEUTRAL"
+
+
+def apply_mood_modifier(llm_params: Dict[str, Any], mood: str) -> Dict[str, Any]:
+    """
+    Apply mood-based adjustment to LLM params (per SOVEREIGN_ARCHITECTURAL_GOVERNANCE).
+    STRESSED: -0.15 temp, -0.05 top_p | JOYFUL: +0.1 temp, +0.03 top_p
+    CALM: -0.05 temp | ALERT: -0.1 temp, -0.03 top_p | NEUTRAL: no change
+    """
+    out = dict(llm_params)
+    temp = out.get("temperature", 0.5)
+    top_p = out.get("top_p", 0.9)
+    if mood == "STRESSED":
+        temp = max(0.1, temp - 0.15)
+        top_p = max(0.7, top_p - 0.05)
+    elif mood == "JOYFUL":
+        temp = min(0.95, temp + 0.1)
+        top_p = min(1.0, top_p + 0.03)
+    elif mood == "CALM":
+        temp = max(0.1, temp - 0.05)
+    elif mood == "ALERT":
+        temp = max(0.1, temp - 0.1)
+        top_p = max(0.7, top_p - 0.03)
+    out["temperature"] = round(temp, 2)
+    out["top_p"] = round(top_p, 2)
+    return out

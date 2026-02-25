@@ -946,7 +946,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(agents);
   });
 
-  // 10. POST /api/chat - Send message to agents
+  // 10. POST /api/chat - Send message to agents (Nerve API integration)
+  const NERVE_URL = process.env.NERVE_URL || "http://nexus_nerve:8200";
   app.post("/api/chat", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { message, agentId, conversationId } = req.body;
     
@@ -954,17 +955,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ error: "message_required" });
     }
 
-    // For now, echo back a simple response
-    // TODO: Integrate with actual agent routing system
-    const reply = `Received your message: "${message}". Agent routing system under development.`;
-    
-    res.json({ 
-      id: Date.now().toString(),
-      message: reply, 
-      agentId: agentId || "mrf",
-      conversationId: conversationId || "default",
-      timestamp: new Date().toISOString()
-    });
+    try {
+      const nerveRes = await fetch(`${NERVE_URL}/api/command`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: message, target_agent: agentId || undefined }),
+      });
+      if (!nerveRes.ok) {
+        const errText = await nerveRes.text();
+        return res.status(502).json({
+          id: Date.now().toString(),
+          message: `Nerve unavailable: ${nerveRes.status}`,
+          agentId: agentId || "mrf",
+          conversationId: conversationId || "default",
+          timestamp: new Date().toISOString(),
+          error: errText.slice(0, 200),
+        });
+      }
+      const nerveData = await nerveRes.json();
+      res.json({
+        id: Date.now().toString(),
+        message: nerveData.response || nerveData.response_text || "(no response)",
+        agentId: nerveData.routed_to || agentId || "mrf",
+        conversationId: conversationId || "default",
+        timestamp: nerveData.timestamp || new Date().toISOString(),
+      });
+    } catch (err: any) {
+      logger.error("[CHAT] Nerve request failed:", err);
+      res.status(502).json({
+        id: Date.now().toString(),
+        message: `Nerve unreachable: ${err?.message || "unknown"}`,
+        agentId: agentId || "mrf",
+        conversationId: conversationId || "default",
+        timestamp: new Date().toISOString(),
+      });
+    }
   });
 
   // 11. GET /api/conversations - List all conversations

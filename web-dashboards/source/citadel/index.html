@@ -146,7 +146,7 @@
                 <div class="reveal-text" id="hero-new">SOVEREIGN ASSET<br>& COMPANY</div>
                 <div class="sub-philosophy" id="hero-sub">"WE MAKE THE IDEA MVP USED TO OUTPUT THE FUTURE."</div>
                 
-                <div class="login-container" onclick="openLogin()">
+                <div class="login-container" onclick="openModal('arsenal')">
                     <svg width="16" height="16" fill="#888" viewBox="0 0 24 24"><path d="M12 2C9.243 2 7 4.243 7 7v3H6c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h12c1.103 0 2-.897 2-2v-8c0-1.103-.897-2-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10v8H6v-8h12zm-9-3h6V7c0-1.654-1.346-3-3-3s-3 1.346-3 3v2z"/></svg>
                     <span class="login-text" id="btn-login-txt">LOG IN</span>
                 </div>
@@ -180,20 +180,6 @@
         <div class="modal-content">
             <div class="modal-header"><div class="modal-title" id="m-title"></div><button class="close-btn" onclick="closeModal()">✕</button></div>
             <div class="modal-body" id="m-body"></div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="login-modal">
-        <div class="modal-content" style="max-width:400px; text-align:center;">
-            <div class="modal-header" style="border:none; justify-content:center;"><div class="modal-title" id="login-title">SYSTEM ACCESS</div></div>
-            <div id="login-form">
-                <input type="password" class="login-input" placeholder="PASSKEY">
-                <button style="width:100%; padding:15px; background:var(--primary-color); border:none; font-family:'Orbitron'; font-weight:bold; cursor:pointer;" onclick="startScan()">INITIATE BIOMETRICS</button>
-            </div>
-            <div id="scan-ui" style="display:none; flex-direction:column; align-items:center;">
-                <div class="scan-container" style="display:flex;"><div class="face-frame"><div class="scan-line"></div></div></div>
-                <div id="scan-text" style="margin-top:15px; font-family:'Orbitron'; color:var(--primary-color);">SCANNING IDENTITY...</div>
-            </div>
         </div>
     </div>
 
@@ -321,21 +307,6 @@
             document.getElementById('main-modal').classList.add('open');
         }
         function closeModal() { document.getElementById('main-modal').classList.remove('open'); }
-        function openLogin() { document.getElementById('login-modal').classList.add('open'); }
-        function closeLogin() { document.getElementById('login-modal').classList.remove('open'); resetScan(); }
-
-        function startScan() {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('scan-ui').style.display = 'flex';
-            setTimeout(() => { document.getElementById('scan-text').innerText = 'IDENTITY VERIFIED'; document.getElementById('scan-text').style.color = '#00ff88'; }, 2000);
-            setTimeout(() => { closeLogin(); openModal('arsenal'); }, 3000);
-        }
-        function resetScan() {
-            document.getElementById('login-form').style.display = 'block';
-            document.getElementById('scan-ui').style.display = 'none';
-            document.getElementById('scan-text').innerText = 'SCANNING IDENTITY...';
-            document.getElementById('scan-text').style.color = 'var(--primary-color)';
-        }
 
         // --- THREE.JS VOID ---
         const scene = new THREE.Scene();

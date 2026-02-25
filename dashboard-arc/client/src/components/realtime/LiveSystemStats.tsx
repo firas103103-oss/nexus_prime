@@ -37,7 +37,7 @@ export default function LiveSystemStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/dashboard/live-stats');
+        const response = await fetch('/api/enhanced/live-stats');
         const data = await response.json();
         setStats(data);
         setLoading(false);

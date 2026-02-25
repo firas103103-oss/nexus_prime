@@ -32,6 +32,7 @@
 
 | Folder | Purpose |
 |--------|---------|
+| [2026-02-24/](2026-02-24/) | تقارير خطة الإصلاح — REMAINING_MANUAL، ORGANIZATION_SNAPSHOT، FULL_SERVER_ANALYSIS، NEXT_PHASE_PLAN |
 | [Science_and_RnD/](Science_and_RnD/) | Patents, scientific deconstruction, investment prospectus |
 | [archive/](archive/) | Historical reports, imported docs, raw archives |
 | [PERSONAL_DOCS/](PERSONAL_DOCS/) | Personal documents (IP, certificates, Shadow7) |

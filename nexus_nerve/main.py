@@ -25,9 +25,12 @@ db_pool = None
 cognitive_bridge: Optional[NeuralGenomeBridge] = None
 
 
+_decay_task: Optional[asyncio.Task] = None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global db_pool, cognitive_bridge
+    global db_pool, cognitive_bridge, _decay_task
     db_url = os.getenv("DATABASE_URL", "")
     if db_url:
         try:
@@ -35,11 +38,18 @@ async def lifespan(app: FastAPI):
             db_pool = await asyncpg.create_pool(db_url, min_size=1, max_size=5, command_timeout=10)
             cognitive_bridge = NeuralGenomeBridge(pool=db_pool)
             await cognitive_bridge.bootstrap_sovereign_entity()
+            _decay_task = asyncio.create_task(cognitive_bridge.decay_signal_molecules_loop())
         except Exception as e:
             cognitive_bridge = NeuralGenomeBridge(pool=None)
     else:
         cognitive_bridge = NeuralGenomeBridge(pool=None)
     yield
+    if _decay_task:
+        _decay_task.cancel()
+        try:
+            await _decay_task
+        except asyncio.CancelledError:
+            pass
     if db_pool:
         await db_pool.close()
 
@@ -244,17 +254,22 @@ async def _ollama_chat_with_ethical_gate(
     model: str,
     messages: list,
     check_ethical: Callable[[str], Tuple[bool, str]],
+    options: Optional[Dict[str, Any]] = None,
 ) -> tuple[str, bool, bool]:
     """
     Call Ollama with streaming; gate output mid-stream via ethical check.
+    options: {temperature, top_p} from genome + mood (Codex Hormonal → LLM params).
     Returns (response_text, llm_ok, was_refused_midstream).
     """
+    body: Dict[str, Any] = {"model": model, "messages": messages, "stream": True}
+    if options:
+        body["options"] = {k: v for k, v in options.items() if k in ("temperature", "top_p", "max_tokens")}
     try:
         async with httpx.AsyncClient(timeout=90) as client:
             async with client.stream(
                 "POST",
                 f"{ollama_url}/api/chat",
-                json={"model": model, "messages": messages, "stream": True},
+                json=body,
             ) as resp:
                 if resp.status_code != 200:
                     return f"(LLM HTTP {resp.status_code})", False, False
@@ -343,6 +358,8 @@ Respond concisely and in character. You serve MrF, the sovereign commander.{ctx_
     def _ethical_check(text: str):
         return cognitive_bridge.check_ethical_violation(text, stats) if cognitive_bridge and stats else (False, "")
 
+    llm_options = await cognitive_bridge.get_llm_params() if cognitive_bridge else None
+
     response_text, llm_ok, was_refused_midstream = await _ollama_chat_with_ethical_gate(
         OLLAMA_URL,
         "llama3.2:3b",
@@ -351,6 +368,7 @@ Respond concisely and in character. You serve MrF, the sovereign commander.{ctx_
             {"role": "user", "content": req.command},
         ],
         _ethical_check,
+        options=llm_options,
     )
     if llm_ok and not was_refused_midstream:
         evolve_agent(target, "task_complete")
@@ -721,6 +739,8 @@ async def boardroom_chat(req: BoardroomChat):
     def _ethical_check_br(text: str):
         return cognitive_bridge.check_ethical_violation(text, stats) if cognitive_bridge and stats else (False, "")
 
+    llm_options_br = await cognitive_bridge.get_llm_params() if cognitive_bridge else None
+
     response_text, llm_ok, was_refused_midstream = await _ollama_chat_with_ethical_gate(
         OLLAMA_URL,
         "llama3.2:3b",
@@ -729,6 +749,7 @@ async def boardroom_chat(req: BoardroomChat):
             {"role": "user", "content": req.message},
         ],
         _ethical_check_br,
+        options=llm_options_br,
     )
     if llm_ok and not was_refused_midstream:
         evolve_agent(req.agent_id, "task_complete")

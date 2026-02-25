@@ -238,12 +238,21 @@ class NeuralGenomeBridge:
             # Schema may differ (e.g. lawh_mahfuz)
             return None
 
-    async def fetch_entity_state(self, entity_id: Optional[str] = None) -> Tuple[SignalState, GenomeStats]:
+    async def fetch_entity_state(
+        self, entity_id: Optional[str] = None
+    ) -> Tuple[SignalState, GenomeStats]:
         """Fetch current signal_molecules and genome-derived stats from msl.
         Time-based decay: apply hormone decay proportionally to elapsed time since updated_at."""
+        sigs, stats, _ = await self._fetch_entity_state_full(entity_id)
+        return sigs, stats
+
+    async def _fetch_entity_state_full(
+        self, entity_id: Optional[str] = None
+    ) -> Tuple[SignalState, GenomeStats, Optional[Dict[str, float]]]:
+        """Full fetch including trait_summary for LLM params."""
         eid = entity_id or self._entity_id
         if not self.pool or not eid:
-            return self._fallback_signals, self._fallback_stats
+            return self._fallback_signals, self._fallback_stats, None
 
         try:
             async with self.pool.acquire() as conn:
@@ -288,15 +297,93 @@ class NeuralGenomeBridge:
                 row = await conn.fetchrow("""
                     SELECT trait_summary FROM msl.genomes WHERE entity_id = $1
                 """, eid)
+                ts: Optional[Dict[str, float]] = None
                 if row and row["trait_summary"]:
                     ts = row["trait_summary"] if isinstance(row["trait_summary"], dict) else json.loads(row["trait_summary"] or "{}")
                     stats = _derive_stats_from_summary(ts)
                 else:
                     stats = self._fallback_stats
 
-                return signals, stats
+                return signals, stats, ts
         except Exception:
-            return self._fallback_signals, self._fallback_stats
+            return self._fallback_signals, self._fallback_stats, None
+
+    def _trait_summary_to_llm_params(self, trait_summary: Optional[Dict[str, float]]) -> Dict[str, Any]:
+        """Genome → LLM params (inline, mirrors genome_agent_mapper)."""
+        if not trait_summary:
+            return {"temperature": 0.5, "top_p": 0.9, "max_tokens": 2048}
+        creative = trait_summary.get("CREATIVITY", trait_summary.get("CREATIVE", 0.5))
+        ethical = (
+            trait_summary.get("MORALS", trait_summary.get("ETHICAL", 0.5)) * 0.6
+            + trait_summary.get("SPIRITUALITY", trait_summary.get("ALIGNMENT", 0.5)) * 0.4
+        )
+        cognition = trait_summary.get("INTELLIGENCE", trait_summary.get("COGNITION", 0.5))
+        temp = 0.3 + (creative * 0.5) - (ethical * 0.2) + (cognition * 0.1)
+        temp = max(0.1, min(0.95, round(temp, 2)))
+        top_p = 0.8 + (creative * 0.15) - (ethical * 0.1)
+        top_p = max(0.7, min(1.0, round(top_p, 2)))
+        return {"temperature": temp, "top_p": top_p, "max_tokens": 2048}
+
+    def _apply_mood_modifier(self, llm_params: Dict[str, Any], mood: str) -> Dict[str, Any]:
+        """Mood-based adjustment per SOVEREIGN_ARCHITECTURAL_GOVERNANCE."""
+        out = dict(llm_params)
+        temp = out.get("temperature", 0.5)
+        top_p = out.get("top_p", 0.9)
+        if mood == "STRESSED":
+            temp, top_p = max(0.1, temp - 0.15), max(0.7, top_p - 0.05)
+        elif mood == "JOYFUL":
+            temp, top_p = min(0.95, temp + 0.1), min(1.0, top_p + 0.03)
+        elif mood == "CALM":
+            temp = max(0.1, temp - 0.05)
+        elif mood == "ALERT":
+            temp, top_p = max(0.1, temp - 0.1), max(0.7, top_p - 0.03)
+        out["temperature"] = round(temp, 2)
+        out["top_p"] = round(top_p, 2)
+        return out
+
+    async def get_llm_params(self, entity_id: Optional[str] = None) -> Dict[str, Any]:
+        """Genome + hormonal state → temperature, top_p for Ollama."""
+        signals, stats, trait_summary = await self._fetch_entity_state_full(entity_id)
+        base = self._trait_summary_to_llm_params(trait_summary)
+        mood = _mood_from_signals(signals)
+        return self._apply_mood_modifier(base, mood)
+
+    async def decay_signal_molecules_loop(self) -> None:
+        """Background task: apply DECAY_RATE to all msl.signal_molecules every DECAY_STEP_SECONDS."""
+        if not self.pool:
+            return
+        while True:
+            try:
+                await asyncio.sleep(DECAY_STEP_SECONDS)
+                async with self.pool.acquire() as conn:
+                    rows = await conn.fetch("""
+                        SELECT entity_id, dopamine, serotonin, cortisol, oxytocin, testosterone, estrogen,
+                               adrenaline, melatonin, insulin, ghrelin, endorphin, gaba
+                        FROM msl.signal_molecules
+                    """)
+                    for row in rows:
+                        sig = SignalState(
+                            dopamine=float(row["dopamine"]), serotonin=float(row["serotonin"]),
+                            cortisol=float(row["cortisol"]), oxytocin=float(row["oxytocin"]),
+                            testosterone=float(row["testosterone"]), estrogen=float(row["estrogen"]),
+                            adrenaline=float(row["adrenaline"]), melatonin=float(row["melatonin"]),
+                            insulin=float(row["insulin"]), ghrelin=float(row["ghrelin"]),
+                            endorphin=float(row["endorphin"]), gaba=float(row["gaba"]),
+                        )
+                        sig._apply_decay()
+                        sig.clamp()
+                        await conn.execute("""
+                            UPDATE msl.signal_molecules SET
+                                dopamine=$2, serotonin=$3, cortisol=$4, oxytocin=$5, testosterone=$6, estrogen=$7,
+                                adrenaline=$8, melatonin=$9, insulin=$10, ghrelin=$11, endorphin=$12, gaba=$13, updated_at=NOW()
+                            WHERE entity_id=$1
+                        """, row["entity_id"], sig.dopamine, sig.serotonin, sig.cortisol, sig.oxytocin,
+                           sig.testosterone, sig.estrogen, sig.adrenaline, sig.melatonin,
+                           sig.insulin, sig.ghrelin, sig.endorphin, sig.gaba)
+            except asyncio.CancelledError:
+                break
+            except Exception:
+                pass
 
     async def get_recent_cognitive_awareness(self) -> str:
         """Fetch mood trajectory from Memory Keeper for prompt injection."""
