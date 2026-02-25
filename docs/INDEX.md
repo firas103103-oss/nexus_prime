@@ -6,6 +6,7 @@
 
 ## Start Here
 
+- [GUIDE_USER_DEVELOPER_ADMIN_AR.md](GUIDE_USER_DEVELOPER_ADMIN_AR.md) — **دليل المستخدم والمطور والأدمن (عربي)**
 - [00_START_HERE_MASTER_GUIDE.md](00_START_HERE_MASTER_GUIDE.md) — Single entry point: vision, deployment, module walkthrough, troubleshooting
 - [READY_TO_FILL_AND_OVERVIEW.md](READY_TO_FILL_AND_OVERVIEW.md) — Ready-to-fill env variables, Cloudflare DNS map, action guide
 - [NEXUS_PRIME_SYSTEM_READY_2026.md](NEXUS_PRIME_SYSTEM_READY_2026.md) — Sovereign Health Certificate (2026-02-25)
