@@ -149,3 +149,6 @@ neural_spine/target/
 neural_spine_backup_pre_restructure/
 __pycache__/
 *.pyc
+
+# One-time reports (archived in docs/archive/raw/)
+duplicate_files_report.txt
