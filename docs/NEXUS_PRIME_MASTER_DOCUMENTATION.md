@@ -121,7 +121,22 @@ docker stop sovereign-entity
 
 ---
 
-## 6. المسارات الرئيسية (Sovereign Node)
+## 6. Cursor God Mode — ملف السياق الشامل
+
+| الملف | الغرض |
+|-------|-------|
+| **CURSOR_MASTER_CONTEXT.md** | مانيفست + خطة تنفيذ + برومبت ماستر. ارفعه لـ Cursor Composer |
+| **NEXUS_SYSTEM_MAP.md** | مخرجات السكربت — منافذ، حاويات، ذاكرة، DB |
+| **scripts/generate_nexus_manifest.sh** | سكربت إعادة توليد المانيفست |
+
+```bash
+./scripts/generate_nexus_manifest.sh          # يولد NEXUS_SYSTEM_MAP.md
+./scripts/generate_nexus_manifest.sh custom.md # مخرجات مخصصة
+```
+
+---
+
+## 7. المسارات الرئيسية (Sovereign Node)
 
 | المسار | المكون |
 |--------|--------|
@@ -132,7 +147,7 @@ docker stop sovereign-entity
 
 ---
 
-## 7. مراجع إضافية
+## 8. مراجع إضافية
 
 - **الخطة:** `.cursor/plans/رحلة_كشف_الكنوز_excel_612e215c.plan.md`
 - **الفهرس:** `docs/INDEX.md`
