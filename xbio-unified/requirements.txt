@@ -1,0 +1,4 @@
+# Serial Bridge dependencies
+pyserial>=3.5
+requests>=2.28
+paho-mqtt>=2.0

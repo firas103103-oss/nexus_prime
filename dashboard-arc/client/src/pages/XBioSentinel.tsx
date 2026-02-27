@@ -1,19 +1,14 @@
 /**
  * 🧬 xBio Sentinel - Scent Command
  * مركز xBio المتقدم - الشم الرقمي والغريزة
+ * OMEGA V2.1: SRI, MSI, SPI, Truth Score, State
+ * Uses useBioSentinel + XBioGateway
  */
 
 import { useState, useEffect } from 'react';
-import { Wind, Activity, TrendingUp, AlertCircle, Brain, Thermometer, Droplets, Gauge } from 'lucide-react';
-
-interface SensorReading {
-  temperature: number;
-  humidity: number;
-  pressure: number;
-  gasResistance: number;
-  airQuality: number;
-  timestamp: Date;
-}
+import { Wind, Activity, TrendingUp, AlertCircle, Brain, Thermometer, Droplets, Gauge, Shield, Zap } from 'lucide-react';
+import { useBioSentinel } from '@/hooks/useBioSentinel';
+import { XBioGateway } from '@/services/XBioGateway';
 
 interface SmellProfile {
   id: string;
@@ -26,14 +21,7 @@ interface SmellProfile {
 }
 
 export default function XBioSentinel() {
-  const [sensorData, setSensorData] = useState<SensorReading>({
-    temperature: 24.5,
-    humidity: 45,
-    pressure: 1013,
-    gasResistance: 150000,
-    airQuality: 92,
-    timestamp: new Date()
-  });
+  const { sensorData, omegaData, wsConnected, error: telemetryError } = useBioSentinel();
 
   const [trainingMode, setTrainingMode] = useState(false);
   const [instinctAlerts, setInstinctAlerts] = useState<string[]>([]);
@@ -53,47 +41,25 @@ export default function XBioSentinel() {
     { id: '3', name: 'Smoke', nameAr: 'دخان', category: 'alert', confidence: 0, color: '#EF4444', lastDetected: new Date(Date.now() - 86400000) }
   ]);
 
-  // Fetch X-BIO API (xbio.mrf103.com) — Live Fire Test
+  // Fetch X-BIO API via XBioGateway
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const [healthRes, patentsRes] = await Promise.all([
-          fetch('https://xbio.mrf103.com/health'),
-          fetch('https://xbio.mrf103.com/api/patents')
+        const [health, patents] = await Promise.all([
+          XBioGateway.getHealth(),
+          XBioGateway.getPatents(),
         ]);
-        if (healthRes.ok && patentsRes.ok) {
-          const health = await healthRes.json();
-          const patents = await patentsRes.json();
-          setApiStatus({
-            health: health?.status || 'ok',
-            patents: patents?.patents || [],
-            implemented: patents?.implemented || []
-          });
-          setApiError(null);
-        } else {
-          setApiError('API غير متاح');
-        }
+        setApiStatus({
+          health: health?.status || 'ok',
+          patents: patents?.patents || [],
+          implemented: patents?.implemented || [],
+        });
+        setApiError(null);
       } catch (e) {
         setApiError((e as Error).message || 'فشل الاتصال');
       }
     };
     fetchApi();
-  }, []);
-
-  // Simulate real-time sensor updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSensorData({
-        temperature: 24 + Math.random() * 2,
-        humidity: 43 + Math.random() * 4,
-        pressure: 1012 + Math.random() * 2,
-        gasResistance: 145000 + Math.random() * 10000,
-        airQuality: 90 + Math.random() * 8,
-        timestamp: new Date()
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -112,6 +78,9 @@ export default function XBioSentinel() {
                 {apiStatus.patents?.length && (
                   <span className="text-gray-500 ml-2">| براءات: {apiStatus.patents.length} ({apiStatus.implemented?.length || 0} مُنفّذة)</span>
                 )}
+                {wsConnected && (
+                  <span className="ml-2 text-cyan-400">| Real-time WS</span>
+                )}
               </div>
             )}
             {apiError && <div className="mt-2 text-sm text-red-400">API: {apiError}</div>}
@@ -119,11 +88,10 @@ export default function XBioSentinel() {
           <div className="flex gap-3">
             <button
               onClick={() => setTrainingMode(!trainingMode)}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                trainingMode
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all ${trainingMode
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
             >
               {trainingMode ? '🎓 Training Mode: ON' : '📖 Training Mode: OFF'}
             </button>
@@ -131,11 +99,86 @@ export default function XBioSentinel() {
         </div>
       </div>
 
-      {/* Live Sensor Readings */}
+      {/* OMEGA V2.1 — Sovereign Witness (when available) */}
+      {omegaData && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Shield className="w-6 h-6 text-amber-400" />
+              OMEGA V2.1 — Sovereign Witness
+            </h2>
+            <div className="flex items-center gap-3">
+              <span className={`px-4 py-2 rounded-lg font-bold text-sm ${omegaData.state === 'RESONANCE_DISTURBANCE'
+                ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                : 'bg-green-500/20 text-green-400 border border-green-500/50'
+                }`}>
+                {omegaData.state === 'RESONANCE_DISTURBANCE' ? '⚠️ RESONANCE_DISTURBANCE' : '✓ VOID_STABLE'}
+              </span>
+              {omegaData.alert && (
+                <span className="px-4 py-2 rounded-lg font-bold text-sm bg-red-500/30 text-red-300 border border-red-500 animate-pulse">
+                  <AlertCircle className="w-4 h-4 inline mr-1" />
+                  ALERT
+                </span>
+              )}
+              <span className="text-xs text-gray-500">{omegaData.deviceId}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 rounded-lg p-6 border border-cyan-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <Zap className="w-8 h-8 text-cyan-400" />
+                <div>
+                  <div className="text-xs text-gray-400">SRI</div>
+                  <div className="text-2xl font-bold">{omegaData.sri.toFixed(3)}</div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">Sovereign Resonance Index</div>
+            </div>
+            <div className="bg-gradient-to-br from-violet-500/20 to-violet-600/20 rounded-lg p-6 border border-violet-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <Activity className="w-8 h-8 text-violet-400" />
+                <div>
+                  <div className="text-xs text-gray-400">MSI</div>
+                  <div className="text-2xl font-bold">{omegaData.msi.toFixed(2)}</div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">Metabolic Stress Index</div>
+            </div>
+            <div className="bg-gradient-to-br from-fuchsia-500/20 to-fuchsia-600/20 rounded-lg p-6 border border-fuchsia-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <Wind className="w-8 h-8 text-fuchsia-400" />
+                <div>
+                  <div className="text-xs text-gray-400">SPI</div>
+                  <div className="text-2xl font-bold">{omegaData.spi.toFixed(2)}</div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">Sovereign Pheromone Index</div>
+            </div>
+            <div className="bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-lg p-6 border border-amber-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <TrendingUp className="w-8 h-8 text-amber-400" />
+                <div>
+                  <div className="text-xs text-gray-400">Truth Score</div>
+                  <div className="text-2xl font-bold">{omegaData.truthScore.toFixed(1)}</div>
+                </div>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600"
+                  style={{ width: `${Math.min(100, omegaData.truthScore)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          {telemetryError && <div className="mt-2 text-sm text-amber-400">{telemetryError}</div>}
+        </div>
+      )}
+
+      {/* Live Sensor Readings (legacy / fallback) */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
           <Activity className="w-6 h-6 text-teal-400" />
-          Live Sensor Readings - ESP32-S3 N16R8 + BME688
+          {omegaData ? 'Legacy Sensors' : 'Live Sensor Readings'} — ESP32-S3 N16R8 + BME688
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-lg p-6 border border-red-500/30">
@@ -210,10 +253,10 @@ export default function XBioSentinel() {
           </h3>
           <div className="space-y-3">
             {smellProfiles.map((profile) => (
-              <div 
+              <div
                 key={profile.id}
                 className="p-4 rounded-lg border"
-                style={{ 
+                style={{
                   backgroundColor: `${profile.color}10`,
                   borderColor: `${profile.color}40`
                 }}
@@ -226,9 +269,9 @@ export default function XBioSentinel() {
                     </div>
                     <div className="text-xs text-gray-500 capitalize">{profile.category}</div>
                   </div>
-                  <div 
+                  <div
                     className="px-3 py-1 rounded-full text-xs font-bold"
-                    style={{ 
+                    style={{
                       backgroundColor: `${profile.color}20`,
                       color: profile.color
                     }}
@@ -239,7 +282,7 @@ export default function XBioSentinel() {
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div
                     className="h-2 rounded-full"
-                    style={{ 
+                    style={{
                       width: `${profile.confidence}%`,
                       backgroundColor: profile.color
                     }}
@@ -301,7 +344,7 @@ export default function XBioSentinel() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {agents.map((agent) => (
-            <div 
+            <div
               key={agent.id}
               className="bg-gray-800/50 rounded-lg p-4 border border-gray-700"
               style={{ borderLeftColor: agent.color, borderLeftWidth: '3px' }}

@@ -21,6 +21,7 @@ import { acriRouter } from "./routes/acri";
 import metricsRoutes from "../src/routes/metrics.routes";
 import { superSystem } from "../src/SuperIntegration";
 import { metricsCollector } from "../src/infrastructure/monitoring/MetricsCollector";
+import { iotService } from "./services/iot_service";
 
 // Initialize Sentry (only in production)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
@@ -58,10 +59,10 @@ export function log(message: unknown, scope?: string) {
 // This function will serve static files in a production environment
 function serveStatic(app: Express) {
   const buildDir = path.resolve(import.meta.dirname, "..", "dist", "public");
-  
+
   // Serve static files (CSS, JS, images, etc)
   app.use(express.static(buildDir));
-  
+
   // IMPORTANT: This catch-all route should be LAST
   // It will serve index.html for all non-API routes (for React Router)
   app.get('*', (req, res, next) => {
@@ -92,7 +93,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, Postman, etc)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -204,98 +205,106 @@ console.log('✅ All imports complete, starting async initialization...');
 (async () => {
   try {
     console.log('🔧 Starting server initialization...');
-    
+
     // Activate the router from routes.ts, providing the express app
     const httpServer = await registerRoutes(app);
     console.log('✅ Routes registered');
 
-  // Authenticated WebSocket upgrade (text chat only)
-  httpServer.on("upgrade", (request, socket, head) => {
-    const url = request.url || "";
-    if (!url.startsWith("/realtime")) {
-      socket.destroy();
-      return;
-    }
-
-    const res = new ServerResponse(request);
-    sessionMiddleware(request as any, res as any, () => {
-      const isAuthed = (request as any).session?.operatorAuthenticated;
-      if (!isAuthed) {
-        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+    // Authenticated WebSocket upgrade (text chat only)
+    httpServer.on("upgrade", (request, socket, head) => {
+      const url = request.url || "";
+      if (!url.startsWith("/realtime")) {
         socket.destroy();
         return;
       }
 
-      handleRealtimeChatUpgrade(request, socket as any, head);
+      const res = new ServerResponse(request);
+      sessionMiddleware(request as any, res as any, () => {
+        const isAuthed = (request as any).session?.operatorAuthenticated;
+        if (!isAuthed) {
+          socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+          socket.destroy();
+          return;
+        }
+
+        handleRealtimeChatUpgrade(request, socket as any, head);
+      });
     });
-  });
 
-  // Initialize the real-time subscription service
-  initializeRealtimeSubscriptions();
-  console.log('✅ Realtime subscriptions initialized');
+    // Initialize the real-time subscription service
+    initializeRealtimeSubscriptions();
+    console.log('✅ Realtime subscriptions initialized');
 
-  // Bootstrap tenant and log system startup
-  console.log('⏳ Bootstrapping tenant...');
-  await TenantService.bootstrapTenant();
-  console.log('✅ Tenant bootstrapped');
-  
-  console.log('⏳ Initializing agent registry...');
-  await initializeAgentRegistry();
-  console.log('✅ Agent registry initialized');
-  
-  // Start Super AI System
-  console.log('⏳ Starting Super AI System...');
-  await superSystem.start();
-  console.log('✅ Super AI System started');
-  
-  console.log('⏳ Logging system startup event...');
-  await EventLedger.log({
-    type: "system.startup",
-    actor: "system",
-    payload: {
-      environment: process.env.NODE_ENV || "development",
-      version: process.env.npm_package_version || "2.1.0",
-    },
-  });
-
-  // Environment settings (Vite for preview)
-  if (app.get("env") === "development") {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
-  } else {
-    // IMPORTANT: serveStatic must come AFTER registerRoutes
-    // So API routes are registered first
-    serveStatic(app);
-  }
-
-  // Sentry error handler (must be before any other error middleware)
-  if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
-    // @ts-ignore - Sentry types issue
-    app.use(Sentry.Handlers.errorHandler());
-  }
-
-  // Error handling (should be last)
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    
-    // Log error to console in development
-    if (process.env.NODE_ENV !== 'production') {
-      logger.error('❌ Error:', err);
+    // Initialize IoT Service (MQTT + WebSocket for X-BIO telemetry)
+    try {
+      await iotService.initialize();
+      console.log('✅ IoT Service (X-BIO MQTT/WS) initialized');
+    } catch (err: any) {
+      console.warn('⚠️ IoT Service init failed (MQTT broker may be unavailable):', err?.message || err);
     }
-    
-    res.status(status).json({ message });
-  });
 
-  // Use the PORT environment variable (Railway provides this automatically)
-  // Default to 5001 for local development (9002 was old port)
-  const port = process.env.PORT ? Number(process.env.PORT) : 5001;
-  const host = "0.0.0.0"; // Allow external access
-  
-  httpServer.listen(port, host, () => {
-    console.log(`✅ Server is live and listening on ${host}:${port}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
+    // Bootstrap tenant and log system startup
+    console.log('⏳ Bootstrapping tenant...');
+    await TenantService.bootstrapTenant();
+    console.log('✅ Tenant bootstrapped');
+
+    console.log('⏳ Initializing agent registry...');
+    await initializeAgentRegistry();
+    console.log('✅ Agent registry initialized');
+
+    // Start Super AI System
+    console.log('⏳ Starting Super AI System...');
+    await superSystem.start();
+    console.log('✅ Super AI System started');
+
+    console.log('⏳ Logging system startup event...');
+    await EventLedger.log({
+      type: "system.startup",
+      actor: "system",
+      payload: {
+        environment: process.env.NODE_ENV || "development",
+        version: process.env.npm_package_version || "2.1.0",
+      },
+    });
+
+    // Environment settings (Vite for preview)
+    if (app.get("env") === "development") {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    } else {
+      // IMPORTANT: serveStatic must come AFTER registerRoutes
+      // So API routes are registered first
+      serveStatic(app);
+    }
+
+    // Sentry error handler (must be before any other error middleware)
+    if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+      // @ts-ignore - Sentry types issue
+      app.use(Sentry.Handlers.errorHandler());
+    }
+
+    // Error handling (should be last)
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+
+      // Log error to console in development
+      if (process.env.NODE_ENV !== 'production') {
+        logger.error('❌ Error:', err);
+      }
+
+      res.status(status).json({ message });
+    });
+
+    // Use the PORT environment variable (Railway provides this automatically)
+    // Default to 5001 for local development (9002 was old port)
+    const port = process.env.PORT ? Number(process.env.PORT) : 5001;
+    const host = "0.0.0.0"; // Allow external access
+
+    httpServer.listen(port, host, () => {
+      console.log(`✅ Server is live and listening on ${host}:${port}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
   } catch (error: any) {
     console.error('❌ FATAL: Server startup failed:', error);
     console.error(error.stack);

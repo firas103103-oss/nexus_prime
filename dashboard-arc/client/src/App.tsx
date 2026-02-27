@@ -1,4 +1,4 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { EnhancedLoadingFallback } from "@/components/EnhancedLoadingFallback";
+import { SovereignMasterProvider } from "@/contexts/SovereignMasterContext";
 
 // Lazy load heavy components
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -41,6 +42,10 @@ const ReportsCenter = lazy(() => import("@/pages/ReportsCenter"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Integrations = lazy(() => import("@/pages/Integrations"));
 const AgentChat = lazy(() => import("@/pages/AgentChat"));
+const DataMonitor = lazy(() => import("@/pages/DataMonitor"));
+const NexusCoreRouter = lazy(() => import("@/components/nexus/NexusCoreRouter").then((m) => ({ default: m.NexusCoreRouter })));
+const SultanPage = lazy(() => import("@/pages/SultanPage"));
+const CommandCenter = lazy(() => import("@/pages/CommandCenter"));
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -70,7 +75,10 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/auth" component={OperatorLogin} />
-        
+
+        {/* Sovereign C2 Hub — Priority */}
+        <Route path="/command-center" component={CommandCenter} />
+
         {/* ARC 2.0 - New 31-Agent Hierarchy Pages */}
         <Route path="/mrf" component={MRFDashboard} />
         <Route path="/maestros" component={MaestrosHub} />
@@ -84,6 +92,12 @@ function Router() {
         <Route path="/settings" component={Settings} />
         <Route path="/integrations" component={Integrations} />
         <Route path="/chat" component={AgentChat} />
+        <Route path="/data-monitor" component={DataMonitor} />
+
+        {/* NEXUS Galaxy — 11 Planets */}
+        <Route path="/galaxy/:planetId" component={NexusCoreRouter} />
+        <Route path="/galaxy" component={NexusCoreRouter} />
+        <Route path="/sultan" component={SultanPage} />
 
         {/* Old Pages - Legacy */}
         <Route path="/dashboard" component={VirtualOffice} />
@@ -112,12 +126,14 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <Router />
-        <Toaster />
+        <SovereignMasterProvider>
+          <Router />
+          <Toaster />
+        </SovereignMasterProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
 }
 
 export default App;
-                                                                                                                                                                              
+

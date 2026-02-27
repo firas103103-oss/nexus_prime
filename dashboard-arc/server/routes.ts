@@ -19,7 +19,7 @@ import EventLedger from "./services/event-ledger";
 import { ProductionMetrics } from "./services/production-metrics";
 
 function getClientIp(req: any): string {
-  const xff = req.headers?.["x-forwarded-for"]; 
+  const xff = req.headers?.["x-forwarded-for"];
   if (typeof xff === "string" && xff.length > 0) return xff.split(",")[0].trim();
   return req.ip || req.connection?.remoteAddress || "unknown";
 }
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Logic Switch: Handle incoming n8n commands
       let result = { status: "ignored", message: "No logic defined for this command" };
-      
+
       if (command === "create_project") {
         // Example: logic to insert into DB
         // const newProject = await storage.createProject(payload);
@@ -91,15 +91,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Put your application routes here
   // Example: api/projects, api/users etc.
-  
+
   // =========================================================================
   // PHASE 5: PRODUCTION HEALTH ENDPOINTS
   // =========================================================================
-  
+
   // Simple health check for load balancers (no auth required)
   app.get("/health", (req, res) => {
-    res.json({ 
-      status: "ok", 
+    res.json({
+      status: "ok",
       time: new Date().toISOString(),
       service: "arc-namer"
     });
@@ -109,8 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/health", async (req, res) => {
     try {
       const health = await ProductionMetrics.healthCheck();
-      const statusCode = health.status === "healthy" ? 200 : 
-                         health.status === "degraded" ? 200 : 503;
+      const statusCode = health.status === "healthy" ? 200 :
+        health.status === "degraded" ? 200 : 503;
       res.status(statusCode).json(health);
     } catch (error: any) {
       res.status(503).json({
@@ -183,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Set session
     req.session.operatorAuthenticated = true;
-    
+
     // Save session before responding
     req.session.save(async (err: any) => {
       if (err) {
@@ -191,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await EventLedger.loginFailed("operator", "session_save_failed");
         return res.status(500).json({ error: "session_save_failed" });
       }
-      
+
       // Log successful login to ledger
       await EventLedger.loginSuccess("operator", { ip: getClientIp(req) });
       console.log('✅ Login successful for IP:', getClientIp(req));
@@ -292,8 +292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ error: "supabase_query_failed" });
     }
 
-    res.json({ 
-      data: data || [], 
+    res.json({
+      data: data || [],
       count: count ?? 0,
       page,
       pageSize,
@@ -305,7 +305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
 
     const { traceId } = req.params;
-    
+
     const { data, error } = await supabase
       .from("arc_events")
       .select("*")
@@ -485,7 +485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Validate device auth (simple secret check)
     const secret = req.headers["x-arc-secret"] || req.body.secret;
     const expected = process.env.X_ARC_SECRET || process.env.ARC_BACKEND_SECRET;
-    
+
     if (secret !== expected) {
       return res.status(401).json({ error: "unauthorized" });
     }
@@ -558,7 +558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // --- Dashboard API (thin wrappers/aggregators) ---
-  
+
   // GET /api/dashboard/commands (reuse command-log logic)
   app.get("/api/dashboard/commands", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
@@ -652,9 +652,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       // Offline response (no OpenAI key)
-      return res.json({ 
-        reply: `Mr.F (offline): I received: "${text.trim()}"`, 
-        offline: true 
+      return res.json({
+        reply: `Mr.F (offline): I received: "${text.trim()}"`,
+        offline: true
       });
     }
 
@@ -688,17 +688,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 1. Anomalies API
   app.get("/api/agents/anomalies", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     const timeRange = req.query.timeRange || '7d';
     const daysAgo = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
     const since = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
-    
+
     const { data, error } = await supabase
       .from("anomalies")
       .select("*")
       .gte("detected_at", since)
       .order("detected_at", { ascending: false });
-      
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data || []);
   });
@@ -706,12 +706,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 2. Mission Scenarios API - GET
   app.get("/api/scenarios", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     const { data, error } = await supabase
       .from("mission_scenarios")
       .select("*")
       .order("created_at", { ascending: false });
-      
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data || []);
   });
@@ -719,11 +719,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 3. Mission Scenarios API - POST
   app.post("/api/scenarios", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     const { title, description, category, riskLevel, objectives, assignedAgents } = req.body;
-    
+
     if (!title) return res.status(400).json({ error: "title_required" });
-    
+
     const { data, error } = await supabase
       .from("mission_scenarios")
       .insert([{
@@ -736,7 +736,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }])
       .select()
       .single();
-      
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
   });
@@ -744,12 +744,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 4. Team Tasks API - GET
   app.get("/api/team/tasks", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     const { data, error } = await supabase
       .from("team_tasks")
       .select("*")
       .order("created_at", { ascending: false });
-      
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data || []);
   });
@@ -757,11 +757,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 5. Team Tasks API - POST
   app.post("/api/team/tasks", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     const { title, description, assignedAgent, priority, tags } = req.body;
-    
+
     if (!title) return res.status(400).json({ error: "title_required" });
-    
+
     const { data, error } = await supabase
       .from("team_tasks")
       .insert([{
@@ -773,7 +773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }])
       .select()
       .single();
-      
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
   });
@@ -781,17 +781,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 6. Team Tasks API - PATCH (Update)
   app.patch("/api/team/tasks/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     const { id } = req.params;
     const updates = req.body;
-    
+
     const { data, error } = await supabase
       .from("team_tasks")
       .update(updates)
       .eq("id", id)
       .select()
       .single();
-      
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
   });
@@ -799,7 +799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 7. Agent Analytics API - OPTIMIZED with caching
   app.get("/api/agents/analytics", apiLimiter.middleware(), requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     try {
       // Use optimized cached query - 5 minute TTL, reduces DB load by 70%
       const interactions = await cachedSelect(
@@ -810,11 +810,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cacheTTL: 300
         }
       );
-      
+
       if (!interactions) {
         return res.json([]);
       }
-      
+
       // Group by agent - fast in-memory calculation
       const agentStats: Record<string, any> = {};
       interactions.forEach((int: any) => {
@@ -831,13 +831,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (int.success) agentStats[int.agent_id].successful++;
         agentStats[int.agent_id].totalTime += int.duration_ms || 0;
       });
-      
+
       const result = Object.values(agentStats).map((stats: any) => ({
         ...stats,
         successRate: stats.total > 0 ? (stats.successful / stats.total) * 100 : 0,
         avgResponseTime: stats.total > 0 ? stats.totalTime / stats.total : 0
       }));
-      
+
       res.json(result);
     } catch (error: any) {
       logger.error('Agent analytics error:', error);
@@ -848,20 +848,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 8. Agent Performance Metrics API - OPTIMIZED with time-based caching
   app.get("/api/agents/performance", apiLimiter.middleware(), requireOperatorSession, async (req: any, res) => {
     if (!isSupabaseConfigured() || !supabase) return res.status(503).json({ error: "supabase_not_configured" });
-    
+
     const timeRange = req.query.timeRange || '7d';
     const daysAgo = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
     const since = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
-    
+
     try {
       // Cache performance data based on time range - reduces expensive queries
       const cacheKey = `agent:performance:${timeRange}`;
       const cachedData = cache.get(cacheKey);
-      
+
       if (cachedData) {
         return res.json(cachedData);
       }
-      
+
       // Fetch with optimized cached queries
       const metrics = await cachedSelect(
         'agent_performance',
@@ -871,7 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cacheTTL: 300
         }
       );
-      
+
       const interactions = await cachedSelect(
         'agent_interactions',
         {
@@ -880,11 +880,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cacheTTL: 300
         }
       );
-      
+
       if (!interactions) {
         return res.json({ agents: [], chartData: [] });
       }
-      
+
       // Aggregate by agent
       const agentData: Record<string, any> = {};
       interactions.forEach((int: any) => {
@@ -902,13 +902,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         agentData[int.agent_id].totalDuration += int.duration_ms || 0;
         if (int.success) agentData[int.agent_id].successful++;
       });
-      
+
       const agents = Object.values(agentData).map((a: any) => ({
         ...a,
         successRate: a.calls > 0 ? (a.successful / a.calls) * 100 : 0,
         avgLatency: a.calls > 0 ? a.totalDuration / a.calls : 0
       }));
-      
+
       // Create chart data
       const chartData = interactions
         .slice(0, 50)
@@ -917,12 +917,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timestamp: new Date(int.created_at).toISOString(),
           [int.agent_id]: int.duration_ms || 0
         }));
-      
+
       const result = { agents, chartData, metrics: metrics || [] };
-      
+
       // Cache the aggregated result for 5 minutes
       cache.set(cacheKey, result, 300);
-      
+
       res.json(result);
     } catch (error: any) {
       console.error('Agent performance error:', error);
@@ -956,7 +956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const NERVE_URL = process.env.NERVE_URL || "http://nexus_nerve:8200";
   app.post("/api/chat", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { message, agentId, conversationId } = req.body;
-    
+
     if (!message || typeof message !== "string") {
       return res.status(400).json({ error: "message_required" });
     }
@@ -1007,7 +1007,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 12. POST /api/conversations - Create new conversation
   app.post("/api/conversations", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { title, agentId } = req.body;
-    
+
     const newConversation = {
       id: Date.now().toString(),
       title: title || "New Conversation",
@@ -1015,14 +1015,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       createdAt: new Date().toISOString(),
       messageCount: 0
     };
-    
+
     res.json(newConversation);
   });
 
   // 13. GET /api/conversations/:id - Get specific conversation
   app.get("/api/conversations/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { id } = req.params;
-    
+
     res.json({
       id,
       title: "Conversation " + id,
@@ -1045,34 +1045,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: "2", type: "task", description: "L0-Ops completed deployment", timestamp: new Date().toISOString() }
       ]);
     }
-    
+
     // Fetch from agent_events
     const { data, error } = await supabase
       .from("agent_events")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
-      
+
     if (error) return res.status(500).json({ error: error.message });
-    
+
     const activity = (data || []).map((evt: any) => ({
       id: evt.id,
       type: evt.event_type,
       description: `${evt.agent_name}: ${evt.event_type}`,
       timestamp: evt.created_at
     }));
-    
+
     res.json(activity);
   });
 
   // 16. POST /api/activity - Log new activity
   app.post("/api/activity", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { type, description, agentId } = req.body;
-    
+
     if (!isSupabaseConfigured() || !supabase) {
       return res.json({ id: Date.now().toString(), ok: true });
     }
-    
+
     const { data, error } = await supabase
       .from("agent_events")
       .insert([{
@@ -1082,7 +1082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }])
       .select()
       .single();
-      
+
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
   });
@@ -1094,7 +1094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select()
         .from(workflowSimulations)
         .orderBy(desc(workflowSimulations.createdAt));
-      
+
       res.json(simulations);
     } catch (error: any) {
       logger.error("[/api/simulations GET]", error);
@@ -1105,9 +1105,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 18. POST /api/simulations - Create new simulation
   app.post("/api/simulations", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { name, description, steps } = req.body;
-    
+
     if (!name) return res.status(400).json({ error: "name_required" });
-    
+
     try {
       const [newSim] = await db
         .insert(workflowSimulations)
@@ -1119,7 +1119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdBy: req.session?.operatorId || "operator",
         })
         .returning();
-      
+
       res.json(newSim);
     } catch (error: any) {
       logger.error("[/api/simulations POST]", error);
@@ -1131,24 +1131,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/simulations/:id", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { id } = req.params;
     const { name, description, steps, status } = req.body;
-    
+
     try {
       const updateData: any = { updatedAt: new Date() };
       if (name !== undefined) updateData.name = name;
       if (description !== undefined) updateData.description = description;
       if (steps !== undefined) updateData.steps = steps;
       if (status !== undefined) updateData.status = status;
-      
+
       const [updated] = await db
         .update(workflowSimulations)
         .set(updateData)
         .where(eq(workflowSimulations.id, id))
         .returning();
-      
+
       if (!updated) {
         return res.status(404).json({ error: "simulation_not_found" });
       }
-      
+
       res.json(updated);
     } catch (error: any) {
       console.error("[/api/simulations/:id PATCH]", error);
@@ -1159,23 +1159,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 20. POST /api/simulations/:id/run - Execute simulation
   app.post("/api/simulations/:id/run", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { id } = req.params;
-    
+
     try {
       // Get simulation
       const [simulation] = await db
         .select()
         .from(workflowSimulations)
         .where(eq(workflowSimulations.id, id));
-      
+
       if (!simulation) {
         return res.status(404).json({ error: "simulation_not_found" });
       }
-      
+
       // Execute simulation steps (simplified for now)
       const startTime = Date.now();
       const steps = (simulation.steps as any[]) || [];
       const stepResults: any[] = [];
-      
+
       for (const step of steps) {
         const stepStart = Date.now();
         try {
@@ -1185,7 +1185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             await new Promise(r => setTimeout(r, 500)); // Simulate processing
           }
-          
+
           stepResults.push({
             stepId: step.id,
             status: "success",
@@ -1200,7 +1200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       const totalDuration = Date.now() - startTime;
       const result = {
         status: stepResults.every(r => r.status === "success") ? "success" : "partial_success",
@@ -1208,7 +1208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         duration: totalDuration,
         stepResults,
       };
-      
+
       // Update simulation with results
       await db
         .update(workflowSimulations)
@@ -1219,7 +1219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedAt: new Date(),
         })
         .where(eq(workflowSimulations.id, id));
-      
+
       res.json({ id, result });
     } catch (error: any) {
       logger.error("[/api/simulations/:id/run POST]", error);
@@ -1235,9 +1235,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 22. POST /api/bio-sentinel/profiles - Create bio profile
   app.post("/api/bio-sentinel/profiles", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { name, age, conditions } = req.body;
-    
+
     if (!name) return res.status(400).json({ error: "name_required" });
-    
+
     const profile = {
       id: Date.now().toString(),
       name,
@@ -1245,16 +1245,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       conditions: conditions || [],
       createdAt: new Date().toISOString()
     };
-    
+
     res.json(profile);
   });
 
   // 23. POST /api/bio-sentinel/chat - Bio-Sentinel chat
   app.post("/api/bio-sentinel/chat", operatorLimiter, requireOperatorSession, async (req: any, res) => {
     const { message, profileId } = req.body;
-    
+
     if (!message) return res.status(400).json({ error: "message_required" });
-    
+
     res.json({
       id: Date.now().toString(),
       message: `Dr. Maya: I understand you mentioned "${message}". Let me analyze that for profile ${profileId || 'default'}.`,
@@ -1272,15 +1272,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         avgResponseTime: 0
       });
     }
-    
+
     const [cmdRes, evtRes] = await Promise.all([
       supabase.from("arc_command_log").select("*", { count: "exact" }).limit(100),
       supabase.from("agent_events").select("*", { count: "exact" }).limit(100)
     ]);
-    
+
     const commands = cmdRes.data || [];
     const successCount = commands.filter((c: any) => c.status === "completed").length;
-    
+
     res.json({
       totalCommands: cmdRes.count || 0,
       successRate: commands.length > 0 ? (successCount / commands.length) * 100 : 0,
@@ -1292,6 +1292,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==========================================
   // Voice & Agent Endpoints
   // ==========================================
+
+  // NEXUS Proxy (nerve + ollama) — zero-trust local-only
+  const { nerveRouter, ollamaRouter } = await import("./routes/nexus-proxy");
+  app.use("/api/nerve", operatorLimiter, requireOperatorSession, nerveRouter);
+  app.use("/api/ollama", operatorLimiter, requireOperatorSession, ollamaRouter);
+
+  // Sovereign C2 Hub — Monitor + Command
+  const { monitorRouter } = await import("./routes/sovereign-monitor");
+  const { sovereignCommandRouter } = await import("./routes/sovereign-command");
+  app.use("/api/sovereign/monitor", operatorLimiter, requireOperatorSession, monitorRouter);
+  app.use("/api/sovereign/command", operatorLimiter, requireOperatorSession, sovereignCommandRouter);
 
   // Mount voice routes
   app.use("/api/voice", voiceRouter);
@@ -1338,14 +1349,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Agent profiles rarely change - cache for 1 hour
     const cacheKey = `agent:profile:${req.params.id}`;
     let profile = staticCache.get(cacheKey);
-    
+
     if (!profile) {
       profile = getAgentProfile(req.params.id);
       if (profile) {
         staticCache.set(cacheKey, profile, 3600); // 1 hour TTL
       }
     }
-    
+
     if (!profile) {
       return res.status(404).json({ error: "agent_not_found" });
     }
@@ -1364,14 +1375,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Use cached profile lookup
     const cacheKey = `agent:profile:${id}`;
     let profile: any = staticCache.get(cacheKey);
-    
+
     if (!profile) {
       profile = getAgentProfile(id);
       if (profile) {
         staticCache.set(cacheKey, profile, 3600);
       }
     }
-    
+
     if (!profile) {
       return res.status(404).json({ error: "agent_not_found" });
     }
@@ -1401,8 +1412,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const reply = completion.choices?.[0]?.message?.content || "(no response)";
-      res.json({ 
-        reply: reply.trim(), 
+      res.json({
+        reply: reply.trim(),
         offline: false,
         agent: profile.name,
         agentId: id

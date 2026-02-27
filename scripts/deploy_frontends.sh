@@ -6,7 +6,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 echo "=== نشر دار النشر (Shadow Seven) ==="
-cd planets/SHADOW-7/shadow-seven
+cd ../products/shadow-seven-publisher
 npm run build
 sudo rm -rf /var/www/publisher/*
 sudo cp -r dist/* /var/www/publisher/
@@ -14,7 +14,7 @@ echo "✓ publisher.mrf103.com محدّث"
 
 echo ""
 echo "=== نشر اللانينق ==="
-cd ../..
+cd "$(dirname "$0")/.."
 ./landing-pages/deploy-landing.sh
 echo "✓ mrf103.com محدّث"
 

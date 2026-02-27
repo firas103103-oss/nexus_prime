@@ -507,6 +507,11 @@ export class IoTService extends EventEmitter {
     }
   }
 
+  /** Sovereign C2 Hub: X-Bio WebSocket connection count */
+  getXBioWsConnectionCount(): number {
+    return Array.from(this.wsClients).filter((c) => c.readyState === WebSocket.OPEN).length;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Device Management
   // ═══════════════════════════════════════════════════════════════════════════

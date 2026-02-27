@@ -16,12 +16,16 @@ import {
   Clock,
   Zap,
   Target,
+  ShieldCheck,
   Workflow,
   TrendingUp,
   Network,
   Settings,
   Brain,
   Rocket,
+  Database,
+  Orbit,
+  BookOpen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -39,6 +43,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { SystemStatusModal } from "@/components/SystemStatusModal";
 
 export function AppSidebar() {
   const [location] = useLocation();
@@ -46,7 +51,9 @@ export function AppSidebar() {
   const { t } = useTranslation();
 
   const operationsItems = [
+    { titleKey: "nav.commandCenter", url: "/command-center", icon: ShieldCheck, testId: "link-command-center", description: "Sovereign C2 Hub — مراقبة وتحكم" },
     { titleKey: "nav.home", url: "/", icon: Home, testId: "link-home", description: "الصفحة الرئيسية" },
+    { titleKey: "nav.galaxy", url: "/galaxy", icon: Orbit, testId: "link-galaxy", description: "مجرة NEXUS - 11 كواكب" },
     { titleKey: "nav.dashboard", url: "/dashboard", icon: LayoutDashboard, testId: "link-dashboard", description: "لوحة التحكم الرئيسية" },
     { titleKey: "nav.systemArchitecture", url: "/system-architecture", icon: Network, testId: "link-system-architecture", description: "هندسة النظام والAPI" },
     { titleKey: "nav.commandLogs", url: "/command-logs", icon: Terminal, testId: "link-command-logs", description: "سجلات الأوامر التنفيذية" },
@@ -63,6 +70,7 @@ export function AppSidebar() {
   ];
 
   const intelligenceItems = [
+    { titleKey: "nav.sultan", url: "/sultan", icon: BookOpen, testId: "link-sultan", description: "السلطان - دراسة قرآنية" },
     { titleKey: "nav.investigationLounge", url: "/investigation-lounge", icon: Search, testId: "link-investigation-lounge", description: "غرفة التحقيق والبحث" },
     { titleKey: "nav.quantumWarroom", url: "/quantum-warroom", icon: Crosshair, testId: "link-quantum-warroom", description: "غرفة الحرب الكمومية" },
     { titleKey: "nav.temporalAnomalyLab", url: "/temporal-anomaly-lab", icon: Clock, testId: "link-temporal-anomaly-lab", description: "مختبر الشذوذ الزمني" },
@@ -78,6 +86,7 @@ export function AppSidebar() {
     { titleKey: "nav.adminPanel", url: "/admin", icon: Settings, testId: "link-admin", description: "لوحة التحكم الإدارية" },
     { titleKey: "nav.masterAgent", url: "/master-agent", icon: Brain, testId: "link-master-agent", description: "وكيل التحكم الرئيسي" },
     { titleKey: "nav.growthRoadmap", url: "/growth-roadmap", icon: Rocket, testId: "link-growth-roadmap", description: "خارطة الطريق 90 يوم" },
+    { titleKey: "nav.dataMonitor", url: "/data-monitor", icon: Database, testId: "link-data-monitor", description: "مراقبة البيانات (غير قابلة للحذف)" },
   ];
 
   const handleLogout = () => {
@@ -297,6 +306,7 @@ export function AppSidebar() {
               </span>
             )}
           </div>
+          <SystemStatusModal />
           <Button
             variant="ghost"
             size="icon"

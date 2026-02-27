@@ -35,7 +35,10 @@ const resources = {
         commandCenter: 'Command Center',
       },
       nav: {
+        commandCenter: 'Sovereign C2 Hub',
         home: 'Home',
+        galaxy: 'NEXUS Galaxy',
+        sultan: 'AS-SULTAN',
         dashboard: 'Dashboard',
         commandLogs: 'Command Logs',
         systemMonitor: 'System Monitor',
@@ -55,6 +58,7 @@ const resources = {
         adminPanel: 'Admin Control Panel',
         masterAgent: 'Master Agent Command',
         growthRoadmap: 'Growth Roadmap',
+        dataMonitor: 'Data Monitor',
         administration: 'Administration',
         operations: 'Operations',
         communications: 'Communications',
@@ -227,7 +231,10 @@ const resources = {
         commandCenter: 'مركز القيادة',
       },
       nav: {
+        commandCenter: 'مركز القيادة السيادي',
         home: 'الرئيسية',
+        galaxy: 'مجرة NEXUS',
+        sultan: 'السلطان',
         dashboard: 'لوحة التحكم',
         commandLogs: 'سجلات الأوامر',
         systemMonitor: 'مراقبة النظام',
@@ -247,6 +254,7 @@ const resources = {
         adminPanel: 'لوحة التحكم الإدارية',
         masterAgent: 'وكيل التحكم الرئيسي',
         growthRoadmap: 'خارطة النمو 90 يوم',
+        dataMonitor: 'مراقبة البيانات',
         administration: 'الإدارة',
         operations: 'العمليات',
         communications: 'الاتصالات',
@@ -410,7 +418,7 @@ export function updateDocumentDirection(lng: string) {
   const dir = lng === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.dir = dir;
   document.documentElement.lang = lng;
-  
+
   if (lng === 'ar') {
     document.documentElement.classList.add('rtl');
   } else {

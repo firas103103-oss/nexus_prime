@@ -12,7 +12,10 @@
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300],
+      "position": [
+        240,
+        300
+      ],
       "webhookId": "shadow7-generate"
     },
     {
@@ -25,7 +28,10 @@
       "name": "Respond Accepted",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [460, 300]
+      "position": [
+        460,
+        300
+      ]
     },
     {
       "parameters": {
@@ -42,7 +48,10 @@
       "name": "Generate Outline",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 300]
+      "position": [
+        680,
+        300
+      ]
     },
     {
       "parameters": {
@@ -52,7 +61,10 @@
       "name": "Parse Outline",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [
+        900,
+        300
+      ]
     },
     {
       "parameters": {
@@ -67,7 +79,23 @@
       "name": "Save Outline to DB",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1120, 300]
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Restore data and expand to one item per chapter (SplitInBatches needs array of items)\nconst outlineData = $('Parse Outline').first().json;\nconst chapters = outlineData.chapters_to_generate || outlineData.outline?.chapters || [];\nconst generated = outlineData.generated_chapters || [];\nreturn chapters.map((ch, i) => ({\n  json: {\n    ...outlineData,\n    chapter: typeof ch === 'object' ? ch : { number: i+1, title: 'Chapter '+(i+1), summary: '', target_words: 2000 },\n    previous_ending: generated[i-1]?.ending_summary || ''\n  }\n}));"
+      },
+      "id": "restore-outline",
+      "name": "Restore Outline Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1240,
+        300
+      ]
     },
     {
       "parameters": {
@@ -78,7 +106,10 @@
       "name": "Split into Chapters",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [1340, 300]
+      "position": [
+        1340,
+        300
+      ]
     },
     {
       "parameters": {
@@ -95,7 +126,10 @@
       "name": "Generate Chapter",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1560, 300]
+      "position": [
+        1560,
+        300
+      ]
     },
     {
       "parameters": {
@@ -105,7 +139,10 @@
       "name": "Parse Chapter",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1780, 300]
+      "position": [
+        1780,
+        300
+      ]
     },
     {
       "parameters": {
@@ -120,7 +157,10 @@
       "name": "Save Chapter to DB",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2000, 300]
+      "position": [
+        2000,
+        300
+      ]
     },
     {
       "parameters": {
@@ -135,7 +175,10 @@
       "name": "Update Progress",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2220, 300]
+      "position": [
+        2220,
+        300
+      ]
     },
     {
       "parameters": {
@@ -152,7 +195,10 @@
       "name": "Generate Consulting Reports",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2440, 300]
+      "position": [
+        2440,
+        300
+      ]
     },
     {
       "parameters": {
@@ -162,7 +208,10 @@
       "name": "Parse Reports",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2660, 300]
+      "position": [
+        2660,
+        300
+      ]
     },
     {
       "parameters": {
@@ -177,7 +226,23 @@
       "name": "Save Reports to DB",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2880, 300]
+      "position": [
+        2880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Restore tracking_id for Create Package (Save Reports returns API response)\nconst data = $('Parse Reports').first().json;\nreturn [{ json: { tracking_id: data.tracking_id, outline: data.outline, user_email: data.user_email } }];"
+      },
+      "id": "restore-package",
+      "name": "Restore For Package",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3000,
+        300
+      ]
     },
     {
       "parameters": {
@@ -194,7 +259,10 @@
       "name": "Create Package",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3100, 300]
+      "position": [
+        3100,
+        300
+      ]
     },
     {
       "parameters": {
@@ -209,7 +277,10 @@
       "name": "Complete Callback",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3320, 300]
+      "position": [
+        3320,
+        300
+      ]
     },
     {
       "parameters": {
@@ -224,7 +295,10 @@
       "name": "Send Completion Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
-      "position": [3540, 300]
+      "position": [
+        3540,
+        300
+      ]
     },
     {
       "parameters": {
@@ -239,7 +313,10 @@
       "name": "Error Callback",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1560, 500]
+      "position": [
+        1560,
+        500
+      ]
     }
   ],
   "connections": {
@@ -288,6 +365,17 @@
       ]
     },
     "Save Outline to DB": {
+      "main": [
+        [
+          {
+            "node": "Restore Outline Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Outline Data": {
       "main": [
         [
           {
@@ -383,6 +471,17 @@
       ]
     },
     "Save Reports to DB": {
+      "main": [
+        [
+          {
+            "node": "Restore For Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore For Package": {
       "main": [
         [
           {

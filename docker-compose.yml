@@ -67,6 +67,18 @@ services:
       timeout: 5s
       retries: 3
 
+  # ═══ X-BIO MQTT Broker (Mosquitto) ═══════════════════════════
+  nexus_broker:
+    image: eclipse-mosquitto:2
+    container_name: nexus_broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./data/mosquitto/config:/mosquitto/config:ro
+    networks:
+      - nexus_network
+    restart: always
+
   nexus_voice:
     build: ./edge-tts-repo
     container_name: nexus_voice
@@ -109,6 +121,11 @@ services:
     container_name: nexus_xbio
     ports:
       - "8080:8080"
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
+    depends_on:
+      - nexus_db
     networks:
       - nexus_network
     restart: always
@@ -126,6 +143,7 @@ services:
     container_name: nexus_dashboard
     ports:
       - "5001:5001"
+      - "8081:8081"  # IoT WebSocket (X-BIO real-time)
     env_file: .env
     environment:
       - OPENAI_BASE_URL=http://nexus_litellm:4000/v1
@@ -135,6 +153,8 @@ services:
       - NERVE_URL=http://nexus_nerve:8200
       # Local sovereignty: use PostgREST when SUPABASE_URL not set
       - SUPABASE_URL=${SUPABASE_URL:-http://nexus_postgrest:3000}
+      - MQTT_BROKER=mqtt://nexus_broker:1883
+      - IOT_WS_PORT=8081
     networks:
       - nexus_network
     depends_on:
@@ -143,6 +163,7 @@ services:
       - nexus_ollama
       - nexus_litellm
       - nexus_nerve
+      - nexus_broker
     restart: always
 
   # Open WebUI - AI Chat Interface
@@ -233,12 +254,19 @@ services:
   shadow7_api:
     build: /root/products/shadow-seven-publisher/backend
     container_name: shadow7_api
+    env_file: .env
     ports:
       - "8002:8002"
     environment:
+      - PORT=8002
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-nexus_mrf_password_2026}@nexus_db:5432/${POSTGRES_DB:-nexus_db}
       - OLLAMA_URL=http://nexus_ollama:11434
       - N8N_WEBHOOK_URL=http://nexus_flow:5678/webhook/shadow7-generate
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - FROM_EMAIL=${FROM_EMAIL:-publisher@mrf103.com}
     volumes:
       - /var/www/shadow7:/var/www/shadow7
     networks:
