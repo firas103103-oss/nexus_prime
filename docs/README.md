@@ -2,12 +2,17 @@
 
 **Start here:** [00_START_HERE_MASTER_GUIDE.md](00_START_HERE_MASTER_GUIDE.md)
 
+**توثيق شامل:** [NEXUS_PRIME_MASTER_DOCUMENTATION.md](NEXUS_PRIME_MASTER_DOCUMENTATION.md) — فهرس موحد، أوامر، منافذ، مراجع
+
 ---
 
 ## Current Documentation (New)
 
 | Document | Purpose |
 |----------|---------|
+| [NEXUS_PRIME_MASTER_DOCUMENTATION.md](NEXUS_PRIME_MASTER_DOCUMENTATION.md) | **توثيق شامل** — Treasure Hunt، Sovereign Entity، MRF Node، مراجع |
+| [MRF_SOVEREIGN_NODE_IMPLEMENTATION.md](MRF_SOVEREIGN_NODE_IMPLEMENTATION.md) | Sovereign Node v1.0 — GalaxyDashboard، X-BIO، SULTAN، المسارات |
+| [SOVEREIGN_AUTONOMOUS_ENTITY_DEPLOYMENT_PLAN.md](SOVEREIGN_AUTONOMOUS_ENTITY_DEPLOYMENT_PLAN.md) | OpenHands، GraphRAG، الكيان المستقل |
 | [00_START_HERE_MASTER_GUIDE.md](00_START_HERE_MASTER_GUIDE.md) | Entry point, deployment 101 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture |
 | [API_REFERENCE.md](API_REFERENCE.md) | API reference (Cortex, Auth, LiteLLM) |
@@ -25,6 +30,7 @@
 | [SECURE_THE_EMPIRE_SSL_AND_LIVE_AUDIT.md](SECURE_THE_EMPIRE_SSL_AND_LIVE_AUDIT.md) | SSL audit |
 | [IDENTITY_COMPLIANCE_PROTOCOL_KIER.md](IDENTITY_COMPLIANCE_PROTOCOL_KIER.md) | Compliance protocol |
 | [LAUNCH_READINESS_CHECKLIST.md](LAUNCH_READINESS_CHECKLIST.md) | Launch checklist |
+| [../products/shadow-seven-publisher/docs/SHADOW7_OMNI_PUBLISHER_FEASIBILITY_REPORT.md](../products/shadow-seven-publisher/docs/SHADOW7_OMNI_PUBLISHER_FEASIBILITY_REPORT.md) | Shadow-7 Omni-Publisher — Feasibility & Microservices Map |
 
 ---
 
